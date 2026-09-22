@@ -871,12 +871,19 @@ def register():
         conn.commit()
         conn.close()
         
-        # Send verification email
-        try:
-            send_verification_email(email, verification_code, fullname)
-        except Exception as e:
-            print(f"Email error: {e}")
+        # ── Send verification email IN BACKGROUND (non-blocking) ──────
+        import threading
+        def send_email_async():
+            try:
+                send_verification_email(email, verification_code, fullname)
+            except Exception as e:
+                print(f"Email error (background): {e}")
         
+        email_thread = threading.Thread(target=send_email_async)
+        email_thread.daemon = True
+        email_thread.start()
+        
+        # Return response AGAD — hindi nag-aantay ng email
         return jsonify({
             "success": True, 
             "message": "Registration successful! Please check your email for the verification code.",
@@ -1074,11 +1081,17 @@ def resend_verification():
     conn.commit()
     conn.close()
     
-    # Send email
-    try:
-        send_verification_email(email, verification_code, user["fullname"])
-    except Exception as e:
-        print(f"Email error: {e}")
+    # ── Send email IN BACKGROUND (non-blocking) ──────────────────────
+    import threading
+    def send_email_async():
+        try:
+            send_verification_email(email, verification_code, user["fullname"])
+        except Exception as e:
+            print(f"Email error (background): {e}")
+    
+    email_thread = threading.Thread(target=send_email_async)
+    email_thread.daemon = True
+    email_thread.start()
     
     return jsonify({"success": True, "message": "New verification code sent to your email."})
 
@@ -2938,7 +2951,6 @@ def get_cancelled_appointments_count():
     conn.close()
     return jsonify({"success": True, "count": count})
 
-# ── FORGOT PASSWORD ROUTES ────────────────────────────────────────────
 @app.route('/forgot-password', methods=["GET", "POST"])
 def forgot_password():
     if request.method == "POST":
@@ -2956,8 +2968,28 @@ def forgot_password():
                 (email, token, expires_at)
             )
             conn.commit()
-            reset_link = f"http://localhost:5000/reset-password?token={token}"
             conn.close()
+            
+            # ── Build reset link dynamically based on environment ─────
+            # Sa production (Render), gagamitin ang actual domain
+            # Sa local, gagamitin ang localhost
+            base_url = request.host_url.rstrip('/')
+            reset_link = f"{base_url}/reset-password?token={token}"
+            
+            # ── Send reset email IN BACKGROUND (non-blocking) ─────────
+            # (Kung may email sending function ka para sa reset password,
+            #  i-uncomment ito at idagdag ang function call)
+            # import threading
+            # def send_email_async():
+            #     try:
+            #         send_password_reset_email(email, reset_link)
+            #     except Exception as e:
+            #         print(f"Email error (background): {e}")
+            # 
+            # email_thread = threading.Thread(target=send_email_async)
+            # email_thread.daemon = True
+            # email_thread.start()
+            
             return jsonify({
                 "success": True,
                 "message": "If that email exists, a reset link has been generated.",
