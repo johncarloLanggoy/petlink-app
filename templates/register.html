@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register — PetLink</title>
+  <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='images/logo.jpg') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+  <style>
+    /* ── REGISTER PAGE SPECIFIC STYLES ────────────────────────────── */
+    .card {
+      max-width: 550px;
+    }
+
+    /* ── LOGO IMAGE ──────────────────────────────────────────────── */
+    .brand-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+
+    .brand-logo {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      border-radius: 50%;
+      transition: transform 0.3s ease;
+    }
+
+    .brand-logo:hover {
+      transform: scale(1.05) rotate(3deg);
+    }
+
+    .strength-wrap {
+      margin-top: 8px;
+    }
+    
+    .strength-bar-track {
+      height: 4px;
+      background: #d4e5c4;
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    
+    .strength-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      width: 0%;
+      transition: width 0.35s ease, background 0.35s ease;
+    }
+    
+    .strength-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #94a387;
+      transition: color 0.3s;
+    }
+    
+    .req-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 8px;
+    }
+    
+    .req-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #94a387;
+      transition: all 0.3s ease;
+    }
+    
+    .req-item.met {
+      color: #10b981;
+      transform: translateX(5px);
+    }
+    
+    .req-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid #94a387;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      flex-shrink: 0;
+      transition: all 0.3s ease;
+      color: transparent;
+    }
+    
+    .req-item.met .req-icon {
+      background: #10b981;
+      border-color: #10b981;
+      color: #fff;
+      transform: scale(1.1);
+    }
+    
+    .helper-text {
+      font-size: 11px;
+      color: #94a387;
+      margin-top: 3px;
+      display: block;
+    }
+    
+    textarea {
+      width: 100%;
+      padding: 12px 12px 12px 40px;
+      background: #f7fbf3;
+      border: 2px solid #d4e5c4;
+      border-radius: 12px;
+      color: #2d3e1f;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      font-family: 'Poppins', sans-serif;
+      resize: vertical;
+      min-height: 60px;
+    }
+    
+    textarea:focus {
+      outline: none;
+      border-color: #7ba05b;
+      box-shadow: 0 0 0 4px rgba(123, 160, 91, 0.15);
+      background: #ffffff;
+    }
+    
+    textarea::placeholder {
+      color: #94a387;
+    }
+    
+    .btn-secondary {
+      background: #f0f7eb;
+      color: #4a5a3f;
+      padding: 14px;
+      border: 2px solid #d4e5c4;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+      width: 100%;
+    }
+    
+    .btn-secondary:hover {
+      background: #d4e5c4;
+      transform: translateY(-2px);
+    }
+    
+    @media (max-width: 480px) {
+      .card {
+        padding: 20px 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Floating particles -->
+  <div class="particles" id="particles"></div>
+
+  <div class="card">
+    <div class="brand">
+      <div class="brand-icon">
+        <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="PetLink Logo" class="brand-logo">
+      </div>
+      <span class="brand-name">Petlink Serrano St.</span>
+    </div>
+
+    <h2>Create Account</h2>
+    <p class="subtitle">Register as a new customer</p>
+
+    <div class="form-stack" id="registerForm">
+      <!-- FULL NAME -->
+      <div class="field">
+        <label for="fullname"><i class="fas fa-user" style="margin-right: 6px; color: #7ba05b;"></i> Full Name <span style="color: #ef4444;">*</span></label>
+        <div class="input-wrap">
+          <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <input type="text" id="fullname" placeholder="Enter your full name" autocomplete="name" required>
+        </div>
+      </div>
+
+      <!-- EMAIL -->
+      <div class="field">
+        <label for="email"><i class="fas fa-envelope" style="margin-right: 6px; color: #7ba05b;"></i> Email Address <span style="color: #ef4444;">*</span></label>
+        <div class="input-wrap">
+          <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+          <input type="email" id="email" placeholder="Enter email address" autocomplete="email" required>
+        </div>
+      </div>
+
+      <!-- PHONE NUMBER -->
+      <div class="field">
+        <label for="phone"><i class="fas fa-phone" style="margin-right: 6px; color: #7ba05b;"></i> Phone Number</label>
+        <div class="input-wrap">
+          <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+          </svg>
+          <input type="tel" id="phone" placeholder="e.g., 09171234567" autocomplete="tel" maxlength="11" inputmode="numeric" pattern="[0-9]{11}" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)">
+        </div>
+        <span class="helper-text">Format: 09XXXXXXXXX (11 digits) or landline</span>
+      </div>
+
+      <!-- ADDRESS -->
+      <div class="field">
+        <label for="address"><i class="fas fa-map-pin" style="margin-right: 6px; color: #7ba05b;"></i> Address</label>
+        <div class="input-wrap" style="align-items: flex-start; padding-top: 6px;">
+          <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="top: 12px;">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          <textarea id="address" placeholder="Enter complete address" rows="2"></textarea>
+        </div>
+      </div>
+
+      <!-- PASSWORD -->
+      <div class="field">
+        <label for="password"><i class="fas fa-lock" style="margin-right: 6px; color: #7ba05b;"></i> Password <span style="color: #ef4444;">*</span></label>
+        <div class="input-wrap">
+          <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <input type="password" id="password" placeholder="Create a strong password" autocomplete="new-password" required style="padding-right: 42px;" oninput="checkStrength(this.value)">
+          <button type="button" class="eye-toggle" onclick="toggleEye('password', this)" aria-label="Toggle password visibility">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="strength-wrap">
+          <div class="strength-bar-track">
+            <div class="strength-bar-fill" id="strengthBar"></div>
+          </div>
+          <span class="strength-label" id="strengthLabel">Enter a password</span>
+        </div>
+
+        <div class="req-list">
+          <div class="req-item" id="req-len">
+            <div class="req-icon"><i class="fas fa-check"></i></div> At least 8 characters
+          </div>
+          <div class="req-item" id="req-upper">
+            <div class="req-icon"><i class="fas fa-check"></i></div> One uppercase letter (A–Z)
+          </div>
+          <div class="req-item" id="req-lower">
+            <div class="req-icon"><i class="fas fa-check"></i></div> One lowercase letter (a–z)
+          </div>
+          <div class="req-item" id="req-num">
+            <div class="req-icon"><i class="fas fa-check"></i></div> One number (0–9)
+          </div>
+          <div class="req-item" id="req-special">
+            <div class="req-icon"><i class="fas fa-check"></i></div> One special character (!@#$%^&*)
+          </div>
+        </div>
+      </div>
+
+      <!-- CONFIRM PASSWORD -->
+      <div class="field">
+        <label for="confirm_password"><i class="fas fa-check-circle" style="margin-right: 6px; color: #7ba05b;"></i> Confirm Password <span style="color: #ef4444;">*</span></label>
+        <div class="input-wrap">
+          <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          <input type="password" id="confirm_password" placeholder="Repeat your password" autocomplete="new-password" required style="padding-right: 42px;">
+          <button type="button" class="eye-toggle" onclick="toggleEye('confirm_password', this)" aria-label="Toggle confirm password visibility">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="registerBtn" onclick="handleRegister()">
+        <span id="btnText"><i class="fas fa-user-plus"></i> Create Account</span>
+      </button>
+    </div>
+
+    <div id="message" class="message"></div>
+
+    <div class="card-footer">
+      <span style="color: #94a387; font-size: 14px;">Already have an account? </span>
+      <a href="/login" style="color: #7ba05b; font-weight: 700; font-size: 14px;">
+        <i class="fas fa-sign-in-alt"></i> Sign In
+      </a>
+      <br><br>
+      <a href="/" style="color: #7ba05b; font-weight: 600; font-size: 15px; display: inline-flex; align-items: center; gap: 8px;">
+        <i class="fas fa-arrow-left"></i> Back to Home
+      </a>
+    </div>
+  </div>
+
+  <script>
+    // ── Create floating particles ──────────────────────────────────
+    function createParticles() {
+      const particlesContainer = document.getElementById('particles');
+      for (let i = 0; i < 50; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+        const size = Math.random() * 5 + 2;
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        particle.style.left = `${Math.random() * 100}%`;
+        particle.style.top = `${Math.random() * 100}%`;
+        particle.style.animationDelay = `${Math.random() * 15}s`;
+        particle.style.animationDuration = `${Math.random() * 10 + 10}s`;
+        particlesContainer.appendChild(particle);
+      }
+    }
+    createParticles();
+
+    // ── Password Strength Checker ──────────────────────────────────
+    const rules = [
+      { id: 'req-len',     test: p => p.length >= 8 },
+      { id: 'req-upper',   test: p => /[A-Z]/.test(p) },
+      { id: 'req-lower',   test: p => /[a-z]/.test(p) },
+      { id: 'req-num',     test: p => /[0-9]/.test(p) },
+      { id: 'req-special', test: p => /[^A-Za-z0-9]/.test(p) },
+    ];
+
+    const levels = [
+      { label: 'Very weak',  color: '#ef4444', pct: '20%'  },
+      { label: 'Weak',       color: '#f97316', pct: '40%'  },
+      { label: 'Fair',       color: '#eab308', pct: '60%'  },
+      { label: 'Strong',     color: '#22c55e', pct: '80%'  },
+      { label: 'Very strong',color: '#34d399', pct: '100%' },
+    ];
+
+    function checkStrength(password) {
+      const metCount = rules.filter(r => r.test(password)).length;
+
+      rules.forEach(r => {
+        const el = document.getElementById(r.id);
+        el.classList.toggle('met', r.test(password));
+      });
+
+      const bar = document.getElementById('strengthBar');
+      const label = document.getElementById('strengthLabel');
+
+      if (!password) {
+        bar.style.width = '0%';
+        label.textContent = 'Enter a password';
+        label.style.color = '#94a387';
+        return;
+      }
+
+      const level = levels[metCount - 1] || levels[0];
+      bar.style.width = level.pct;
+      bar.style.background = level.color;
+      label.textContent = level.label;
+      label.style.color = level.color;
+    }
+
+    function isStrongEnough(password) {
+      return rules.every(r => r.test(password));
+    }
+
+    // ── Toggle Password Visibility ──────────────────────────────────
+    function toggleEye(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const isHidden = input.type === 'password';
+      input.type = isHidden ? 'text' : 'password';
+      btn.innerHTML = isHidden
+        ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`
+        : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+    }
+
+    // ── Validation Functions ──────────────────────────────────────
+    function isValidEmail(email) {
+      const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      return pattern.test(email);
+    }
+
+    function isValidPhone(phone) {
+      if (!phone) return true;
+      const clean = phone.replace(/[\s\-\(\)]/g, '');
+      return /^(09|\+639|9)\d{9}$/.test(clean) || /^[0-9]{2,8}$/.test(clean);
+    }
+
+    // ── Handle Registration ────────────────────────────────────────
+    async function handleRegister() {
+      const fullname = document.getElementById('fullname').value.trim();
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      const phone = document.getElementById('phone').value.trim();
+      const address = document.getElementById('address').value.trim();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirm_password').value;
+      const msg = document.getElementById('message');
+      const btn = document.getElementById('registerBtn');
+      const btnText = document.getElementById('btnText');
+      
+      const show = (text, type) => { 
+        msg.textContent = text; 
+        msg.className = 'message show ' + type; 
+        setTimeout(() => {
+          msg.classList.remove('show');
+        }, 5000);
+      };
+
+      if (!fullname) return show('Please enter your full name.', 'error');
+      if (!email || !password) return show('Email and password are required.', 'error');
+      if (!isValidEmail(email)) return show('Please enter a valid email address.', 'error');
+      if (phone) {
+        if (!/^[0-9]+$/.test(phone)) return show('Phone number must contain digits only.', 'error');
+        if (phone.length !== 11) return show('Phone number must be exactly 11 digits (e.g., 09171234567).', 'error');
+        if (!phone.startsWith('09')) return show('Phone number must start with 09 (e.g., 09171234567).', 'error');
+      }
+      if (!isStrongEnough(password)) return show('Password does not meet all requirements.', 'error');
+      if (password !== confirmPassword) return show('Passwords do not match.', 'error');
+
+      btnText.innerHTML = 'Creating account... <span class="loading"></span>';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fullname, email, password, phone, address })
+        });
+        const data = await res.json();
+        
+        btnText.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+        btn.disabled = false;
+        
+        if (data.success) {
+          if (data.requires_verification) {
+            // Store email and redirect to verification page
+            const emailToVerify = data.email;
+            localStorage.setItem('pendingVerificationEmail', emailToVerify);
+            sessionStorage.setItem('pendingVerificationEmail', emailToVerify);
+            show(data.message, 'success');
+            setTimeout(() => {
+              window.location.href = `/verification?email=${encodeURIComponent(emailToVerify)}`;
+            }, 1000);
+          } else {
+            show(data.message, 'success');
+            setTimeout(() => {
+              window.location.href = '/staff?tab=customers';
+            }, 1500);
+          }
+        } else {
+          show(data.message, 'error');
+        }
+      } catch {
+        btnText.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+        btn.disabled = false;
+        show('Something went wrong. Please try again.', 'error');
+      }
+    }
+
+    // ── Enter key support ──────────────────────────────────────────
+    document.addEventListener('keydown', e => { 
+      if (e.key === 'Enter') handleRegister(); 
+    });
+    
+    // ── Input focus animations ──────────────────────────────────────
+    const inputs = document.querySelectorAll('input, textarea');
+    inputs.forEach(input => {
+      input.addEventListener('focus', () => {
+        input.parentElement.style.transform = 'scale(1.01)';
+      });
+      input.addEventListener('blur', () => {
+        input.parentElement.style.transform = 'scale(1)';
+      });
+    });
+
+    // ── Make functions globally available ──────────────────────────
+    window.handleRegister = handleRegister;
+    window.checkStrength = checkStrength;
+    window.toggleEye = toggleEye;
+  </script>
+</body>
+</html>

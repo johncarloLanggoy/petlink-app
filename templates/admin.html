@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - PetLink</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='images/logo.jpg') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- ⭐ PRE-APPLY THEME BAGO MAG-RENDER para walang flash -->
+  <script>
+    (function() {
+      try {
+        const savedTheme = localStorage.getItem('adminTheme');
+        const html = document.documentElement;
+        if (savedTheme === 'light') {
+          html.classList.add('light-theme');
+          html.classList.remove('dark-theme');
+        } else {
+          html.classList.add('dark-theme');
+          html.classList.remove('light-theme');
+        }
+      } catch (e) {}
+    })();
+  </script>
+
+  <style>
+    .user-filter-btn {
+      transition: all 0.3s ease !important;
+      font-family: 'Poppins', sans-serif !important;
+    }
+    .user-filter-btn:hover {
+      transform: translateY(-2px) !important;
+    }
+    .user-filter-btn.active {
+      background: #38bdf8 !important;
+      color: #0f172a !important;
+      border: none !important;
+    }
+    .user-filter-btn:not(.active) {
+      background: transparent !important;
+      color: #94a3b8 !important;
+      border: 1px solid #334155 !important;
+    }
+    .user-filter-btn:not(.active):hover {
+      border-color: #38bdf8 !important;
+      color: #38bdf8 !important;
+      background: rgba(56, 189, 248, 0.05) !important;
+    }
+
+    #searchWrapper,
+    #adminSearchWrapper {
+      transition: all 0.3s ease !important;
+    }
+    #searchWrapper:focus-within,
+    #adminSearchWrapper:focus-within {
+      border-color: #38bdf8 !important;
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2) !important;
+    }
+    #adminClearSearchBtn,
+    #clearSearchBtn {
+      transition: all 0.3s ease !important;
+    }
+    #adminClearSearchBtn:hover,
+    #clearSearchBtn:hover {
+      color: #ef4444 !important;
+      transform: scale(1.2) !important;
+    }
+    #adminSearchResultCount,
+    #userResultCount {
+      font-variant-numeric: tabular-nums;
+      color: #64748b;
+      font-size: 11px;
+    }
+
+    .role-badge.role-admin { background: #8b5cf6 !important; color: #fff !important; }
+    .role-badge.role-staff { background: #f59e0b !important; color: #0f172a !important; }
+    .role-badge.role-vet { background: #3b82f6 !important; color: #fff !important; }
+    .role-badge.role-user { background: #10b981 !important; color: #fff !important; }
+
+    .ml-action-btn {
+      transition: all 0.3s ease !important;
+    }
+    .ml-action-btn:hover {
+      transform: translateY(-2px) !important;
+    }
+
+    /* ── SIDEBAR LOGO IMAGE ────────────────────────────────────────── */
+    .sidebar-logo h2 {
+      display: flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+    }
+
+    .sidebar-logo-img {
+      width: 36px !important;
+      height: 36px !important;
+      object-fit: contain !important;
+      border-radius: 50% !important;
+      flex-shrink: 0 !important;
+    }
+
+    .sidebar-logo-text {
+      font-size: 20px !important;
+      font-weight: 700 !important;
+      white-space: nowrap !important;
+    }
+
+    /* ── NAV ICONS STYLING ─────────────────────────────────────────── */
+    .sidebar-nav a .nav-icon i {
+      font-size: 18px !important;
+    }
+
+    /* ── STAT CARD ICONS ──────────────────────────────────────────── */
+    .stat-card .stat-icon i {
+      font-size: 32px !important;
+      color: #7ba05b !important;
+    }
+    body.dark-theme .stat-card .stat-icon i {
+      color: #38bdf8 !important;
+    }
+
+    /* ── QUICK STAT ICONS ─────────────────────────────────────────── */
+    .quick-stat-icon i {
+      color: #7ba05b !important;
+    }
+    body.dark-theme .quick-stat-icon i {
+      color: #38bdf8 !important;
+    }
+
+    /* ── DASH NAV BUTTON ICONS ────────────────────────────────────── */
+    .dash-nav-btn i {
+      margin-right: 6px !important;
+    }
+
+    @media (max-width: 768px) {
+      .user-filter-btn {
+        font-size: 11px !important;
+        padding: 6px 14px !important;
+      }
+      #searchWrapper {
+        min-width: 140px !important;
+        width: 100% !important;
+      }
+      .user-filter-tabs {
+        flex-wrap: wrap !important;
+      }
+      #adminSearchWrapper {
+        width: 100% !important;
+      }
+    }
+    @media (max-width: 480px) {
+      .user-filter-btn {
+        font-size: 10px !important;
+        padding: 4px 10px !important;
+      }
+    }
+  </style>
+</head>
+<body class="dark-theme">
+
+<button class="mobile-menu-btn" onclick="toggleMobileSidebar()"><i class="fas fa-bars"></i></button>
+
+<!-- ── SIDEBAR ──────────────────────────────────────────────────────── -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">
+      <h2 onclick="window.location.href='/'">
+        <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="PetLink Logo" class="sidebar-logo-img">
+        <span class="sidebar-logo-text">Petlink Serrano St.</span>
+      </h2>
+    </div>
+  </div>
+
+  <div class="sidebar-nav">
+    <div class="nav-label">Navigation</div>
+
+    <a href="#" onclick="switchSection('dashboard'); return false;" class="active" id="navDashboard">
+      <span class="nav-icon"><i class="fas fa-chart-pie"></i></span>
+      <span>Dashboard</span>
+    </a>
+
+    <a href="#" onclick="switchSection('users'); return false;" id="navUsers">
+      <span class="nav-icon"><i class="fas fa-users"></i></span>
+      <span>User Management</span>
+    </a>
+
+    <a href="#" onclick="switchSection('messages'); return false;" id="navMessages">
+        <span class="nav-icon"><i class="fas fa-envelope"></i></span>
+        <span>Messages</span>
+        <span class="badge badge-unread" id="unreadBadge" style="margin-left: auto; background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 2px 8px; border-radius: 10px; font-size: 10px; display: none; animation: pulse 1.5s ease-in-out infinite;">0</span>
+    </a>
+
+    <div class="nav-divider"></div>
+
+    <a href="/">
+      <span class="nav-icon"><i class="fas fa-home"></i></span>
+      <span>Home</span>
+    </a>
+  </div>
+
+  <div class="user-info">
+    <p><i class="fas fa-user-circle"></i> {{ session.get('username', 'admin@petlink.com') }}</p>
+    <p class="role"><i class="fas fa-tag"></i> ADMIN</p>
+  </div>
+
+  <!-- ── THEME TOGGLE ──────────────────────────────────────────────── -->
+  <div style="margin-top: 15px; display: flex; justify-content: center;">
+    <div class="theme-toggle-wrapper">
+      <span class="theme-label"><i class="fas fa-moon"></i> Theme</span>
+      <label class="theme-toggle">
+        <input type="checkbox" id="themeToggle" onchange="toggleAdminTheme()">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <button class="logout-btn" onclick="showLogoutModal()">
+    <span><i class="fas fa-sign-out-alt"></i></span>
+    <span>Logout</span>
+  </button>
+</div>
+
+<!-- ── MAIN CONTENT ────────────────────────────────────────────────── -->
+<div class="main">
+  <!-- ── DASHBOARD SECTION ──────────────────────────────────────────── -->
+  <div id="section-dashboard" class="section-content">
+    <div class="main-header">
+      <h1><i class="fas fa-chart-pie"></i> Admin Dashboard</h1>
+      <p>Overview of system analytics, users, and performance</p>
+    </div>
+
+    <!-- ML Actions -->
+    <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 25px;">
+        <button onclick="trainMLModel()" class="ml-action-btn train-btn">
+            <i class="fas fa-robot"></i> Train AI Model
+        </button>
+        <button onclick="checkMLStatus()" class="ml-action-btn status-btn">
+            <i class="fas fa-chart-bar"></i> Model Status
+        </button>
+        <button onclick="refreshStats()" class="ml-action-btn refresh-btn">
+            <i class="fas fa-sync-alt"></i> Refresh Stats
+        </button>
+    </div>
+
+    <!-- STATISTICS CARDS -->
+    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; margin-bottom: 30px;">
+      <div class="stat-card" style="background: #1e293b; padding: 25px 20px; border-radius: 16px; border: 1px solid #334155; text-align: center; border-left: 3px solid #38bdf8;">
+        <div class="stat-icon" style="font-size: 32px; margin-bottom: 10px;"><i class="fas fa-users"></i></div>
+        <div class="stat-number" style="font-size: 38px; font-weight: 700; color: #38bdf8;" id="totalUsers">0</div>
+        <div class="stat-label" style="color: #94a3b8; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Total Users</div>
+      </div>
+      <div class="stat-card" style="background: #1e293b; padding: 25px 20px; border-radius: 16px; border: 1px solid #334155; text-align: center; border-left: 3px solid #10b981;">
+        <div class="stat-icon" style="font-size: 32px; margin-bottom: 10px;"><i class="fas fa-dog"></i></div>
+        <div class="stat-number" style="font-size: 38px; font-weight: 700; color: #10b981;" id="totalPets">0</div>
+        <div class="stat-label" style="color: #94a3b8; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Total Pets</div>
+      </div>
+      <div class="stat-card" style="background: #1e293b; padding: 25px 20px; border-radius: 16px; border: 1px solid #334155; text-align: center; border-left: 3px solid #8b5cf6;">
+        <div class="stat-icon" style="font-size: 32px; margin-bottom: 10px;"><i class="fas fa-calendar-check"></i></div>
+        <div class="stat-number" style="font-size: 38px; font-weight: 700; color: #8b5cf6;" id="totalAppointments">0</div>
+        <div class="stat-label" style="color: #94a3b8; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Total Appointments</div>
+      </div>
+      <div class="stat-card" style="background: #1e293b; padding: 25px 20px; border-radius: 16px; border: 1px solid #334155; text-align: center; border-left: 3px solid #f59e0b;">
+        <div class="stat-icon" style="font-size: 32px; margin-bottom: 10px;"><i class="fas fa-user-tie"></i></div>
+        <div class="stat-number" style="font-size: 38px; font-weight: 700; color: #f59e0b;" id="totalStaff">0</div>
+        <div class="stat-label" style="color: #94a3b8; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Staff Members</div>
+      </div>
+      <div class="stat-card" style="background: #1e293b; padding: 25px 20px; border-radius: 16px; border: 1px solid #334155; text-align: center; border-left: 3px solid #10b981;">
+        <div class="stat-icon" style="font-size: 32px; margin-bottom: 10px;"><i class="fas fa-stethoscope"></i></div>
+        <div class="stat-number" style="font-size: 38px; font-weight: 700; color: #10b981;" id="totalVets">0</div>
+        <div class="stat-label" style="color: #94a3b8; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Veterinarians</div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD TOP NAV -->
+    <div style="background: #1e293b; border-radius: 16px; padding: 8px 20px; margin-bottom: 25px; border: 1px solid #334155; display: flex; flex-wrap: wrap; gap: 5px; align-items: center;">
+      <button class="dash-nav-btn active" data-chart="trends" onclick="switchChart('trends')"><i class="fas fa-chart-line"></i> Appointment Trends</button>
+      <button class="dash-nav-btn" data-chart="pettypes" onclick="switchChart('pettypes')"><i class="fas fa-paw"></i> Pet Types</button>
+      <button class="dash-nav-btn" data-chart="status" onclick="switchChart('status')"><i class="fas fa-chart-bar"></i> Appointment Status</button>
+      <button class="dash-nav-btn" data-chart="growth" onclick="switchChart('growth')"><i class="fas fa-chart-line"></i> Monthly Growth</button>
+      <button class="dash-nav-btn" data-chart="users" onclick="switchChart('users')"><i class="fas fa-users"></i> User Growth</button>
+      <div style="flex: 1;"></div>
+      <span style="color: #64748b; font-size: 12px;" id="currentChartLabel"><i class="fas fa-chart-line"></i> Appointment Trends</span>
+    </div>
+
+    <!-- CHART CONTAINERS -->
+    <div id="chart-trends" class="chart-container">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h3 style="color: #38bdf8; font-size: 18px; margin: 0;"><i class="fas fa-chart-line"></i> Appointment Trends</h3>
+            <span style="color: #94a3b8; font-size: 12px;" id="adminWeekLabel">Current Week</span>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button onclick="changeAdminWeek(-1)" class="chart-nav-btn">
+              <i class="fas fa-chevron-left"></i> Previous
+            </button>
+            <button onclick="changeAdminWeek(0)" class="chart-nav-btn today">
+              Today
+            </button>
+            <button onclick="changeAdminWeek(1)" class="chart-nav-btn">
+              Next <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+        <div style="height: 300px; position: relative;">
+          <canvas id="appointmentTrendChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div id="chart-pettypes" class="chart-container" style="display: none;">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h3 style="color: #38bdf8; font-size: 18px; margin: 0;"><i class="fas fa-paw"></i> Pet Types</h3>
+          <span style="color: #94a3b8; font-size: 12px;">Distribution</span>
+        </div>
+        <div style="height: 300px; position: relative; display: flex; justify-content: center; align-items: center;">
+          <canvas id="petTypeChart" style="max-width: 400px; max-height: 300px;"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div id="chart-status" class="chart-container" style="display: none;">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h3 style="color: #38bdf8; font-size: 18px; margin: 0;"><i class="fas fa-chart-bar"></i> Appointment Status</h3>
+          <span style="color: #94a3b8; font-size: 12px;">Overview</span>
+        </div>
+        <div style="height: 300px; position: relative;">
+          <canvas id="appointmentStatusChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div id="chart-growth" class="chart-container" style="display: none;">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h3 style="color: #38bdf8; font-size: 18px; margin: 0;"><i class="fas fa-chart-line"></i> Monthly Growth</h3>
+          <span style="color: #94a3b8; font-size: 12px;">This year</span>
+        </div>
+        <div style="height: 300px; position: relative;">
+          <canvas id="monthlyGrowthChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div id="chart-users" class="chart-container" style="display: none;">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h3 style="color: #38bdf8; font-size: 18px; margin: 0;"><i class="fas fa-users"></i> User Growth</h3>
+          <span style="color: #94a3b8; font-size: 12px;">This year</span>
+        </div>
+        <div style="height: 300px; position: relative;">
+          <canvas id="userGrowthChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUICK STATS -->
+    <div class="quick-stats-grid">
+      <div class="quick-stat-card">
+        <div class="quick-stat-icon"><i class="fas fa-chart-bar"></i></div>
+        <div class="quick-stat-number" style="color: #38bdf8;" id="dailyAverage">0</div>
+        <div class="quick-stat-label">Avg. Appointments/Day</div>
+      </div>
+      <div class="quick-stat-card">
+        <div class="quick-stat-icon"><i class="fas fa-dog"></i></div>
+        <div class="quick-stat-number" style="color: #10b981;" id="newPetsThisMonth">0</div>
+        <div class="quick-stat-label">New Pets This Month</div>
+      </div>
+      <div class="quick-stat-card">
+        <div class="quick-stat-icon"><i class="fas fa-users"></i></div>
+        <div class="quick-stat-number" style="color: #8b5cf6;" id="newUsersThisMonth">0</div>
+        <div class="quick-stat-label">New Users This Month</div>
+      </div>
+      <div class="quick-stat-card">
+        <div class="quick-stat-icon"><i class="fas fa-check-circle"></i></div>
+        <div class="quick-stat-number" style="color: #f59e0b;" id="completionRate">0%</div>
+        <div class="quick-stat-label">Appointment Completion Rate</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── USER MANAGEMENT SECTION ────────────────────────────────────── -->
+  <div id="section-users" class="section-content" style="display: none;">
+    <div class="main-header">
+      <h1><i class="fas fa-users"></i> User Management</h1>
+      <p>Manage all registered users, filter by role, and search for specific users</p>
+    </div>
+
+    <div class="card">
+      <div class="user-management-bar">
+        <div class="user-filter-tabs">
+          <button class="user-filter-btn active" data-filter="all" onclick="filterUsers('all')"><i class="fas fa-list"></i> All Users</button>
+          <button class="user-filter-btn" data-filter="user" onclick="filterUsers('user')"><i class="fas fa-user"></i> Customers</button>
+          <button class="user-filter-btn" data-filter="staff" onclick="filterUsers('staff')"><i class="fas fa-user-tie"></i> Staff</button>
+          <button class="user-filter-btn" data-filter="vet" onclick="filterUsers('vet')"><i class="fas fa-stethoscope"></i> Vets</button>
+          <button class="user-filter-btn" data-filter="admin" onclick="filterUsers('admin')"><i class="fas fa-user-shield"></i> Admins</button>
+        </div>
+
+        <div style="flex: 1;"></div>
+
+        <div class="search-wrapper" id="searchWrapper">
+          <span class="search-icon"><i class="fas fa-search"></i></span>
+          <input type="text" id="userSearchInput" placeholder="Search by name or email..." class="search-input">
+          <button onclick="clearSearch()" id="clearSearchBtn" class="clear-search-btn"><i class="fas fa-times"></i></button>
+        </div>
+
+        <span id="userResultCount" class="result-count">0 users</span>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Address</th>
+              <th>Role</th>
+              <th>Created At</th>
+            </tr>
+          </thead>
+          <tbody id="registeredUsersTable"></tbody>
+        </table>
+      </div>
+
+      <div id="userEmptyState" class="empty-state" style="display: none;">
+        <div style="font-size: 48px; margin-bottom: 10px;"><i class="fas fa-search"></i></div>
+        <p style="font-size: 16px;">No users found matching your search.</p>
+        <p style="font-size: 13px;">Try adjusting your filters or search terms.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MESSAGES SECTION ───────────────────────────────── -->
+  <div id="section-messages" class="section-content" style="display: none;">
+      <div class="main-header">
+          <h1><i class="fas fa-comments"></i> Message Center</h1>
+          <p>View and reply to customer messages</p>
+      </div>
+
+      <div class="card">
+          <div class="card-header">
+              <h2><i class="fas fa-comments"></i> Customer Messages</h2>
+              <span id="unreadCountDisplay" style="color: #94a3b8; font-size: 14px;">0 unread</span>
+          </div>
+
+          <div class="messages-grid">
+              <div class="customer-list-wrapper">
+                  <div class="customer-list-header">
+                      <h4>Customers</h4>
+                      <div class="search-wrapper" id="adminSearchWrapper" style="margin-top: 8px;">
+                          <span class="search-icon"><i class="fas fa-search"></i></span>
+                          <input type="text" id="adminMessageSearch" placeholder="Search customers..." class="search-input">
+                          <button onclick="clearAdminMessageSearch()" id="adminClearSearchBtn" class="clear-search-btn"><i class="fas fa-times"></i></button>
+                      </div>
+                      <span id="adminSearchResultCount" class="result-count" style="display: block; margin-top: 4px;">0 customers</span>
+                  </div>
+                  <div id="adminCustomerList" class="customer-list">
+                      <div style="padding: 20px; text-align: center; color: #64748b;">
+                          Loading customers...
+                      </div>
+                  </div>
+              </div>
+
+              <div class="conversation-wrapper">
+                  <div id="adminConversationHeader" class="conversation-header">
+                      <span>Select a customer to view messages</span>
+                  </div>
+                  <div id="adminConversationMessages" class="conversation-messages">
+                      <div class="empty-conversation">
+                          <i class="fas fa-comment" style="font-size: 32px; display: block; margin-bottom: 10px;"></i>
+                          No conversation selected
+                      </div>
+                  </div>
+                  <div class="conversation-footer">
+                      <form id="adminReplyForm" onsubmit="sendAdminReply(event)">
+                          <input type="hidden" id="adminReplyCustomerEmail">
+                          <input type="text" id="adminReplyMessage" placeholder="Type your reply..." required>
+                          <button type="submit"><i class="fas fa-paper-plane"></i> Send</button>
+                      </form>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+</div>
+
+<!-- ── MESSAGE ──────────────────────────────────────────────────────── -->
+<div id="message" class="message"></div>
+
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+<script>
+    // ── THEME TOGGLE FUNCTION PARA SA ADMIN ──────────────────────────
+    function toggleAdminTheme() {
+        const body = document.body;
+        const html = document.documentElement;
+        const toggle = document.getElementById('themeToggle');
+
+        if (toggle.checked) {
+            body.classList.remove('light-theme');
+            body.classList.add('dark-theme');
+            html.classList.remove('light-theme');
+            html.classList.add('dark-theme');
+            localStorage.setItem('adminTheme', 'dark');
+        } else {
+            body.classList.remove('dark-theme');
+            body.classList.add('light-theme');
+            html.classList.remove('dark-theme');
+            html.classList.add('light-theme');
+            localStorage.setItem('adminTheme', 'light');
+        }
+    }
+
+    // ── RESTORE THEME PREFERENCE ──────────────────────────────────────
+    function restoreAdminTheme() {
+        const savedTheme = localStorage.getItem('adminTheme');
+        const toggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+
+        if (savedTheme === 'light') {
+            if (toggle) toggle.checked = false;
+            document.body.classList.add('light-theme');
+            document.body.classList.remove('dark-theme');
+            html.classList.add('light-theme');
+            html.classList.remove('dark-theme');
+        } else {
+            if (toggle) toggle.checked = true;
+            document.body.classList.add('dark-theme');
+            document.body.classList.remove('light-theme');
+            html.classList.add('dark-theme');
+            html.classList.remove('light-theme');
+        }
+    }
+
+    // ── INITIALIZE ────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', function() {
+        restoreAdminTheme();
+
+        if (typeof connectAdminSocket === 'function') {
+            connectAdminSocket();
+        }
+
+        setTimeout(function() {
+            if (typeof loadUnreadCount === 'function') {
+                loadUnreadCount();
+            }
+        }, 500);
+
+        const searchInput = document.getElementById('userSearchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', searchUsers);
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') clearSearch();
+            });
+        }
+
+        const searchWrapper = document.getElementById('searchWrapper');
+        if (searchWrapper) {
+            searchWrapper.addEventListener('click', function() {
+                const input = document.getElementById('userSearchInput');
+                if (input) input.focus();
+            });
+        }
+
+        if (typeof initAdminMessageSearch === 'function') {
+            initAdminMessageSearch();
+        }
+    });
+
+    // ── ML FUNCTIONS ──────────────────────────────────────────────────
+    async function trainMLModel() {
+        if (!confirm('Train the AI recommendation model? This will analyze all pet data.')) return;
+
+        const btn = document.querySelector('button[onclick="trainMLModel()"]');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Training...';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch('/api/ml/train');
+            const data = await res.json();
+
+            if (data.success) {
+                showToast('✅ ' + data.message + ' Accuracy: ' + data.accuracy, 'success');
+                loadAdminStats();
+            } else {
+                showToast('❌ ' + data.message, 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showToast('Error training model. Please try again.', 'error');
+        }
+
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+
+    async function checkMLStatus() {
+        try {
+            const res = await fetch('/api/ml/status');
+            const data = await res.json();
+
+            if (data.success) {
+                let statusMsg = '';
+                if (data.model_exists) {
+                    statusMsg = `✅ Model is ready!\nFeatures: ${data.features?.join(', ') || 'N/A'}`;
+                    if (data.classes) {
+                        statusMsg += `\nCare Levels: ${data.classes.join(', ')}`;
+                    }
+                } else {
+                    statusMsg = `ℹ️ Model not trained yet.\n${data.pet_count || 0} pets available for training.\n\nClick "Train AI Model" to get started.`;
+                }
+                alert(`🤖 AI Model Status\n\n${statusMsg}`);
+            } else {
+                showToast('Error checking model status.', 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showToast('Error checking model status.', 'error');
+        }
+    }
+
+    async function refreshStats() {
+        await loadAdminStats();
+        showToast('✅ Stats refreshed!', 'success');
+    }
+
+    function showToast(message, type) {
+        const msgEl = document.getElementById('message');
+        msgEl.textContent = message;
+        msgEl.className = 'message ' + type;
+        msgEl.style.display = 'block';
+        setTimeout(() => {
+            msgEl.style.display = 'none';
+        }, 4000);
+    }
+
+    // ── GLOBAL FUNCTIONS ──────────────────────────────────────────────
+    window.toggleAdminTheme = toggleAdminTheme;
+    window.restoreAdminTheme = restoreAdminTheme;
+    window.trainMLModel = trainMLModel;
+    window.checkMLStatus = checkMLStatus;
+    window.refreshStats = refreshStats;
+    window.showToast = showToast;
+</script>
+</body>
+</html>

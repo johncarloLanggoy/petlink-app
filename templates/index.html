@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PetLink Canine Distemper Center</title>
+  <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='images/logo.jpg') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+  <style>
+    /* ══════════════════════════════════════════════════════════
+       NAVBAR AUTH BUTTONS — Enhanced UX/UI
+       ══════════════════════════════════════════════════════════ */
+    .nav-buttons {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* ── BASE BUTTON STYLES ───────────────────────────── */
+    .nav-buttons button {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 26px;
+      border-radius: 12px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+      white-space: nowrap;
+      border: none;
+      outline: none;
+    }
+
+    /* Ripple / shine effect on hover */
+    .nav-buttons button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.25),
+        transparent
+      );
+      transition: left 0.6s ease;
+    }
+
+    .nav-buttons button:hover::before {
+      left: 100%;
+    }
+
+    /* ── LOGIN BUTTON (Outline / Secondary) ───────────── */
+    .login-btn {
+      background: transparent;
+      color: #5a7a3f;
+      border: 2px solid #7ba05b;
+      box-shadow: 0 0 0 0 rgba(123, 160, 91, 0);
+    }
+
+    .login-btn:hover {
+      background: #7ba05b;
+      color: #ffffff;
+      border-color: #7ba05b;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(123, 160, 91, 0.35);
+    }
+
+    .login-btn:hover i {
+      transform: translateX(-3px) rotate(-8deg);
+    }
+
+    .login-btn:active {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(123, 160, 91, 0.3);
+    }
+
+    .login-btn i {
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      font-size: 14px;
+    }
+
+    /* ── REGISTER BUTTON (Solid / Primary) ─────────────── */
+    .register-btn {
+      background: linear-gradient(135deg, #7ba05b 0%, #5a7a3f 100%);
+      color: #ffffff;
+      border: 2px solid transparent;
+      box-shadow: 0 4px 14px rgba(123, 160, 91, 0.3);
+      background-size: 200% 200%;
+      background-position: 0% 50%;
+    }
+
+    .register-btn:hover {
+      background: linear-gradient(135deg, #5a7a3f 0%, #4a6b32 100%);
+      background-position: 100% 50%;
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(123, 160, 91, 0.45);
+    }
+
+    .register-btn:hover i {
+      transform: translateX(3px) rotate(8deg) scale(1.1);
+    }
+
+    .register-btn:active {
+      transform: translateY(-1px);
+      box-shadow: 0 5px 15px rgba(123, 160, 91, 0.4);
+    }
+
+    .register-btn i {
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      font-size: 14px;
+    }
+
+    /* ── DASHBOARD BUTTON (Logged-in state) ────────────── */
+    .dashboard-btn {
+      background: linear-gradient(135deg, #7ba05b 0%, #5a7a3f 100%);
+      color: #ffffff;
+      border: 2px solid transparent;
+      box-shadow: 0 4px 14px rgba(123, 160, 91, 0.3);
+      padding: 11px 26px;
+      border-radius: 12px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dashboard-btn:hover {
+      background: linear-gradient(135deg, #5a7a3f 0%, #4a6b32 100%);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(123, 160, 91, 0.45);
+    }
+
+    .dashboard-btn:hover i {
+      transform: rotate(15deg);
+    }
+
+    .dashboard-btn i {
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* ── LOGO STYLES ─────────────────────────────────── */
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      margin: 0;
+    }
+
+    .navbar-logo {
+      width: 45px;
+      height: 45px;
+      object-fit: contain;
+      border-radius: 50%;
+      transition: transform 0.3s ease;
+    }
+
+    .navbar-logo:hover {
+      transform: scale(1.1) rotate(5deg);
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .footer-logo {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+      border-radius: 50%;
+    }
+
+    /* ── HERO BACKGROUND (FIXED — NO PARALLAX) ────────── */
+    .hero {
+      background-image: 
+        linear-gradient(to right, 
+          rgba(234, 243, 224, 0.95) 0%, 
+          rgba(234, 243, 224, 0.75) 35%, 
+          rgba(234, 243, 224, 0.2) 60%,
+          rgba(234, 243, 224, 0.0) 100%),
+        url('{{ url_for("static", filename="images/homepage-bg.jpg") }}');
+      background-size: cover;
+      background-position: center right;
+      background-repeat: no-repeat;
+      background-attachment: scroll;
+      position: relative;
+    }
+
+    /* ── MOBILE RESPONSIVE ─────────────────────────────── */
+    @media (max-width: 768px) {
+      .nav-buttons {
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .nav-buttons button,
+      .dashboard-btn {
+        padding: 10px 20px;
+        font-size: 13px;
+        border-radius: 10px;
+      }
+
+      .navbar-logo {
+        width: 38px;
+        height: 38px;
+      }
+
+      .brand-text {
+        font-size: 0.95em;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .nav-buttons {
+        width: 100%;
+      }
+
+      .nav-buttons button,
+      .dashboard-btn {
+        flex: 1;
+        padding: 10px 14px;
+        font-size: 12.5px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Scroll Progress Bar -->
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <!-- NAVBAR -->
+  <nav id="navbar">
+    <h1 onclick="window.location.href='/'" class="navbar-brand">
+      <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="PetLink Logo" class="navbar-logo">
+      <span class="brand-text">Petlink Serrano St.</span>
+    </h1>
+    <ul>
+      <li><a href="#home"><i class="fas fa-home"></i> Home</a></li>
+      <li><a href="#features"><i class="fas fa-cogs"></i> Features</a></li>
+      <li><a href="#tutorial"><i class="fas fa-graduation-cap"></i> How It Works</a></li>
+      <li><a href="#about"><i class="fas fa-info-circle"></i> About</a></li>
+    </ul>
+    <div class="nav-buttons" id="navButtons">
+      <button class="login-btn" onclick="window.location.href='/login'">
+        <i class="fas fa-sign-in-alt"></i> Login
+      </button>
+      <button class="register-btn" onclick="window.location.href='/register'">
+        <i class="fas fa-user-plus"></i> Register
+      </button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="home">
+    <div class="hero-content">
+      <h2>Smart Pet Care <span class="highlight">Starts Here</span></h2>
+      <p><i class="fas fa-check-circle" style="color: #7ba05b;"></i> Monitor, manage, and protect your pets with intelligent recommendations powered by AI.</p>
+      <div class="hero-buttons">
+        <button class="btn-primary" id="heroCtaBtn" onclick="handleHeroCta()">
+          <i class="fas fa-rocket"></i> Get Started
+        </button>
+        <button class="btn-secondary" onclick="window.location.href='#features'">
+          <i class="fas fa-play-circle"></i> Learn More
+        </button>
+      </div>
+    </div>
+
+    <!-- HERO VISUAL -->
+    <div class="hero-visual">
+      <div class="dashboard-preview">
+        <div class="preview-header">
+          <div class="preview-dot"></div>
+          <div class="preview-dot"></div>
+          <div class="preview-dot"></div>
+          <span style="margin-left: auto; font-size: 12px; color: #64748b;">
+            <i class="fas fa-robot" style="color: #7ba05b;"></i> PetLink Dashboard
+          </span>
+        </div>
+        <div class="preview-body">
+          <div class="preview-stat-row">
+            <div class="preview-stat">
+              <div class="num"><i class="fas fa-users" style="font-size: 1rem; color: #7ba05b; margin-right: 4px;"></i>145</div>
+              <div class="lbl">Customers</div>
+            </div>
+            <div class="preview-stat">
+              <div class="num"><i class="fas fa-paw" style="font-size: 1rem; color: #7ba05b; margin-right: 4px;"></i>267</div>
+              <div class="lbl">Pets</div>
+            </div>
+            <div class="preview-stat">
+              <div class="num"><i class="fas fa-heart" style="font-size: 1rem; color: #7ba05b; margin-right: 4px;"></i>94%</div>
+              <div class="lbl">Healthy</div>
+            </div>
+          </div>
+          <div class="preview-pets">
+            <div class="preview-pet">
+              <div class="preview-pet-icon dog"><i class="fas fa-dog"></i></div>
+              <div class="preview-pet-info">
+                <div class="preview-pet-name">Buddy — Labrador</div>
+                <div class="preview-pet-sub"><i class="far fa-calendar-alt"></i> 3 yrs • <i class="fas fa-bolt" style="color: #f59e0b;"></i> High Activity</div>
+              </div>
+              <div class="preview-badge healthy"><i class="fas fa-check-circle"></i> Healthy</div>
+            </div>
+            <div class="preview-pet">
+              <div class="preview-pet-icon cat"><i class="fas fa-cat"></i></div>
+              <div class="preview-pet-info">
+                <div class="preview-pet-name">Luna — Siamese</div>
+                <div class="preview-pet-sub"><i class="far fa-calendar-alt"></i> 2 yrs • <i class="fas fa-syringe" style="color: #ef4444;"></i> Needs Vaccine</div>
+              </div>
+              <div class="preview-badge warning"><i class="fas fa-exclamation-triangle"></i> Warning</div>
+            </div>
+            <div class="preview-pet">
+              <div class="preview-pet-icon dog"><i class="fas fa-dog"></i></div>
+              <div class="preview-pet-info">
+                <div class="preview-pet-name">Max — German Shepherd</div>
+                <div class="preview-pet-sub"><i class="far fa-calendar-alt"></i> 5 yrs • <i class="fas fa-heartbeat" style="color: #d97706;"></i> Under Treatment</div>
+              </div>
+              <div class="preview-badge attention"><i class="fas fa-clock"></i> Attention</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <div class="card">
+      <div class="icon-wrapper blue"><i class="fas fa-paw"></i></div>
+      <h3>Pet Profiles</h3>
+      <p>Manage your pets' health records, vaccination history, and medical information in one centralized place.</p>
+    </div>
+    <div class="card">
+      <div class="icon-wrapper purple"><i class="fas fa-robot"></i></div>
+      <h3>AI Recommendations</h3>
+      <p>Receive smart care suggestions using machine learning algorithms tailored to your pet's specific needs.</p>
+    </div>
+    <div class="card">
+      <div class="icon-wrapper pink"><i class="fas fa-bell"></i></div>
+      <h3>Smart Reminders</h3>
+      <p>Get automatic alerts for vaccination schedules, grooming appointments, and regular check-ups.</p>
+    </div>
+  </section>
+
+  <!-- ── TUTORIAL / HOW IT WORKS SECTION ───────────────────────────── -->
+  <section class="tutorial-section" id="tutorial">
+    <div class="tutorial-container">
+      <div class="tutorial-header">
+        <h2><i class="fas fa-graduation-cap"></i> How It Works</h2>
+        <p>Sign up or log in to manage your pet's health and appointments in just a few steps.</p>
+      </div>
+
+      <div class="tutorial-steps">
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <div class="step-icon blue"><i class="fas fa-user-plus"></i></div>
+          <h3>Create an Account</h3>
+          <p>Sign up with your <span class="highlight">email</span> and create a secure password to get started.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <div class="step-icon purple"><i class="fas fa-dog"></i></div>
+          <h3>Register Your Pet</h3>
+          <p>Add your pet's <span class="highlight">details</span>, breed, age, and health information.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-number">3</div>
+          <div class="step-icon pink"><i class="fas fa-calendar-plus"></i></div>
+          <h3>Book Appointments</h3>
+          <p>Schedule appointments directly from your <span class="highlight">dashboard</span> with ease.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-number">4</div>
+          <div class="step-icon green"><i class="fas fa-heartbeat"></i></div>
+          <h3>Track Your Pet's Health</h3>
+          <p>View <span class="highlight">medical records</span>, vaccination history, and health status.</p>
+        </div>
+      </div>
+
+      <!-- ── NO ACCOUNT INFO BOX ────────────────────────────────────── -->
+      <div class="no-account-box">
+        <div class="icon-large"><i class="fas fa-clinic-medical"></i></div>
+        <div class="content">
+          <h4><i class="fas fa-flag"></i> No Account Yet?</h4>
+          <p>
+            <i class="fas fa-check-circle" style="color: #7ba05b;"></i> Create an account today to manage your pet's health records, 
+            book appointments, and receive personalized care recommendations.
+          </p>
+          <p>
+            <i class="fas fa-map-pin" style="color: #7ba05b;"></i> <strong>Visit our clinic</strong> at 
+            <span class="location"><i class="fas fa-location-dot"></i> 48 B. Serrano St., Caloocan City</span> 
+            and our friendly staff will assist you! <i class="fas fa-dog" style="color: #7ba05b;"></i><i class="fas fa-cat" style="color: #5a7a3f;"></i>
+          </p>
+          <p style="font-size: 13px; color: #64748b; margin-top: 5px;">
+            <i class="far fa-clock" style="color: #7ba05b;"></i> Clinic Hours: Monday to Saturday, 8:00 AM - 5:00 PM
+          </p>
+        </div>
+        <button class="btn-visit-clinic" onclick="showClinicLocation()">
+          <i class="fas fa-location-dot"></i> Visit Clinic
+        </button>
+      </div>
+
+      <!-- Benefits / Features -->
+      <div class="tutorial-features">
+        <div class="tutorial-feature-item">
+          <span class="icon blue"><i class="fas fa-shield-alt"></i></span>
+          <strong>Secure Account</strong><br>
+          Your pet's data is safe
+        </div>
+        <div class="tutorial-feature-item">
+          <span class="icon purple"><i class="fas fa-envelope"></i></span>
+          <strong>Email Notifications</strong><br>
+          Get updates on appointments
+        </div>
+        <div class="tutorial-feature-item">
+          <span class="icon pink"><i class="fas fa-dog"></i><i class="fas fa-cat"></i></span>
+          <strong>Dogs & Cats Only</strong><br>
+          We specialize in dogs and cats
+        </div>
+        <div class="tutorial-feature-item">
+          <span class="icon green"><i class="fas fa-headset"></i></span>
+          <strong>24/7 Support</strong><br>
+          We're here to help you
+        </div>
+      </div>
+
+      <!-- Call to Action -->
+      <div class="tutorial-cta">
+        <button class="btn-tutorial" id="mainCtaBtn" onclick="handleMainCta()">
+          <i class="fas fa-sign-in-alt"></i> Login to Get Started
+        </button>
+        <button class="btn-tutorial-secondary" onclick="window.location.href='#features'">
+          <i class="fas fa-arrow-right"></i> Learn More
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── STATS SECTION ───────────────────────────────────────────────── -->
+  <div class="stats-wrapper">
+    <div class="stats">
+      <div class="stat-item">
+        <div class="stat-number"><i class="fas fa-paw"></i> 2,500+</div>
+        <div class="stat-label">Happy Pets</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number"><i class="fas fa-star"></i> 98%</div>
+        <div class="stat-label">Satisfaction Rate</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number"><i class="fas fa-headset"></i> 24/7</div>
+        <div class="stat-label">Support Available</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <section class="about" id="about">
+    <div class="about-content">
+      <h2>About <span class="gradient-text">PetLink</span></h2>
+      <p>
+        <i class="fas fa-paw" style="color: #7ba05b;"></i> PetLink is a comprehensive pet management platform designed to help pet owners and veterinarians track health records, schedule vaccinations, and receive AI-powered recommendations for optimal pet care. 
+        <i class="fas fa-heart" style="color: #5a7a3f;"></i> Join thousands of happy pet owners who trust PetLink for their furry friends' wellbeing.
+      </p>
+      <div class="feature-badges">
+        <div class="badge">
+          <i class="fas fa-check-circle blue"></i> Trusted by vets
+        </div>
+        <div class="badge">
+          <i class="fas fa-robot purple"></i> AI-powered insights
+        </div>
+        <div class="badge">
+          <i class="fas fa-shield-alt green"></i> Secure & reliable
+        </div>
+        <div class="badge">
+          <i class="fas fa-heart pink"></i> Loved by pets
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-brand">
+      <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="PetLink Logo" class="footer-logo">
+      Petlink Serrano St.
+    </div>
+    <div class="footer-links">
+      <a href="#home"><i class="fas fa-home"></i> Home</a>
+      <a href="#features"><i class="fas fa-cogs"></i> Features</a>
+      <a href="#tutorial"><i class="fas fa-graduation-cap"></i> How It Works</a>
+      <a href="#about"><i class="fas fa-info-circle"></i> About</a>
+      <a href="/login"><i class="fas fa-sign-in-alt"></i> Login</a>
+    </div>
+    <div class="footer-contact">
+      <span><i class="fas fa-location-dot"></i> 48 B. Serrano St., Caloocan City</span>
+      <span><i class="fas fa-phone"></i> (02) 8123 4567</span>
+      <span><i class="fas fa-envelope"></i> petlink@clinic.com</span>
+    </div>
+    <p><i class="far fa-copyright"></i> 2026 PetLink Canine Distemper Center | All Rights Reserved</p>
+  </footer>
+
+  <script>
+    function showClinicLocation() {
+      alert(
+        '📍 PetLink Canine Distemper Center\n' +
+        '48 B. Serrano St., Caloocan City\n\n' +
+        '⏰ Clinic Hours:\n' +
+        'Monday - Saturday: 8:00 AM - 5:00 PM\n' +
+        'Sunday: Closed\n\n' +
+        '📞 Contact us at: (02) 8123 4567\n\n' +
+        'Come visit us to register your pet and create your account! 🐾'
+      );
+    }
+
+    // Fallback for auth modal (in case index.js fails to load)
+    function openAuthModal(type) {
+      if (type === 'register') {
+        window.location.href = '/register';
+      } else {
+        window.location.href = '/login';
+      }
+    }
+
+    window.showClinicLocation = showClinicLocation;
+    window.openAuthModal = openAuthModal;
+  </script>
+
+  <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,279 @@
+// ── Check if user is logged in ──────────────────────────────────────
+function isLoggedIn() {
+  const token = localStorage.getItem('jwt_token') || sessionStorage.getItem('jwt_token');
+  if (!token) return false;
+  
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const exp = payload.exp * 1000;
+    if (Date.now() >= exp) {
+      localStorage.removeItem('jwt_token');
+      sessionStorage.removeItem('jwt_token');
+      localStorage.removeItem('username');
+      return false;
+    }
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+// ── Get user role ─────────────────────────────────────────────────────
+function getUserRole() {
+  return localStorage.getItem('role') || sessionStorage.getItem('role') || 'user';
+}
+
+// ── Get redirect URL based on role ──────────────────────────────────
+function getDashboardUrl() {
+  const role = getUserRole();
+  switch(role) {
+    case 'admin':
+      return '/admin';
+    case 'staff':
+      return '/staff';
+    case 'vet':
+      return '/vet';
+    default:
+      return '/dashboard';
+  }
+}
+
+// ── Redirect to dashboard based on role ─────────────────────────────
+function redirectToDashboard() {
+  window.location.href = getDashboardUrl();
+}
+
+// ── Open Auth Modal (redirects to login/register pages) ─────────────
+function openAuthModal(type) {
+  if (type === 'register') {
+    window.location.href = '/register';
+  } else {
+    window.location.href = '/login';
+  }
+}
+
+// ── Handle Main CTA Button Click ────────────────────────────────────
+function handleMainCta() {
+  if (isLoggedIn()) {
+    redirectToDashboard();
+  } else {
+    window.location.href = '/login';
+  }
+}
+
+// ── Update navbar based on login status ─────────────────────────────
+function updateNavbar() {
+  const navButtons = document.getElementById('navButtons');
+  
+  console.log('🔄 Updating navbar... Is logged in?', isLoggedIn());
+  
+  if (isLoggedIn()) {
+    // Show Dashboard button only
+    if (navButtons) {
+      navButtons.innerHTML = `
+        <button class="dashboard-btn" onclick="redirectToDashboard()">
+          <i class="fas fa-tachometer-alt"></i> Open Dashboard
+        </button>
+      `;
+    }
+    
+    // Update CTA buttons
+    const heroCta = document.getElementById('heroCtaBtn');
+    const mainCta = document.getElementById('mainCtaBtn');
+    
+    if (heroCta) {
+      heroCta.innerHTML = '<i class="fas fa-tachometer-alt"></i> Go to Dashboard';
+      heroCta.onclick = redirectToDashboard;
+    }
+    
+    if (mainCta) {
+      mainCta.innerHTML = '<i class="fas fa-tachometer-alt"></i> Open Dashboard';
+      mainCta.className = 'btn-tutorial';
+      mainCta.onclick = redirectToDashboard;
+      console.log('✅ Main CTA updated to: Open Dashboard');
+    }
+    
+  } else {
+    // Show Login + Register buttons — FIXED: direct navigation
+    if (navButtons) {
+      navButtons.innerHTML = `
+        <button class="login-btn" onclick="window.location.href='/login'">
+          <i class="fas fa-sign-in-alt"></i> Login
+        </button>
+        <button class="register-btn" onclick="window.location.href='/register'">
+          <i class="fas fa-user-plus"></i> Register
+        </button>
+      `;
+    }
+    
+    // Update CTA buttons
+    const heroCta = document.getElementById('heroCtaBtn');
+    const mainCta = document.getElementById('mainCtaBtn');
+    
+    if (heroCta) {
+      heroCta.innerHTML = '<i class="fas fa-rocket"></i> Get Started';
+      heroCta.onclick = () => window.location.href = '/login';
+    }
+    
+    if (mainCta) {
+      mainCta.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login to Get Started';
+      mainCta.className = 'btn-tutorial';
+      mainCta.onclick = () => window.location.href = '/login';
+      console.log('✅ Main CTA updated to: Login');
+    }
+  }
+}
+
+// ── Handle hero CTA button click ─────────────────────────────────────
+function handleHeroCta() {
+  if (isLoggedIn()) {
+    redirectToDashboard();
+  } else {
+    window.location.href = '/login';
+  }
+}
+
+// ── Smooth scroll animation for navigation links ────────────────────
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function (e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  });
+});
+
+// ── Scroll animation - reveal elements when they come into view ──────
+const observerOptions = {
+  threshold: 0.2,
+  rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, observerOptions);
+
+// Observe feature cards
+const cards = document.querySelectorAll('.card');
+cards.forEach(card => observer.observe(card));
+
+// Observe about section
+const aboutSection = document.querySelector('.about-content');
+if (aboutSection) observer.observe(aboutSection);
+
+// Observe stat items
+const statItems = document.querySelectorAll('.stat-item');
+statItems.forEach(item => observer.observe(item));
+
+// ── Navbar shrink on scroll ──────────────────────────────────────────
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 50) {
+    navbar.classList.add('scrolled');
+  } else {
+    navbar.classList.remove('scrolled');
+  }
+});
+
+// ── Scroll progress bar ──────────────────────────────────────────────
+const scrollProgress = document.getElementById('scrollProgress');
+window.addEventListener('scroll', () => {
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const scrollPercentage = (scrollTop / scrollHeight) * 100;
+  scrollProgress.style.width = scrollPercentage + '%';
+});
+
+// ── Counter animation for stats ──────────────────────────────────────
+function animateCounter(element, target) {
+  let current = 0;
+  const increment = target / 50;
+  const timer = setInterval(() => {
+    current += increment;
+    if (current >= target) {
+      element.textContent = target.toLocaleString() + '+';
+      clearInterval(timer);
+    } else {
+      element.textContent = Math.floor(current).toLocaleString() + '+';
+    }
+  }, 30);
+}
+
+// Trigger counter when stats become visible
+const statsObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const statNumbers = entry.target.querySelectorAll('.stat-number');
+      statNumbers.forEach(stat => {
+        const targetValue = parseInt(stat.textContent);
+        if (!isNaN(targetValue) && stat.getAttribute('data-animated') !== 'true') {
+          stat.setAttribute('data-animated', 'true');
+          animateCounter(stat, targetValue);
+        }
+      });
+      statsObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.5 });
+
+const statsSection = document.querySelector('.stats');
+if (statsSection) statsObserver.observe(statsSection);
+
+// ── Parallax effect for hero section ──────────────────────────────────
+window.addEventListener('scroll', () => {
+  const scrolled = window.pageYOffset;
+  const hero = document.querySelector('.hero');
+  if (hero) {
+    hero.style.backgroundPositionY = scrolled * 0.5 + 'px';
+  }
+});
+
+// ── Add floating animation delay to cards ────────────────────────────
+cards.forEach((card, index) => {
+  card.style.transitionDelay = `${index * 0.1}s`;
+});
+
+// ── Preload animation for elements already visible on page load ──────
+setTimeout(() => {
+  cards.forEach(card => {
+    const rect = card.getBoundingClientRect();
+    if (rect.top < window.innerHeight - 100) {
+      card.classList.add('visible');
+    }
+  });
+  if (aboutSection && aboutSection.getBoundingClientRect().top < window.innerHeight - 100) {
+    aboutSection.classList.add('visible');
+  }
+  statItems.forEach(item => {
+    if (item.getBoundingClientRect().top < window.innerHeight - 100) {
+      item.classList.add('visible');
+    }
+  });
+}, 100);
+
+// ── Initialize navbar on page load ───────────────────────────────────
+updateNavbar();
+
+// ── Also check when returning to page ────────────────────────────────
+window.addEventListener('pageshow', () => {
+  updateNavbar();
+});
+
+// ── Make functions globally available ────────────────────────────────
+window.isLoggedIn = isLoggedIn;
+window.getUserRole = getUserRole;
+window.getDashboardUrl = getDashboardUrl;
+window.redirectToDashboard = redirectToDashboard;
+window.handleHeroCta = handleHeroCta;
+window.handleMainCta = handleMainCta;
+window.updateNavbar = updateNavbar;
+window.openAuthModal = openAuthModal;

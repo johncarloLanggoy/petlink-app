@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Panel - PetLink</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='images/logo.jpg') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/staff.css') }}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+  <!-- Chart.js for analytics graphs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* ── Staff Message Search Styles ────────────────────────────── */
+    #staffSearchWrapper {
+      transition: all 0.3s ease !important;
+    }
+    #staffSearchWrapper:focus-within {
+      border-color: #38bdf8 !important;
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2) !important;
+    }
+    #staffClearSearchBtn {
+      transition: all 0.3s ease !important;
+    }
+    #staffClearSearchBtn:hover {
+      color: #ef4444 !important;
+      transform: scale(1.2) !important;
+    }
+    #staffSearchResultCount {
+      font-variant-numeric: tabular-nums;
+      color: #64748b;
+      font-size: 11px;
+    }
+
+    /* ── SIDEBAR LOGO IMAGE ────────────────────────────────────────── */
+    .sidebar-logo h2 {
+      display: flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+    }
+
+    .sidebar-logo-img {
+      width: 36px !important;
+      height: 36px !important;
+      object-fit: contain !important;
+      border-radius: 50% !important;
+      flex-shrink: 0 !important;
+    }
+
+    .sidebar-logo-text {
+      font-size: 20px !important;
+      font-weight: 700 !important;
+      white-space: nowrap !important;
+    }
+
+    /* ── NAV ICONS STYLING ─────────────────────────────────────────── */
+    .sidebar-nav a .nav-icon i {
+      font-size: 18px !important;
+    }
+
+    .stat-card .stat-icon i {
+      font-size: 24px !important;
+      color: #7ba05b !important;
+    }
+
+    body.dark-theme .stat-card .stat-icon i {
+      color: #38bdf8 !important;
+    }
+
+    /* ── CHART NAV BUTTON ICONS ───────────────────────────────────── */
+    .dash-nav-btn i {
+      margin-right: 6px !important;
+    }
+
+    /* ── MAIN HEADER ICONS ────────────────────────────────────────── */
+    .main-header h1 i {
+      margin-right: 10px !important;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       🎨 GREEN THEME OVERRIDES (Light Theme Only)
+       ═══════════════════════════════════════════════════════════════ */
+
+    /* ── BODY & MAIN ──────────────────────────────────────────────── */
+    body.light-theme {
+        background: #f0f7eb !important;
+        color: #2d3e1f !important;
+    }
+    body.light-theme .main {
+        background: #f0f7eb !important;
+    }
+
+    /* ── SIDEBAR ──────────────────────────────────────────────────── */
+    body.light-theme .sidebar {
+        background: #ffffff !important;
+        border-right: 1px solid #d4e5c4 !important;
+    }
+    body.light-theme .sidebar-logo h2 {
+        color: #5a7a3f !important;
+    }
+    body.light-theme .sidebar-nav a {
+        color: #4a5a3f !important;
+    }
+    body.light-theme .sidebar-nav a:hover {
+        color: #7ba05b !important;
+        background: rgba(123, 160, 91, 0.08) !important;
+    }
+    body.light-theme .sidebar-nav a.active {
+        background: rgba(123, 160, 91, 0.12) !important;
+        color: #5a7a3f !important;
+    }
+    body.light-theme .sidebar-nav .nav-label {
+        color: #94a387 !important;
+    }
+    body.light-theme .sidebar-nav .nav-divider {
+        background: #d4e5c4 !important;
+    }
+    body.light-theme .user-info {
+        border-top: 1px solid #d4e5c4 !important;
+    }
+    body.light-theme .user-info p {
+        color: #3d5429 !important;
+    }
+    body.light-theme .user-info .role {
+        color: #7ba05b !important;
+    }
+
+    /* ── MAIN HEADER ──────────────────────────────────────────────── */
+    body.light-theme .main-header h1 {
+        color: #5a7a3f !important;
+    }
+    body.light-theme .main-header p {
+        color: #4a5a3f !important;
+    }
+
+    /* ── CARDS ────────────────────────────────────────────────────── */
+    body.light-theme .card {
+        background: #ffffff !important;
+        border: 1px solid #d4e5c4 !important;
+    }
+    body.light-theme .card:hover {
+        border-color: #7ba05b !important;
+        box-shadow: 0 8px 25px rgba(123, 160, 91, 0.1) !important;
+    }
+    body.light-theme .card h2 {
+        color: #5a7a3f !important;
+    }
+    body.light-theme .card p {
+        color: #4a5a3f !important;
+    }
+
+    /* ── STAT CARDS ───────────────────────────────────────────────── */
+    body.light-theme .stat-card {
+        background: #ffffff !important;
+        border: 1px solid #d4e5c4 !important;
+    }
+    body.light-theme .stat-card:hover {
+        border-color: #7ba05b !important;
+        box-shadow: 0 8px 25px rgba(123, 160, 91, 0.12) !important;
+    }
+    body.light-theme .stat-card .stat-number {
+        color: #5a7a3f !important;
+    }
+    body.light-theme .stat-card .stat-label {
+        color: #94a387 !important;
+    }
+    body.light-theme .stat-card .stat-trend {
+        color: #94a387 !important;
+    }
+    body.light-theme .stat-card.pending .stat-number {
+        color: #f59e0b !important;
+    }
+    body.light-theme .stat-card.confirmed .stat-number {
+        color: #7ba05b !important;
+    }
+    body.light-theme .stat-card.cancelled .stat-number {
+        color: #ef4444 !important;
+    }
+
+       /* ── DASHBOARD NAV BUTTONS ────────────────────────────────────── */
+    /* Inactive buttons - LIGHT background, GREEN text */
+    body.light-theme .dash-nav-btn {
+        color: #7ba05b !important;
+        background: #eaf3e0 !important;
+        border: 1px solid #d4e5c4 !important;
+    }
+    body.light-theme .dash-nav-btn:hover {
+        color: #5a7a3f !important;
+        background: #d4e5c4 !important;
+    }
+    /* Active button - DARK GREEN background, WHITE text */
+    body.light-theme .dash-nav-btn.active {
+        color: #ffffff !important;
+        background: #7ba05b !important;
+        border: 1px solid #7ba05b !important;
+        box-shadow: 0 4px 15px rgba(123, 160, 91, 0.35) !important;
+    }
+    body.light-theme .dash-nav-btn.active:hover {
+        background: #5a7a3f !important;
+        color: #ffffff !important;
+    }
+
+    body.light-theme #currentChartLabel {
+        color: #94a387 !important;
+    }
+
+    /* ── DASHBOARD CONTAINER (top nav bar) ────────────────────────── */
+    body.light-theme div[style*="background: #1e293b"][style*="border-radius: 16px"] {
+        background: #ffffff !important;
+        border: 1px solid #d4e5c4 !important;
+    }
+    body.light-theme div[style*="background: #1e293b"][style*="border-radius: 12px"] {
+        background: #ffffff !important;
+        border: 1px solid #d4e5c4 !important;
+    }
+    body.light-theme div[style*="background: #1e293b"] {
+        background: #ffffff !important;
+        border-color: #d4e5c4 !important;
+    }
+    body.light-theme div[style*="background: #0f172a"] {
+        background: #f7fbf3 !important;
+        border-color: #d4e5c4 !important;
+    }
+    body.light-theme div[style*="background:#1e293b"],
+    body.light-theme div[style*="background:#0f172a"] {
+        background: #ffffff !important;
+    }
+    body.light-theme div[style*="border: 1px solid #334155"] {
+        border-color: #d4e5c4 !important;
+    }
+
+    /* ── CHART HEADINGS ───────────────────────────────────────────── */
+    body.light-theme h3[style*="color: #38bdf8"] {
+        color: #5a7a3f !important;
+    }
+
+    /* ── TABLES ───────────────────────────────────────────────────── */
+    body.light-theme table th {
+        color: #5a7a3f !important;
+        border-bottom: 1px solid #d4e5c4 !important;
+    }
+    body.light-theme table td {
+        color: #2d3e1f !important;
+        border-bottom: 1px solid #d4e5c4 !important;
+    }
+    body.light-theme th,
+    body.light-theme td {
+        border-bottom: 1px solid #d4e5c4 !important;
+    }
+    body.light-theme select {
+        background: #f7fbf3 !important;
+        border: 1px solid #d4e5c4 !important;
+        color: #2d3e1f !important;
+    }
+
+    /* ── APPOINTMENT TABS ─────────────────────────────────────────── */
+    body.light-theme .appointment-tabs {
+        background: #ffffff !important;
+        border: 1px solid #d4e5c4 !important;
+    }
+    body.light-theme .appointment-tab {
+        color: #94a387 !important;
+    }
+    body.light-theme .appointment-tab:hover {
+        color: #7ba05b !important;
+        background: rgba(123, 160, 91, 0.08) !important;
+    }
+    body.light-theme .appointment-tab.active {
+        background: #7ba05b !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 15px rgba(123, 160, 91, 0.35) !important;
+    }
+
+    /* ── APPOINTMENTS TABLE ───────────────────────────────────────── */
+    body.light-theme .appointments-table-wrapper {
+        border: 1px solid #d4e5c4 !important;
+    }
+    body.light-theme .appointments-table thead {
+        background: #f7fbf3 !important;
+    }
+    body.light-theme .appointments-table th {
+        color: #5a7a3f !important;
+        border-bottom: 2px solid #d4e5c4 !important;
+    }
+    body.light-theme .appointments-table td {
+        border-bottom: 1px solid #d4e5c4 !important;
+    }
+    body.light-theme .appointments-table .pet-cell {
+        color: #2d3e1f !important;
+    }
+    body.light-theme .appointments-table .customer-cell {
+        color: #4a5a3f !important;
+    }
+    body.light-theme .appointments-table .customer-cell .customer-name {
+        color: #2d3e1f !important;
+    }
+    body.light-theme .appointments-table .service-tag {
+        background: rgba(123, 160, 91, 0.12) !important;
+        color: #5a7a3f !important;
+    }
+
+    /* ── BUTTONS (Primary Green) ──────────────────────────────────── */
+    body.light-theme button {
+        background: #7ba05b !important;
+        color: #ffffff !important;
+    }
+    body.light-theme button:hover {
+        background: #5a7a3f !important;
+    }
+    body.light-theme .btn-add {
+        background: #7ba05b !important;
+        color: #ffffff !important;
+    }
+    body.light-theme .btn-add:hover {
+        background: #5a7a3f !important;
+    }
+    body.light-theme .btn-confirm {
+        background: #7ba05b !important;
+    }
+    body.light-theme .btn-confirm:hover {
+        background: #5a7a3f !important;
+    }
+    body.light-theme .btn-complete {
+        background: #7ba05b !important;
+        color: #ffffff !important;
+    }
+    body.light-theme .btn-complete:hover {
+        background: #5a7a3f !important;
+    }
+    body.light-theme .btn-edit {
+        background: #7ba05b !important;
+        color: #ffffff !important;
+    }
+    body.light-theme .btn-edit:hover {
+        background: #5a7a3f !important;
+    }
+    body.light-theme .btn-view {
+        background: rgba(123, 160, 91, 0.15) !important;
+        color: #5a7a3f !important;
+    }
+    body.light-theme .btn-view:hover {
+        background: #7ba05b !important;
+        color: #ffffff !important;
+    }
+
+    /* Refresh button */
+    body.light-theme button[onclick="refreshAppointments()"] {
+        background: #7ba05b !important;
+        color: #ffffff !important;
+    }
+
+    /* ── SEARCH WRAPPERS ──────────────────────────────────────────── */
+    body.light-theme #staffSearchWrapper,
+    body.light-theme #customerSearchWrapper,
+    body.light-theme #petSearchWrapper,
+    body.light-theme #appointmentSearchWrapper {
+        background: #f7fbf3 !important;
+        border: 1px solid #d4e5c4 !important;
+    }
+    body.light-theme #staffSearchWrapper:focus-within,
+    body.light-theme #customerSearchWrapper:focus-within,
+    body.light-theme #petSearchWrapper:focus-within,
+    body.light-theme #appointmentSearchWrapper:focus-within {
+        border-color: #7ba05b !important;
+        box-shadow: 0 0 0 3px rgba(123, 160, 91, 0.2) !important;
+    }
+    body.light-theme #customerSearchInput,
+    body.light-theme #petSearchInput,
+    body.light-theme #appointmentSearchInput,
+    body.light-theme #staffMessageSearch {
+        color: #2d3e1f !important;
+    }
+    body.light-theme #customerSearchInput::placeholder,
+    body.light-theme #petSearchInput::placeholder,
+    body.light-theme #appointmentSearchInput::placeholder,
+    body.light-theme #staffMessageSearch::placeholder {
+        color: #94a387 !important;
+    }
+
+    /* ── MESSAGES SECTION ─────────────────────────────────────────── */
+    body.light-theme #messagesSection div[style*="background: #0f172a"] {
+        background: #f7fbf3 !important;
+        border-color: #d4e5c4 !important;
+    }
+    body.light-theme #messagesSection div[style*="background: #1e293b"] {
+        background: #ffffff !important;
+        border-color: #d4e5c4 !important;
+    }
+    body.light-theme #messagesSection div[style*="border-bottom: 1px solid #334155"] {
+        border-bottom-color: #d4e5c4 !important;
+    }
+    body.light-theme #messagesSection div[style*="border-top: 1px solid #334155"] {
+        border-top-color: #d4e5c4 !important;
+        background: #ffffff !important;
+    }
+    body.light-theme #conversationHeader {
+        background: #ffffff !important;
+        border-bottom: 1px solid #d4e5c4 !important;
+    }
+    body.light-theme #conversationHeader span {
+        color: #4a5a3f !important;
+    }
+    body.light-theme #replyMessage {
+        background: #f7fbf3 !important;
+        border: 1px solid #d4e5c4 !important;
+        color: #2d3e1f !important;
+    }
+    body.light-theme #replyMessage::placeholder {
+        color: #94a387 !important;
+    }
+    body.light-theme #replyForm button[type="submit"] {
+        background: #7ba05b !important;
+        color: #ffffff !important;
+    }
+    body.light-theme #replyForm button[type="submit"]:hover {
+        background: #5a7a3f !important;
+    }
+
+    /* ── CHART COLORS (Green) ─────────────────────────────────────── */
+    body.light-theme canvas {
+        filter: hue-rotate(50deg) saturate(0.8);
+    }
+
+    /* ── THEME TOGGLE (Green when checked) ────────────────────────── */
+    body.light-theme .theme-toggle input:checked + .slider {
+        background: #7ba05b !important;
+    }
+
+    /* ── SCROLLBAR (Green) ────────────────────────────────────────── */
+    body.light-theme ::-webkit-scrollbar-track {
+        background: #eaf3e0 !important;
+    }
+    body.light-theme ::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, #7ba05b, #5a7a3f) !important;
+    }
+    body.light-theme ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg, #5a7a3f, #4a6b32) !important;
+    }
+
+    /* ── MODALS (Green in Light Theme) ────────────────────────────── */
+    body.light-theme .modal-popup {
+        background: #ffffff !important;
+        border: 1px solid #7ba05b !important;
+        box-shadow: 0 20px 40px rgba(123, 160, 91, 0.15) !important;
+    }
+    body.light-theme .modal-popup h3 {
+        color: #5a7a3f !important;
+    }
+    body.light-theme .modal-btn-submit {
+        background: #7ba05b !important;
+        color: #ffffff !important;
+    }
+    body.light-theme .modal-btn-submit:hover {
+        background: #5a7a3f !important;
+    }
+
+    /* ── INLINE STYLE OVERRIDES (Catch-all) ──────────────────────── */
+    body.light-theme [style*="color: #38bdf8"],
+    body.light-theme [style*="color:#38bdf8"] {
+        color: #5a7a3f !important;
+    }
+    body.light-theme [style*="background: #38bdf8"],
+    body.light-theme [style*="background:#38bdf8"] {
+        background: #7ba05b !important;
+    }
+    body.light-theme [style*="border-color: #38bdf8"] {
+        border-color: #7ba05b !important;
+    }
+    body.light-theme [style*="color: #2563eb"],
+    body.light-theme [style*="color:#2563eb"] {
+        color: #5a7a3f !important;
+    }
+    body.light-theme [style*="background: #2563eb"],
+    body.light-theme [style*="background:#2563eb"] {
+        background: #7ba05b !important;
+    }
+    .customer-name {
+    color: #1f2937;  /* dark gray — readable sa light theme */
+    }
+
+    /* Para sa dark theme, gamitin ulit yung dating light color */
+    body.dark-theme .customer-name,
+    body[data-theme="dark"] .customer-name,
+    .dark-mode .customer-name {
+        color: #e2e8f0;
+    }
+  </style>
+</head>
+<body class="dark-theme">
+
+<!-- Mobile Menu Button -->
+<button class="mobile-menu-btn" onclick="toggleMobileSidebar()"><i class="fas fa-bars"></i></button>
+
+<!-- ── SIDEBAR ──────────────────────────────────────────────────────── -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">
+      <h2 onclick="window.location.href='/'">
+        <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="PetLink Logo" class="sidebar-logo-img">
+        <span class="sidebar-logo-text">Petlink Serrano St.</span>
+      </h2>
+    </div>
+  </div>
+
+  <div class="sidebar-nav">
+    <div class="nav-label">Navigation</div>
+
+    <!-- DASHBOARD TAB -->
+    <a href="#" onclick="showDashboardTab(); return false;" class="active" id="navDashboard">
+      <span class="nav-icon"><i class="fas fa-chart-pie"></i></span>
+      <span>Dashboard</span>
+    </a>
+
+    <!-- CUSTOMERS TAB -->
+    <a href="#" onclick="showCustomersTab(); return false;" id="navCustomers">
+      <span class="nav-icon"><i class="fas fa-users"></i></span>
+      <span>Customers</span>
+    </a>
+
+    <!-- PETS TAB -->
+    <a href="#" onclick="showPetsTab(); return false;" id="navPets">
+      <span class="nav-icon"><i class="fas fa-dog"></i></span>
+      <span>Pets</span>
+    </a>
+
+    <!-- APPOINTMENTS TAB -->
+    <a href="#" onclick="showAppointmentsTab(); return false;" id="navAppointments">
+      <span class="nav-icon"><i class="fas fa-calendar-check"></i></span>
+      <span>Appointments</span>
+      <span style="margin-left: auto; display: flex; gap: 4px; align-items: center;">
+        <span class="badge badge-pending" id="pendingBadge" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;">0</span>
+        <span class="badge badge-confirmed" id="confirmedBadge" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">0</span>
+      </span>
+    </a>
+
+    <!-- STAFF AVAILABILITY -->
+    <a href="/staff-availability">
+        <span class="nav-icon"><i class="fas fa-calendar-alt"></i></span>
+        <span>Availability</span>
+        <span style="margin-left:auto; font-size:10px; background:rgba(56,189,248,0.2); padding:2px 10px; border-radius:10px; color:#38bdf8;">MANAGE</span>
+    </a>
+
+    <!-- MESSAGES TAB -->
+    <a href="#" onclick="showMessagesTab(); return false;" id="navMessages">
+      <span class="nav-icon"><i class="fas fa-envelope"></i></span>
+      <span>Messages</span>
+      <span class="badge badge-pending" id="unreadBadge" style="margin-left: auto; background: rgba(239, 68, 68, 0.2); color: #ef4444; display: none;">0</span>
+    </a>
+
+    <div class="nav-divider"></div>
+
+    {% if role == 'admin' %}
+    <a href="/admin">
+      <span class="nav-icon"><i class="fas fa-user-shield"></i></span>
+      <span>Admin Panel</span>
+      <span class="badge badge-admin">ADMIN</span>
+    </a>
+    {% endif %}
+
+    <a href="/">
+      <span class="nav-icon"><i class="fas fa-home"></i></span>
+      <span>Home</span>
+    </a>
+  </div>
+
+  <div class="user-info">
+    <p><i class="fas fa-user-circle"></i> {{ session.get('username', 'staff@petlink.com') }}</p>
+    <p class="role"><i class="fas fa-tag"></i> {{ role|upper }}</p>
+  </div>
+
+  <!-- ── THEME TOGGLE ──────────────────────────────────────────────── -->
+  <div style="margin-top: 15px; display: flex; justify-content: center;">
+    <div class="theme-toggle-wrapper">
+      <span class="theme-label"><i class="fas fa-moon"></i> Theme</span>
+      <label class="theme-toggle">
+        <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <button class="logout-btn" onclick="showLogoutModal()">
+    <span><i class="fas fa-sign-out-alt"></i></span>
+    <span>Logout</span>
+  </button>
+</div>
+
+<!-- ── MAIN CONTENT ────────────────────────────────────────────────── -->
+<div class="main">
+  <div class="main-header">
+    <h1><i class="fas fa-user-tie"></i> Staff Panel</h1>
+    <p><i class="fas fa-tasks"></i> Manage customers, pets, appointments, and messages</p>
+  </div>
+
+  <!-- ── DASHBOARD TAB CONTENT ────────────────────────────────────── -->
+  <div id="dashboardSection">
+    <!-- STATISTICS CARDS -->
+    <div class="stats-grid">
+      <!-- Total Customers -->
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-users"></i></div>
+        <div class="stat-number" id="totalCustomers">{{ total_customers }}</div>
+        <div class="stat-label">Total Customers</div>
+        <div class="stat-trend">
+          <span class="trend-up">↑ 12%</span>
+          <span class="trend-text">this month</span>
+        </div>
+      </div>
+
+      <!-- Total Pets -->
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-dog"></i></div>
+        <div class="stat-number" id="totalPets">{{ total_pets }}</div>
+        <div class="stat-label">Total Pets</div>
+        <div class="stat-trend">
+          <span class="trend-up">↑ 8%</span>
+          <span class="trend-text">this month</span>
+        </div>
+      </div>
+
+      <!-- Total Appointments -->
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+        <div class="stat-number" id="totalAppointments">{{ total_appointments }}</div>
+        <div class="stat-label">Total Appointments</div>
+        <div class="stat-trend">
+          <span class="trend-up">↑ 15%</span>
+          <span class="trend-text">this month</span>
+        </div>
+      </div>
+
+      <!-- Pending Appointments -->
+      <div class="stat-card pending">
+        <div class="stat-icon"><i class="fas fa-hourglass-half"></i></div>
+        <div class="stat-number" id="pendingAppointments">{{ pending_appointments }}</div>
+        <div class="stat-label">Pending</div>
+        <div class="stat-trend">
+          <span class="trend-warning"><i class="fas fa-exclamation-triangle"></i> Needs attention</span>
+        </div>
+      </div>
+
+      <!-- Confirmed Appointments -->
+      <div class="stat-card confirmed">
+        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+        <div class="stat-number" id="confirmedAppointments">{{ confirmed_appointments }}</div>
+        <div class="stat-label">Confirmed</div>
+        <div class="stat-trend">
+          <span class="trend-up"><i class="fas fa-check"></i> Confirmed</span>
+        </div>
+      </div>
+
+      <!-- Cancelled Appointments -->
+      <div class="stat-card cancelled">
+        <div class="stat-icon"><i class="fas fa-times-circle"></i></div>
+        <div class="stat-number" id="cancelledAppointments">0</div>
+        <div class="stat-label">Cancelled</div>
+        <div class="stat-trend">
+          <span class="trend-down"><i class="fas fa-times"></i> Cancelled</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DASHBOARD TOP NAV ────────────────────────────────────────── -->
+    <div style="background: #1e293b; border-radius: 16px; padding: 8px 20px; margin: 20px 0 25px; border: 1px solid #334155; display: flex; flex-wrap: wrap; gap: 5px; align-items: center;">
+      <button class="dash-nav-btn active" data-chart="trends" onclick="switchChart('trends')">
+        <i class="fas fa-chart-line"></i> Appointment Trends
+      </button>
+      <button class="dash-nav-btn" data-chart="pettypes" onclick="switchChart('pettypes')">
+        <i class="fas fa-paw"></i> Pet Types
+      </button>
+      <button class="dash-nav-btn" data-chart="status" onclick="switchChart('status')">
+        <i class="fas fa-chart-bar"></i> Appointment Status
+      </button>
+      <button class="dash-nav-btn" data-chart="growth" onclick="switchChart('growth')">
+        <i class="fas fa-chart-line"></i> Monthly Growth
+      </button>
+      <div style="flex: 1;"></div>
+      <span style="color: #64748b; font-size: 12px;" id="currentChartLabel"><i class="fas fa-chart-line"></i> Appointment Trends</span>
+    </div>
+
+    <!-- ── CHART CONTAINERS ──────────────────────────────────────────── -->
+    <!-- Chart 1: Appointment Trends -->
+    <div id="chart-trends" class="chart-container">
+      <div class="card" style="padding: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h3 style="color: #38bdf8; font-size: 18px; margin: 0;"><i class="fas fa-chart-line"></i> Appointment Trends</h3>
+            <span style="color: #94a3b8; font-size: 12px;" id="staffWeekLabel">Current Week</span>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button onclick="changeStaffWeek(-1)" 
+                    style="background: #334155; border: none; color: #fff; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.3s; font-family: 'Poppins', sans-serif;">
+              <i class="fas fa-chevron-left"></i> Previous
+            </button>
+            <button onclick="changeStaffWeek(0)" 
+                    style="background: #38bdf8; border: none; color: #0f172a; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.3s; font-family: 'Poppins', sans-serif;">
+              Today
+            </button>
+            <button onclick="changeStaffWeek(1)" 
+                    style="background: #334155; border: none; color: #fff; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.3s; font-family: 'Poppins', sans-serif;">
+              Next <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+        <div style="height: 280px; position: relative;">
+          <canvas id="appointmentTrendChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart 2: Pet Type Distribution -->
+    <div id="chart-pettypes" class="chart-container" style="display: none;">
+      <div class="card" style="padding: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h3 style="color: #38bdf8; font-size: 18px; margin: 0;"><i class="fas fa-paw"></i> Pet Types</h3>
+          <span style="color: #94a3b8; font-size: 12px;">Distribution</span>
+        </div>
+        <div style="height: 280px; position: relative; display: flex; justify-content: center; align-items: center;">
+          <canvas id="petTypeChart" style="max-width: 350px; max-height: 280px;"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart 3: Appointment Status -->
+    <div id="chart-status" class="chart-container" style="display: none;">
+      <div class="card" style="padding: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h3 style="color: #38bdf8; font-size: 18px; margin: 0;"><i class="fas fa-chart-bar"></i> Appointment Status</h3>
+          <span style="color: #94a3b8; font-size: 12px;">Overview</span>
+        </div>
+        <div style="height: 280px; position: relative;">
+          <canvas id="appointmentStatusChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart 4: Monthly Growth -->
+    <div id="chart-growth" class="chart-container" style="display: none;">
+      <div class="card" style="padding: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h3 style="color: #38bdf8; font-size: 18px; margin: 0;"><i class="fas fa-chart-line"></i> Monthly Growth</h3>
+          <span style="color: #94a3b8; font-size: 12px;">This year</span>
+        </div>
+        <div style="height: 280px; position: relative;">
+          <canvas id="monthlyGrowthChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── QUICK STATS / SUMMARY CARDS ────────────────────────────── -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 25px;">
+      <div style="background: #1e293b; border-radius: 12px; padding: 16px; border: 1px solid #334155; text-align: center;">
+        <div style="font-size: 22px; margin-bottom: 2px; color: #7ba05b;"><i class="fas fa-chart-bar"></i></div>
+        <div style="color: #38bdf8; font-size: 20px; font-weight: 700;" id="dailyAverage">0</div>
+        <div style="color: #94a3b8; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Avg. Appointments/Day</div>
+      </div>
+      <div style="background: #1e293b; border-radius: 12px; padding: 16px; border: 1px solid #334155; text-align: center;">
+        <div style="font-size: 22px; margin-bottom: 2px; color: #7ba05b;"><i class="fas fa-dog"></i></div>
+        <div style="color: #10b981; font-size: 20px; font-weight: 700;" id="newPetsThisMonth">0</div>
+        <div style="color: #94a3b8; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">New Pets This Month</div>
+      </div>
+      <div style="background: #1e293b; border-radius: 12px; padding: 16px; border: 1px solid #334155; text-align: center;">
+        <div style="font-size: 22px; margin-bottom: 2px; color: #7ba05b;"><i class="fas fa-users"></i></div>
+        <div style="color: #8b5cf6; font-size: 20px; font-weight: 700;" id="newCustomersThisMonth">0</div>
+        <div style="color: #94a3b8; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">New Customers</div>
+      </div>
+      <div style="background: #1e293b; border-radius: 12px; padding: 16px; border: 1px solid #334155; text-align: center;">
+        <div style="font-size: 22px; margin-bottom: 2px; color: #7ba05b;"><i class="fas fa-check-circle"></i></div>
+        <div style="color: #f59e0b; font-size: 20px; font-weight: 700;" id="completionRate">0%</div>
+        <div style="color: #94a3b8; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Completion Rate</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CUSTOMERS TAB CONTENT ────────────────────────────────────── -->
+  <div id="customerSection" style="display: none;">
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+        <div>
+          <h2><i class="fas fa-users"></i> Registered Customers</h2>
+          <p style="color: #94a3b8; font-size: 14px; margin: 5px 0 0;">
+            All registered customers (pet owners) with accounts in the system.
+          </p>
+        </div>
+        
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+          <!-- Search Bar -->
+          <div style="display: flex; align-items: center; gap: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 4px 12px; min-width: 200px; transition: 0.3s;" 
+              id="customerSearchWrapper">
+            <span style="color: #64748b; font-size: 16px;"><i class="fas fa-search"></i></span>
+            <input type="text" id="customerSearchInput" placeholder="Search by name or email..." 
+                  style="background: transparent; border: none; color: #e2e8f0; padding: 8px 4px; font-size: 13px; width: 100%; outline: none; font-family: 'Poppins', sans-serif;">
+            <button onclick="clearCustomerSearch()" id="clearCustomerSearchBtn" 
+                    style="background: transparent; border: none; color: #64748b; cursor: pointer; font-size: 16px; display: none; padding: 4px;">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Address</th>
+              <th>Role</th>
+              <th>Created At</th>
+            </tr>
+          </thead>
+          <tbody id="registeredCustomersTable">
+            {% for user in customers %}
+            <tr class="customer-row" data-name="{{ user.fullname or '' }}" data-email="{{ user.email }}">
+              <td>{{ user.id }}</td>
+              <td><strong class="customer-name">{{ user.fullname or '—' }}</strong></td>
+              <td><span class="truncate" title="{{ user.email }}">{{ user.email }}</span></td>
+              <td>{{ user.phone or '—' }}</td>
+              <td><span class="truncate" title="{{ user.address }}">{{ user.address or '—' }}</span></td>
+              <td>
+                <span class="role-badge 
+                  {% if user.role == 'admin' %}role-admin
+                  {% elif user.role == 'staff' %}role-staff
+                  {% elif user.role == 'vet' %}role-vet
+                  {% else %}role-user{% endif %}">
+                  {{ user.role }}
+                </span>
+              </td>
+              <td>{{ user.created_at }}</td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="7" style="text-align: center; color: #64748b; padding: 30px;">
+                No registered customers yet.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Empty state for search -->
+      <div id="customerEmptyState" style="display: none; text-align: center; padding: 30px; color: #64748b;">
+        <div style="font-size: 40px; margin-bottom: 10px;"><i class="fas fa-search"></i></div>
+        <p style="font-size: 15px;">No customers found matching your search.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PETS TAB CONTENT ──────────────────────────────────────────── -->
+  <div id="petSection" style="display: none;">
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+        <div>
+          <h2><i class="fas fa-dog"></i> Registered Pets</h2>
+          <p style="color: #94a3b8; font-size: 14px; margin: 5px 0 0;">
+            All pets owned by registered customers.
+            <span style="color: #10b981; font-weight: 600;"><i class="fas fa-check-circle"></i> Customers can add their own pets via their dashboard.</span>
+          </p>
+        </div>
+        
+        <!-- Search Bar -->
+        <div style="display: flex; align-items: center; gap: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 4px 12px; min-width: 200px; transition: 0.3s;" 
+            id="petSearchWrapper">
+          <span style="color: #64748b; font-size: 16px;"><i class="fas fa-search"></i></span>
+          <input type="text" id="petSearchInput" placeholder="Search by pet name, owner, or breed..." 
+                style="background: transparent; border: none; color: #e2e8f0; padding: 8px 4px; font-size: 13px; width: 100%; outline: none; font-family: 'Poppins', sans-serif;">
+          <button onclick="clearPetSearch()" id="clearPetSearchBtn" 
+                  style="background: transparent; border: none; color: #64748b; cursor: pointer; font-size: 16px; display: none; padding: 4px;">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+      
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Pet</th>
+              <th>Type</th>
+              <th>Breed</th>
+              <th>Age</th>
+              <th>Gender</th>
+              <th>Owner</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="registeredPetsTable">
+            <tr>
+              <td colspan="9" style="text-align: center; color: #64748b; padding: 30px;">
+                Loading registered pets...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Empty state for search -->
+      <div id="petEmptyState" style="display: none; text-align: center; padding: 30px; color: #64748b;">
+        <div style="font-size: 40px; margin-bottom: 10px;"><i class="fas fa-search"></i></div>
+        <p style="font-size: 15px;">No pets found matching your search.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── APPOINTMENTS TAB CONTENT ──────────────────────────────────── -->
+  <div id="appointmentsSection" style="display: none;">
+    <div class="card" style="padding: 25px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+        <div>
+          <h2 style="color: #38bdf8; font-size: 24px; margin: 0;"><i class="fas fa-calendar-check"></i> Appointment Management</h2>
+          <p style="color: #94a3b8; font-size: 14px; margin: 5px 0 0;">
+            Manage all customer appointments. Confirm, complete, or cancel appointments.
+          </p>
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+          <!-- Search Bar -->
+          <div style="display: flex; align-items: center; gap: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 4px 12px; min-width: 180px; transition: 0.3s;" 
+              id="appointmentSearchWrapper">
+            <span style="color: #64748b; font-size: 16px;"><i class="fas fa-search"></i></span>
+            <input type="text" id="appointmentSearchInput" placeholder="Search pet or customer..." 
+                  style="background: transparent; border: none; color: #e2e8f0; padding: 8px 4px; font-size: 13px; width: 100%; outline: none; font-family: 'Poppins', sans-serif;">
+            <button onclick="clearAppointmentSearch()" id="clearAppointmentSearchBtn" 
+                    style="background: transparent; border: none; color: #64748b; cursor: pointer; font-size: 16px; display: none; padding: 4px;">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <button onclick="refreshAppointments()" style="background: #38bdf8; color: #0f172a; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 14px;">
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
+        </div>
+      </div>
+      
+      <!-- ── APPOINTMENT TABS ────────────────────────────────────── -->
+      <div class="appointment-tabs">
+        <button class="appointment-tab active" data-tab="all" onclick="filterStaffAppointments('all')">
+          <i class="fas fa-list"></i> All
+          <span class="tab-count" id="staffAllCount">0</span>
+        </button>
+        <button class="appointment-tab" data-tab="pending" onclick="filterStaffAppointments('pending')">
+          <i class="fas fa-hourglass-half"></i> Pending
+          <span class="tab-count" id="staffPendingCount" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;">0</span>
+        </button>
+        <button class="appointment-tab" data-tab="confirmed" onclick="filterStaffAppointments('confirmed')">
+          <i class="fas fa-check-circle"></i> Confirmed
+          <span class="tab-count" id="staffConfirmedCount" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">0</span>
+        </button>
+        <button class="appointment-tab" data-tab="completed" onclick="filterStaffAppointments('completed')">
+          <i class="fas fa-flag-checkered"></i> Completed
+          <span class="tab-count" id="staffCompletedCount" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8;">0</span>
+        </button>
+        <button class="appointment-tab" data-tab="cancelled" onclick="filterStaffAppointments('cancelled')">
+          <i class="fas fa-times-circle"></i> Cancelled
+          <span class="tab-count" id="staffCancelledCount" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">0</span>
+        </button>
+      </div>
+
+      <!-- ── APPOINTMENTS TABLE ──────────────────────────────────── -->
+      <div class="appointments-table-wrapper">
+        <table class="appointments-table">
+          <thead>
+            <tr>
+              <th style="white-space: nowrap;">Date</th>
+              <th style="white-space: nowrap;">Time</th>
+              <th style="width: 50px;">ID</th>
+              <th>Pet</th>
+              <th>Customer</th>
+              <th>Services</th>
+              <th>Status</th>
+              <th style="min-width: 180px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="staffAppointmentsTableBody">
+            <tr>
+              <td colspan="8" style="text-align: center; color: #64748b; padding: 40px;">
+                <i class="fas fa-spinner fa-spin"></i> Loading appointments...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Empty state for search -->
+      <div id="appointmentEmptyState" style="display: none; text-align: center; padding: 30px; color: #64748b;">
+        <div style="font-size: 40px; margin-bottom: 10px;"><i class="fas fa-search"></i></div>
+        <p style="font-size: 15px;">No appointments found matching your search.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MESSAGES TAB CONTENT WITH SEARCH ───────────────────────────── -->
+  <div id="messagesSection" style="display: none;">
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+        <h2 style="color: #38bdf8; font-size: 24px; margin: 0;"><i class="fas fa-comments"></i> Customer Messages</h2>
+        <span id="unreadCountDisplay" style="color: #94a3b8; font-size: 14px;">0 unread</span>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 300px 1fr; gap: 20px; min-height: 400px;">
+        <!-- Customer List -->
+        <div style="background: #0f172a; border-radius: 12px; border: 1px solid #334155; overflow: hidden; display: flex; flex-direction: column;">
+          <div style="padding: 15px; border-bottom: 1px solid #334155; background: #1e293b; flex-shrink: 0;">
+            <h4 style="color: #94a3b8; font-size: 13px; margin: 0;">Customers</h4>
+            <!-- ✅ SEARCH BAR -->
+            <div style="display: flex; align-items: center; gap: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 4px 10px; margin-top: 8px; transition: 0.3s;" 
+                 id="staffSearchWrapper">
+              <span style="color: #64748b; font-size: 14px;"><i class="fas fa-search"></i></span>
+              <input type="text" id="staffMessageSearch" placeholder="Search customers..." 
+                     style="background: transparent; border: none; color: #e2e8f0; padding: 6px 4px; font-size: 13px; width: 100%; outline: none; font-family: 'Poppins', sans-serif;">
+              <button onclick="clearStaffMessageSearch()" id="staffClearSearchBtn" 
+                      style="background: transparent; border: none; color: #64748b; cursor: pointer; font-size: 14px; display: none; padding: 2px;">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <!-- ✅ RESULT COUNT -->
+            <span id="staffSearchResultCount" style="color: #64748b; font-size: 11px; display: block; margin-top: 4px;">0 customers</span>
+          </div>
+          <div id="customerList" style="flex: 1; overflow-y: auto; max-height: 400px; min-height: 300px;">
+            <div style="padding: 20px; text-align: center; color: #64748b;">
+              Loading customers...
+            </div>
+          </div>
+        </div>
+        
+        <!-- Conversation -->
+        <div style="background: #0f172a; border-radius: 12px; border: 1px solid #334155; display: flex; flex-direction: column;">
+          <div id="conversationHeader" style="padding: 15px; border-bottom: 1px solid #334155; background: #1e293b; flex-shrink: 0;">
+            <span style="color: #64748b;">Select a customer to view messages</span>
+          </div>
+          <div id="conversationMessages" style="flex: 1; padding: 20px; overflow-y: auto; min-height: 300px; max-height: 400px;">
+            <div style="text-align: center; color: #64748b; padding: 40px;">
+              <i class="fas fa-comment" style="font-size: 32px; display: block; margin-bottom: 10px;"></i>
+              No conversation selected
+            </div>
+          </div>
+          <div style="padding: 15px; border-top: 1px solid #334155; background: #1e293b; flex-shrink: 0;">
+            <form id="replyForm" onsubmit="sendReply(event)" style="display: flex; gap: 10px;">
+              <input type="hidden" id="replyCustomerEmail">
+              <input type="text" id="replyMessage" placeholder="Type your reply..." style="flex: 1; padding: 10px 15px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: white; font-family: 'Poppins', sans-serif;">
+              <button type="submit" style="padding: 10px 25px; background: #38bdf8; color: #0f172a; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; font-family: 'Poppins', sans-serif;">
+                <i class="fas fa-paper-plane"></i> Send
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MESSAGE ──────────────────────────────────────────────────────── -->
+<div id="message" class="message"></div>
+
+<!-- ── LOGOUT MODAL ────────────────────────────────────────────────── -->
+<div id="logoutModal" class="modal-overlay" style="display: none;">
+  <div class="modal-popup" style="max-width: 400px;">
+    <div style="text-align: center;">
+      <div style="font-size: 48px; margin-bottom: 20px; color: #ef4444;"><i class="fas fa-sign-out-alt"></i></div>
+      <h3 style="color: #38bdf8; font-size: 24px; margin-bottom: 10px;">Logout Confirmation</h3>
+      <p style="color: #94a3b8; margin-bottom: 25px; line-height: 1.6;">Are you sure you want to logout? You'll need to sign in again to access your staff panel.</p>
+      <div class="modal-buttons" style="display: flex; gap: 15px; justify-content: center;">
+        <button class="modal-btn modal-btn-cancel" onclick="closeLogoutModal()">Cancel</button>
+        <button class="modal-btn modal-btn-logout" onclick="confirmLogout()">Yes, Logout</button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+
+<script src="{{ url_for('static', filename='js/staff.js') }}"></script>
+<script>
+  // ── Theme Toggle Function ─────────────────────────────────────────
+  function toggleTheme() {
+      const body = document.body;
+      const html = document.documentElement;
+      const toggle = document.getElementById('themeToggle');
+      
+      if (toggle.checked) {
+          body.classList.remove('light-theme');
+          body.classList.add('dark-theme');
+          html.classList.remove('light-theme');
+          html.classList.add('dark-theme');
+          localStorage.setItem('staffTheme', 'dark');
+          console.log('🌙 Dark theme activated');
+      } else {
+          body.classList.remove('dark-theme');
+          body.classList.add('light-theme');
+          html.classList.remove('dark-theme');
+          html.classList.add('light-theme');
+          localStorage.setItem('staffTheme', 'light');
+          console.log('🌞 Light theme activated');
+      }
+  }
+
+  // ── Restore Theme Preference ──────────────────────────────────────
+  function restoreTheme() {
+      const savedTheme = localStorage.getItem('staffTheme');
+      const toggle = document.getElementById('themeToggle');
+      const html = document.documentElement;
+      
+      if (savedTheme === 'light') {
+          toggle.checked = false;
+          document.body.classList.add('light-theme');
+          document.body.classList.remove('dark-theme');
+          html.classList.add('light-theme');
+          html.classList.remove('dark-theme');
+          console.log('🌞 Light theme restored from preference');
+      } else {
+          toggle.checked = true;
+          document.body.classList.add('dark-theme');
+          document.body.classList.remove('light-theme');
+          html.classList.add('dark-theme');
+          html.classList.remove('light-theme');
+          console.log('🌙 Dark theme is default');
+      }
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+      restoreTheme();
+  });
+
+  window.toggleTheme = toggleTheme;
+  window.restoreTheme = restoreTheme;
+</script>
+</body>
+</html>

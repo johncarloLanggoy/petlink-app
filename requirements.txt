@@ -1,0 +1,10 @@
+Flask
+Flask-SocketIO
+Flask-Mail
+PyJWT
+scikit-learn
+pandas
+numpy
+gunicorn==26.2.0
+eventlet==0.41.1
+python-dotenv==1.0.0
