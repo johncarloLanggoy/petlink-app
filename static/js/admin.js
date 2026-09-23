@@ -107,10 +107,42 @@ function applyUserFilters() {
         const roleDisplay = user.role.charAt(0).toUpperCase() + user.role.slice(1);
         const nameDisplay = user.fullname || '—';
         
+        // ── Generate profile avatar HTML ──────────────────────────
+        const initial = nameDisplay !== '—' ? nameDisplay.trim()[0].toUpperCase() : 'U';
+        let avatarHTML;
+        
+        if (user.profile_image) {
+            avatarHTML = `
+                <img src="${user.profile_image}" 
+                     alt="Profile" 
+                     style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid #334155; flex-shrink: 0;">
+            `;
+        } else {
+            // Color-code by role
+            let bgColor = '#7ba05b';  // default green
+            if (user.role === 'admin') bgColor = '#8b5cf6';       // purple
+            else if (user.role === 'staff') bgColor = '#f59e0b';  // amber
+            else if (user.role === 'vet') bgColor = '#3b82f6';    // blue
+            else if (user.role === 'user') bgColor = '#10b981';   // green
+            
+            avatarHTML = `
+                <div style="width: 36px; height: 36px; border-radius: 50%; background: ${bgColor}; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; border: 2px solid #334155; flex-shrink: 0;">
+                    ${initial}
+                </div>
+            `;
+        }
+        
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${user.id}</td>
-            <td><strong style="color: #e2e8f0;">${nameDisplay}</strong></td>
+            <td>
+                <div class="user-name-clickable" 
+                     onclick="showUserDetailsModal(${user.id})"
+                     title="Click to view details">
+                    ${avatarHTML}
+                    <strong style="color: #e2e8f0;">${nameDisplay}</strong>
+                </div>
+            </td>
             <td><span class="truncate" title="${user.email}">${user.email}</span></td>
             <td>${user.phone || '—'}</td>
             <td><span class="truncate" title="${user.address || ''}">${user.address || '—'}</span></td>
@@ -1616,6 +1648,8 @@ window.renderAdminCustomerList = renderAdminCustomerList;
 window.loadChartData = loadChartData;
 window.loadAdminChartData = loadAdminChartData;
 window.changeAdminWeek = changeAdminWeek;
+window.showUserDetailsModal = showUserDetailsModal;
+window.closeUserDetailsModal = closeUserDetailsModal;
 
 (function initAdminSocket() {
     if (document.readyState === 'loading') {
@@ -1628,3 +1662,327 @@ window.changeAdminWeek = changeAdminWeek;
         loadUnreadCount();
     }
 })();
+
+// ── SHOW USER DETAILS MODAL (ADMIN) ────────────────────────────────
+async function showUserDetailsModal(userId) {
+    console.log(`👤 Opening user details modal for user ID: ${userId}`);
+    
+    // Create loading modal
+    let modal = document.getElementById('userDetailsModal');
+    if (modal) modal.remove();
+    
+    modal = document.createElement('div');
+    modal.id = 'userDetailsModal';
+    modal.className = 'modal-overlay';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(6px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        animation: fadeIn 0.3s ease;
+        padding: 20px;
+    `;
+    
+    modal.innerHTML = `
+        <div style="
+            background: #1e293b;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            border: 1px solid #334155;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        ">
+            <div style="font-size: 40px; margin-bottom: 15px;">⏳</div>
+            <p style="color: #94a3b8;">Loading user details...</p>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Close on overlay click
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeUserDetailsModal();
+        }
+    });
+    
+    try {
+        const res = await fetch(`/api/admin/user/${userId}`);
+        const data = await res.json();
+        
+        if (!data.success) {
+            closeUserDetailsModal();
+            alert('❌ ' + (data.message || 'Error loading user details.'));
+            return;
+        }
+        
+        const user = data.user;
+        const pets = data.pets || [];
+        const appointmentCount = data.appointment_count || 0;
+        
+        // ── Avatar HTML ─────────────────────────────────────────
+        const initial = (user.fullname || 'U').trim()[0].toUpperCase();
+        let avatarHTML;
+        
+        if (user.profile_image) {
+            avatarHTML = `<img src="${user.profile_image}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+        } else {
+            let bgColor = '#7ba05b';
+            if (user.role === 'admin') bgColor = '#8b5cf6';
+            else if (user.role === 'staff') bgColor = '#f59e0b';
+            else if (user.role === 'vet') bgColor = '#3b82f6';
+            else if (user.role === 'user') bgColor = '#10b981';
+            
+            avatarHTML = `<div style="width: 100%; height: 100%; border-radius: 50%; background: ${bgColor}; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 32px;">${initial}</div>`;
+        }
+        
+        // ── Role badge color ────────────────────────────────────
+        const roleColors = {
+            admin: '#8b5cf6',
+            staff: '#f59e0b',
+            vet: '#3b82f6',
+            user: '#10b981'
+        };
+        const roleColor = roleColors[user.role] || '#7ba05b';
+        
+        // ── Pets HTML ────────────────────────────────────────────
+        let petsHTML = '';
+        if (pets.length === 0) {
+            petsHTML = `
+                <div style="text-align: center; padding: 30px; color: #64748b; background: #0f172a; border-radius: 12px; border: 1px dashed #334155;">
+                    <div style="font-size: 36px; margin-bottom: 8px;">🐾</div>
+                    <p style="margin: 0; font-size: 13px;">No pets registered yet.</p>
+                </div>
+            `;
+        } else {
+            petsHTML = pets.map(pet => {
+                const petIcon = pet.pet_type === 'Cat' ? '🐈' : '🐕';
+                
+                let petAvatarHTML;
+                if (pet.pet_image) {
+                    petAvatarHTML = `<img src="${pet.pet_image}" alt="${pet.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;">`;
+                } else {
+                    petAvatarHTML = `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 22px;">${petIcon}</div>`;
+                }
+                
+                return `
+                    <div style="
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        padding: 12px;
+                        background: #0f172a;
+                        border: 1px solid #334155;
+                        border-radius: 12px;
+                        margin-bottom: 8px;
+                    ">
+                        <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden;">
+                            ${petAvatarHTML}
+                        </div>
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="color: #e2e8f0; font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                ${pet.name} <span style="color: #64748b; font-size: 11px; font-weight: 400;">${petIcon}</span>
+                            </div>
+                            <div style="color: #94a3b8; font-size: 12px; margin-top: 2px;">
+                                ${pet.pet_type || 'Dog'} • ${pet.breed || 'Mixed Breed'} • ${pet.age || '?'} yrs
+                            </div>
+                            ${pet.allergies && pet.allergies !== 'None' ? `
+                                <div style="color: #ef4444; font-size: 11px; margin-top: 4px;">
+                                    ⚠️ Allergies: ${pet.allergies}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // ── Full Modal HTML ──────────────────────────────────────
+        modal.innerHTML = `
+            <div style="
+                background: #1e293b;
+                border-radius: 20px;
+                max-width: 550px;
+                width: 100%;
+                border: 1px solid #334155;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                max-height: 90vh;
+                overflow-y: auto;
+                position: relative;
+                animation: slideUp 0.3s ease;
+            ">
+                <!-- Close X Button -->
+                <button onclick="closeUserDetailsModal()" style="
+                    position: absolute;
+                    top: 12px;
+                    right: 14px;
+                    background: transparent;
+                    border: none;
+                    color: #94a3b8;
+                    font-size: 24px;
+                    cursor: pointer;
+                    padding: 4px 10px;
+                    line-height: 1;
+                    border-radius: 8px;
+                    transition: all 0.2s ease;
+                    z-index: 10;
+                " onmouseover="this.style.color='#ef4444'; this.style.background='rgba(239,68,68,0.1)'" 
+                   onmouseout="this.style.color='#94a3b8'; this.style.background='transparent'">✕</button>
+                
+                <!-- Header Section -->
+                <div style="
+                    padding: 30px 30px 20px;
+                    border-bottom: 1px solid #334155;
+                    display: flex;
+                    align-items: center;
+                    gap: 18px;
+                ">
+                    <div style="
+                        width: 80px;
+                        height: 80px;
+                        border-radius: 50%;
+                        overflow: hidden;
+                        flex-shrink: 0;
+                        border: 3px solid #334155;
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                    ">
+                        ${avatarHTML}
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <h2 style="
+                            color: #e2e8f0;
+                            font-size: 20px;
+                            font-weight: 700;
+                            margin: 0 0 4px;
+                            word-break: break-word;
+                        ">
+                            ${user.fullname || 'Unknown User'}
+                        </h2>
+                        <div style="
+                            color: #94a3b8;
+                            font-size: 13px;
+                            margin-bottom: 8px;
+                            word-break: break-all;
+                        ">
+                            ${user.email}
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <span style="
+                                background: ${roleColor};
+                                color: #fff;
+                                padding: 3px 12px;
+                                border-radius: 12px;
+                                font-size: 11px;
+                                font-weight: 700;
+                                text-transform: uppercase;
+                                letter-spacing: 0.5px;
+                            ">
+                                ${user.role}
+                            </span>
+                            <span style="
+                                background: ${user.is_verified ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'};
+                                color: ${user.is_verified ? '#10b981' : '#ef4444'};
+                                padding: 3px 12px;
+                                border-radius: 12px;
+                                font-size: 11px;
+                                font-weight: 700;
+                            ">
+                                ${user.is_verified ? '✓ Verified' : '✕ Unverified'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- User Info Section -->
+                <div style="padding: 20px 30px; border-bottom: 1px solid #334155;">
+                    <h3 style="
+                        color: #38bdf8;
+                        font-size: 13px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.8px;
+                        margin: 0 0 14px;
+                    ">
+                        👤 Personal Information
+                    </h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div>
+                            <div style="color: #64748b; font-size: 11px; text-transform: uppercase; margin-bottom: 3px; font-weight: 600;">Phone</div>
+                            <div style="color: #e2e8f0; font-size: 13px;">${user.phone || '—'}</div>
+                        </div>
+                        <div>
+                            <div style="color: #64748b; font-size: 11px; text-transform: uppercase; margin-bottom: 3px; font-weight: 600;">User ID</div>
+                            <div style="color: #e2e8f0; font-size: 13px;">#${user.id}</div>
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <div style="color: #64748b; font-size: 11px; text-transform: uppercase; margin-bottom: 3px; font-weight: 600;">Address</div>
+                            <div style="color: #e2e8f0; font-size: 13px;">${user.address || '—'}</div>
+                        </div>
+                        <div>
+                            <div style="color: #64748b; font-size: 11px; text-transform: uppercase; margin-bottom: 3px; font-weight: 600;">Registered</div>
+                            <div style="color: #e2e8f0; font-size: 13px;">${user.created_at || '—'}</div>
+                        </div>
+                        <div>
+                            <div style="color: #64748b; font-size: 11px; text-transform: uppercase; margin-bottom: 3px; font-weight: 600;">Appointments</div>
+                            <div style="color: #38bdf8; font-size: 13px; font-weight: 700;">${appointmentCount} total</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pets Section -->
+                <div style="padding: 20px 30px 30px;">
+                    <h3 style="
+                        color: #38bdf8;
+                        font-size: 13px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.8px;
+                        margin: 0 0 14px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                    ">
+                        <span>🐾 Pets (${pets.length})</span>
+                    </h3>
+                    <div>
+                        ${petsHTML}
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Re-attach close on overlay click
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeUserDetailsModal();
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error loading user details:', error);
+        closeUserDetailsModal();
+        alert('❌ Error loading user details. Please try again.');
+    }
+}
+
+function closeUserDetailsModal() {
+    const modal = document.getElementById('userDetailsModal');
+    if (modal) {
+        modal.style.animation = 'fadeOut 0.2s ease';
+        setTimeout(() => modal.remove(), 200);
+    }
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeUserDetailsModal();
+    }
+});

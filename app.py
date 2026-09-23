@@ -110,11 +110,20 @@ def init_db():
         c.execute("ALTER TABLE users ADD COLUMN verification_code TEXT")
         print("Migration completed!")
 
-    # ── ✨ NEW: Add name_changed_at column for 7-day name change cooldown ──
+      # ── ✨ NEW: Add name_changed_at column for 7-day name change cooldown ──
     if 'name_changed_at' not in columns:
         print("Adding name_changed_at column to users table...")
         c.execute("ALTER TABLE users ADD COLUMN name_changed_at TEXT")
         print("Migration completed!")
+
+
+    # ── ✨ NEW: Add profile_image column for user profile pictures ──
+    if 'profile_image' not in columns:
+        print("Adding profile_image column to users table...")
+        c.execute("ALTER TABLE users ADD COLUMN profile_image TEXT")
+        print("Migration completed!")
+
+    # ── Pets table ──────────────────────────────────────────────────
 
     # ── Pets table ──────────────────────────────────────────────────
     c.execute("""
@@ -633,6 +642,76 @@ def send_verification_email(email, code, fullname):
         print(f"❌ Failed to send verification email: {e}")
         return False
 
+def send_password_reset_email(email, reset_link):
+    """Send password reset link email"""
+    try:
+        msg = Message("🔐 Reset Your PetLink Password", recipients=[email])
+        
+        html_body = f"""
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; background-color: #f0f7eb; margin: 0; padding: 20px; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 30px; background: #ffffff; border-radius: 16px; border: 1px solid #d4e5c4; }}
+                .header {{ text-align: center; border-bottom: 1px solid #d4e5c4; padding-bottom: 20px; }}
+                .header h1 {{ color: #5a7a3f; font-size: 28px; margin: 0; }}
+                .header .subtitle {{ color: #94a387; font-size: 14px; }}
+                .content {{ padding: 20px 0; }}
+                .content h2 {{ color: #5a7a3f; font-size: 22px; margin-bottom: 10px; }}
+                .content p {{ color: #4a5a3f; line-height: 1.6; }}
+                .btn-box {{ text-align: center; margin: 30px 0; }}
+                .btn {{ display: inline-block; background: linear-gradient(135deg, #7ba05b, #5a7a3f); color: #ffffff !important; padding: 14px 40px; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 16px; }}
+                .link-box {{ background: #f7fbf3; border: 1px solid #d4e5c4; border-radius: 10px; padding: 14px; margin-top: 20px; word-break: break-all; }}
+                .link-box p {{ font-size: 11px; color: #94a387; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 8px; }}
+                .link-box a {{ font-size: 13px; color: #5a7a3f; font-family: monospace; text-decoration: none; }}
+                .footer {{ text-align: center; border-top: 1px solid #d4e5c4; padding-top: 20px; color: #94a387; font-size: 12px; margin-top: 20px; }}
+                .warning {{ background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 12px 16px; margin-top: 20px; color: #d97706; font-size: 13px; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🐾 PetLink</h1>
+                    <div class="subtitle">Canine Distemper Center</div>
+                </div>
+                <div class="content">
+                    <h2>🔐 Reset Your Password</h2>
+                    <p>Hello,</p>
+                    <p>We received a request to reset the password for your PetLink account associated with <strong>{email}</strong>.</p>
+                    <p>Click the button below to set a new password:</p>
+                    
+                    <div class="btn-box">
+                        <a href="{reset_link}" class="btn">Reset Password</a>
+                    </div>
+                    
+                    <div class="link-box">
+                        <p>Or copy this link to your browser:</p>
+                        <a href="{reset_link}">{reset_link}</a>
+                    </div>
+                    
+                    <div class="warning">
+                        ⏰ This link will expire in <strong>15 minutes</strong>.<br>
+                        If you didn't request a password reset, you can safely ignore this email.
+                    </div>
+                </div>
+                <div class="footer">
+                    <p>📍 48 B. Serrano St., Caloocan City</p>
+                    <p>📞 (02) 8123 4567 | ✉️ petlink@clinic.com</p>
+                    <p>© 2026 PetLink Canine Distemper Center</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        msg.html = html_body
+        mail.send(msg)
+        print(f"✅ Password reset email sent to {email}")
+        return True
+    except Exception as e:
+        print(f"❌ Failed to send password reset email: {e}")
+        return False
+
 def send_email_notification(recipient, subject, body, appointment_data=None):
     """Send email notification for appointment updates with HTML formatting."""
     try:
@@ -894,7 +973,8 @@ def register():
         import threading
         def send_email_async():
             try:
-                send_verification_email(email, verification_code, fullname)
+                with app.app_context():
+                    send_verification_email(email, verification_code, fullname)
             except Exception as e:
                 print(f"Email error (background): {e}")
         
@@ -1172,7 +1252,8 @@ def resend_verification():
     import threading
     def send_email_async():
         try:
-            send_verification_email(email, verification_code, user["fullname"])
+            with app.app_context():
+                send_verification_email(email, verification_code, user["fullname"])
         except Exception as e:
             print(f"Email error (background): {e}")
     
@@ -1187,13 +1268,18 @@ def resend_verification():
 def dashboard():
     user = request.current_user
     conn = get_db()
-    db_user = conn.execute("SELECT fullname FROM users WHERE email=?", (user["sub"],)).fetchone()
+    db_user = conn.execute(
+        "SELECT fullname, profile_image FROM users WHERE email=?",
+        (user["sub"],)
+    ).fetchone()
     conn.close()
     fullname = db_user["fullname"] if db_user and db_user["fullname"] else user["sub"]
+    profile_image = db_user["profile_image"] if db_user and db_user["profile_image"] else ""
     return render_template('dashboard.html', 
                          username=fullname,
                          email=user["sub"],
-                         role=user["role"])
+                         role=user["role"],
+                         profile_image=profile_image)
 
 # ── PROFILE SETTINGS ROUTE ────────────────────────────────────────────
 @app.route('/profile-settings')
@@ -1203,7 +1289,7 @@ def profile_settings():
     user = request.current_user
     conn = get_db()
     db_user = conn.execute(
-        "SELECT email, fullname, phone, address, role, created_at, name_changed_at FROM users WHERE email=?",
+        "SELECT email, fullname, phone, address, role, created_at, name_changed_at, profile_image FROM users WHERE email=?",
         (user["sub"],)
     ).fetchone()
     conn.close()
@@ -1294,7 +1380,8 @@ def profile_settings():
                          created_at=db_user["created_at"] or "",
                          name_change_available=name_change_available,
                          days_remaining=days_remaining,
-                         next_change_date=next_change_date)
+                         next_change_date=next_change_date,
+                         profile_image=db_user["profile_image"] or "")
 
 
 # ── UPDATE PROFILE API ────────────────────────────────────────────────
@@ -1384,6 +1471,43 @@ def update_profile():
     })
 
 
+# ── UPDATE PROFILE IMAGE API ──────────────────────────────────────────
+@app.route('/api/profile/update-image', methods=["PUT"])
+@jwt_required
+def update_profile_image():
+    """Update user's profile picture"""
+    data = request.get_json()
+    email = request.current_user.get("sub")
+    profile_image = data.get("profile_image", "").strip()
+    
+    if not profile_image:
+        return jsonify({"success": False, "message": "Profile image data is required."})
+    
+    # Basic validation — dapat data URI
+    if not profile_image.startswith("data:image/"):
+        return jsonify({"success": False, "message": "Invalid image format."})
+    
+    # Size check — approximately 5MB max
+    if len(profile_image) > 7000000:
+        return jsonify({"success": False, "message": "Image is too large. Max 5MB."})
+    
+    conn = get_db()
+    user = conn.execute("SELECT id FROM users WHERE email=?", (email,)).fetchone()
+    
+    if not user:
+        conn.close()
+        return jsonify({"success": False, "message": "User not found."})
+    
+    conn.execute(
+        "UPDATE users SET profile_image=? WHERE email=?",
+        (profile_image, email)
+    )
+    conn.commit()
+    conn.close()
+    
+    return jsonify({"success": True, "message": "Profile picture updated successfully!"})
+
+
 # ── CHANGE PASSWORD API ───────────────────────────────────────────────
 @app.route('/api/profile/change-password', methods=["PUT"])
 @jwt_required
@@ -1438,7 +1562,7 @@ def change_password():
 @role_required("admin")
 def admin_panel():
     conn = get_db()
-    users = conn.execute("SELECT id, email, fullname, role, phone, address, is_verified, created_at FROM users").fetchall()
+    users = conn.execute("SELECT id, email, fullname, role, phone, address, is_verified, created_at, profile_image FROM users").fetchall()
     conn.close()
     return render_template('admin.html', users=[dict(u) for u in users])
 
@@ -1638,9 +1762,51 @@ def get_admin_chart_data():
 @role_required("admin", "staff", "vet")
 def api_users():
     conn = get_db()
-    users = conn.execute("SELECT id, email, fullname, role, phone, address, is_verified, created_at FROM users").fetchall()
+    users = conn.execute("SELECT id, email, fullname, role, phone, address, is_verified, created_at, profile_image FROM users").fetchall()
     conn.close()
     return jsonify({"success": True, "users": [dict(u) for u in users]})
+
+# ── GET USER DETAILS + PETS (FOR ADMIN MODAL) ──────────────────────
+@app.route('/api/admin/user/<int:user_id>')
+@role_required("admin")
+def get_user_details(user_id):
+    """Get full user details including their pets"""
+    conn = get_db()
+    
+    # Get user info
+    user = conn.execute("""
+        SELECT id, email, fullname, role, phone, address, 
+               is_verified, created_at, profile_image
+        FROM users WHERE id = ?
+    """, (user_id,)).fetchone()
+    
+    if not user:
+        conn.close()
+        return jsonify({"success": False, "message": "User not found."}), 404
+    
+    # Get user's pets
+    pets = conn.execute("""
+        SELECT id, name, pet_type, breed, age, gender, color, weight,
+               medical_history, allergies, pet_image, created_at
+        FROM pets 
+        WHERE customer_email = ?
+        ORDER BY created_at DESC
+    """, (user["email"],)).fetchall()
+    
+    # Get appointment count
+    appointment_count = conn.execute("""
+        SELECT COUNT(*) as count FROM appointments 
+        WHERE customer_email = ?
+    """, (user["email"],)).fetchone()["count"]
+    
+    conn.close()
+    
+    return jsonify({
+        "success": True,
+        "user": dict(user),
+        "pets": [dict(p) for p in pets],
+        "appointment_count": appointment_count
+    })
 
 @app.route('/api/promote', methods=["POST"])
 @role_required("admin")
@@ -3295,33 +3461,31 @@ def forgot_password():
             conn.commit()
             conn.close()
             
-            # ── Build reset link dynamically based on environment ─────
-            # Sa production (Render), gagamitin ang actual domain
-            # Sa local, gagamitin ang localhost
             base_url = request.host_url.rstrip('/')
             reset_link = f"{base_url}/reset-password?token={token}"
             
-            # ── Send reset email IN BACKGROUND (non-blocking) ─────────
-            # (Kung may email sending function ka para sa reset password,
-            #  i-uncomment ito at idagdag ang function call)
-            # import threading
-            # def send_email_async():
-            #     try:
-            #         send_password_reset_email(email, reset_link)
-            #     except Exception as e:
-            #         print(f"Email error (background): {e}")
-            # 
-            # email_thread = threading.Thread(target=send_email_async)
-            # email_thread.daemon = True
-            # email_thread.start()
+            import threading
+            def send_email_async():
+                try:
+                    with app.app_context():
+                        send_password_reset_email(email, reset_link)
+                except Exception as e:
+                    print(f"Email error (background): {e}")
+            
+            email_thread = threading.Thread(target=send_email_async)
+            email_thread.daemon = True
+            email_thread.start()
             
             return jsonify({
                 "success": True,
-                "message": "If that email exists, a reset link has been generated.",
-                "reset_link": reset_link
+                "message": "If that email exists, a reset link has been sent to your inbox."
             })
+        
         conn.close()
-        return jsonify({"success": True, "message": "If that email exists, a reset link has been generated."})
+        return jsonify({
+            "success": True, 
+            "message": "If that email exists, a reset link has been sent to your inbox."
+        })
 
     return render_template('forgot_password.html')
 

@@ -2425,3 +2425,59 @@ body.dark-theme .ml-action-btn.refresh-btn {
         font-size: 14px !important;
     }
 }
+
+/* ── CLICKABLE USER NAME ────────────────────────────────────────── */
+.user-name-clickable {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 8px;
+    margin: -4px -8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.user-name-clickable:hover {
+    background: rgba(56, 189, 248, 0.1);
+}
+
+.user-name-clickable:hover strong {
+    color: #38bdf8 !important;
+}
+
+.user-name-clickable:hover img,
+.user-name-clickable:hover > div:first-child {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.4);
+}
+
+.user-name-clickable img,
+.user-name-clickable > div:first-child {
+    transition: all 0.2s ease;
+}
+
+/* Light theme */
+body.light-theme .user-name-clickable:hover {
+    background: rgba(37, 99, 235, 0.08);
+}
+
+body.light-theme .user-name-clickable:hover strong {
+    color: #2563eb !important;
+}
+
+/* ── ANIMATIONS ──────────────────────────────────────────────────── */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}

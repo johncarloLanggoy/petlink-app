@@ -2681,6 +2681,56 @@
     body.dark-theme .profile-settings-arrow {
         color: #38bdf8;
     }
+
+    /* ═══════════════════════════════════════════════════════════════════
+       🚪 SIDEBAR LOGOUT BUTTON
+       ═══════════════════════════════════════════════════════════════════ */
+    .logout-btn-sidebar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        padding: 12px 15px;
+        margin-top: 10px;
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: #ffffff;
+        border: none;
+        border-radius: 12px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .logout-btn-sidebar:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(239, 68, 68, 0.4);
+    }
+
+    .logout-btn-sidebar:active {
+        transform: translateY(0);
+    }
+
+    .logout-btn-sidebar .nav-icon {
+        font-size: 18px;
+        min-width: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Dark theme override */
+    body.dark-theme .logout-btn-sidebar {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: #ffffff;
+    }
+
+    /* Light theme override */
+    body:not(.dark-theme) .logout-btn-sidebar {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: #ffffff;
+    }
   </style>
 </head>
 <body>
@@ -2766,7 +2816,11 @@
          ═══════════════════════════════════════════════════════════════ -->
     <a href="/profile-settings" class="profile-settings-link" title="Open Profile Settings">
         <div class="profile-settings-avatar">
-            {{ username[0].upper() if username else 'U' }}
+            {% if profile_image %}
+                <img src="{{ profile_image }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+            {% else %}
+                {{ username[0].upper() if username else 'U' }}
+            {% endif %}
         </div>
         <div class="profile-settings-info">
             <div class="profile-settings-name">{{ username }}</div>
@@ -2774,6 +2828,14 @@
         </div>
         <div class="profile-settings-arrow">⚙️</div>
     </a>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         🚪 LOGOUT BUTTON (sa sidebar)
+         ═══════════════════════════════════════════════════════════════ -->
+    <button onclick="showLogoutModal()" class="logout-btn-sidebar">
+        <span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span>
+        <span>Logout</span>
+    </button>
   </div>
 
   <!-- MAIN CONTENT -->
