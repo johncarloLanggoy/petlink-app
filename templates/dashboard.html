@@ -2568,7 +2568,119 @@
     body:not(.dark-theme) .btn-smart-care i {
         color: #ffffff !important;
     }
-  </style>
+
+    /* ═══════════════════════════════════════════════════════════════════
+       🆕 PROFILE SETTINGS LINK (replaces old user-info + theme + logout)
+       ═══════════════════════════════════════════════════════════════════ */
+    .profile-settings-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        margin: 12px 0 8px;
+        border-radius: 14px;
+        background: #f7fbf3;
+        border: 1px solid #d4e5c4;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+    .profile-settings-link::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 4px;
+        background: linear-gradient(180deg, #7ba05b, #5a7a3f);
+        border-radius: 4px 0 0 4px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .profile-settings-link:hover {
+        background: #eaf3e0;
+        border-color: #7ba05b;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(123, 160, 91, 0.18);
+    }
+    .profile-settings-link:hover::before {
+        opacity: 1;
+    }
+    .profile-settings-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #7ba05b, #5a7a3f);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 17px;
+        font-weight: 700;
+        color: #ffffff;
+        flex-shrink: 0;
+        box-shadow: 0 3px 10px rgba(123, 160, 91, 0.35);
+        letter-spacing: 0.5px;
+    }
+    .profile-settings-info {
+        flex: 1;
+        min-width: 0;
+        line-height: 1.25;
+    }
+    .profile-settings-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #2d3e1f;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .profile-settings-role {
+        font-size: 10px;
+        color: #7ba05b;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        margin-top: 3px;
+    }
+    .profile-settings-arrow {
+        font-size: 18px;
+        color: #7ba05b;
+        opacity: 0.65;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        flex-shrink: 0;
+    }
+    .profile-settings-link:hover .profile-settings-arrow {
+        transform: rotate(90deg) scale(1.1);
+        opacity: 1;
+    }
+
+    /* Dark theme version */
+    body.dark-theme .profile-settings-link {
+        background: #0f172a;
+        border-color: #334155;
+    }
+    body.dark-theme .profile-settings-link:hover {
+        background: #1e293b;
+        border-color: #38bdf8;
+        box-shadow: 0 6px 20px rgba(56, 189, 248, 0.15);
+    }
+    body.dark-theme .profile-settings-link::before {
+        background: linear-gradient(180deg, #38bdf8, #0ea5e9);
+    }
+    body.dark-theme .profile-settings-avatar {
+        background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+        color: #0f172a;
+        box-shadow: 0 3px 10px rgba(56, 189, 248, 0.35);
+    }
+    body.dark-theme .profile-settings-name {
+        color: #e2e8f0;
+    }
+    body.dark-theme .profile-settings-role {
+        color: #38bdf8;
+    }
+    body.dark-theme .profile-settings-arrow {
+        color: #38bdf8;
+    }
   </style>
 </head>
 <body>
@@ -2649,26 +2761,19 @@
       </div>
     </div>
     
-    <div class="user-info">
-      <p><i class="fas fa-user-circle"></i> {{ username }}</p>
-      <p class="role"><i class="fas fa-tag"></i> {{ role|upper }}</p>
-    </div>
-    
-    <!-- Theme Toggle -->
-    <div style="margin-top: 15px; display: flex; justify-content: center;">
-      <div class="theme-toggle-wrapper">
-        <span class="theme-label"><i class="fas fa-moon"></i> Theme</span>
-        <label class="theme-toggle">
-          <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
-          <span class="slider"></span>
-        </label>
-      </div>
-    </div>
-    
-    <button class="logout-btn" onclick="showLogoutModal()">
-      <span><i class="fas fa-sign-out-alt"></i></span>
-      <span>Logout</span>
-    </button>
+    <!-- ═══════════════════════════════════════════════════════════════
+         🆕 PROFILE SETTINGS LINK (replaces old user-info + theme + logout)
+         ═══════════════════════════════════════════════════════════════ -->
+    <a href="/profile-settings" class="profile-settings-link" title="Open Profile Settings">
+        <div class="profile-settings-avatar">
+            {{ username[0].upper() if username else 'U' }}
+        </div>
+        <div class="profile-settings-info">
+            <div class="profile-settings-name">{{ username }}</div>
+            <div class="profile-settings-role">{{ role|upper }}</div>
+        </div>
+        <div class="profile-settings-arrow">⚙️</div>
+    </a>
   </div>
 
   <!-- MAIN CONTENT -->
@@ -3191,9 +3296,11 @@
 <script type="module" src="{{ url_for('static', filename='js/dashboard/main.js') }}"></script>
 <script>
     // ── Theme Toggle Function ─────────────────────────────────────────
+    // Moved to /profile-settings — but still available for backward compat
     function toggleTheme() {
         const body = document.body;
         const toggle = document.getElementById('themeToggle');
+        if (!toggle) return;
         
         if (toggle.checked) {
             body.classList.remove('light-theme');
@@ -3211,16 +3318,13 @@
     // ── Restore Theme Preference ──────────────────────────────────────
     function restoreTheme() {
         const savedTheme = localStorage.getItem('dashboardTheme');
-        const toggle = document.getElementById('themeToggle');
         
         // Default to LIGHT theme
         if (savedTheme === 'dark') {
-            toggle.checked = true;
             document.body.classList.add('dark-theme');
             document.body.classList.remove('light-theme');
             console.log('🌙 Dark theme restored from preference');
         } else {
-            toggle.checked = false;
             document.body.classList.add('light-theme');
             document.body.classList.remove('dark-theme');
             console.log('🌞 Light theme is default');

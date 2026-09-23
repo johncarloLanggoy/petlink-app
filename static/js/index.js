@@ -1,5 +1,19 @@
-// ── Check if user is logged in ──────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════
+// PetLink — Homepage JavaScript
+// ═══════════════════════════════════════════════════════════════════════
+// NOTE: Navbar buttons (Login/Register vs Open Dashboard) ay server-side
+// controlled na via Jinja template. Hindi na tayo gagamit ng JS para
+// i-override ito para maiwasan ang conflict sa logout state.
+// ═══════════════════════════════════════════════════════════════════════
+
+// ── Check if user is logged in (para sa CTA buttons lang) ────────────
 function isLoggedIn() {
+  // Server-side na ang totoong check, pero dito sa JS we check
+  // kung may Open Dashboard button na naka-render (indicator na naka-login)
+  const dashboardBtn = document.querySelector('.dashboard-btn');
+  if (dashboardBtn) return true;
+  
+  // Fallback: check localStorage (legacy)
   const token = localStorage.getItem('jwt_token') || sessionStorage.getItem('jwt_token');
   if (!token) return false;
   
@@ -25,6 +39,12 @@ function getUserRole() {
 
 // ── Get redirect URL based on role ──────────────────────────────────
 function getDashboardUrl() {
+  // Kung may naka-render na dashboard URL sa button, gamitin ito
+  const dashboardBtn = document.querySelector('.dashboard-btn');
+  if (dashboardBtn && dashboardBtn.onclick) {
+    // Try to extract URL from onclick — pero hindi reliable
+  }
+  
   const role = getUserRole();
   switch(role) {
     case 'admin':
@@ -40,6 +60,19 @@ function getDashboardUrl() {
 
 // ── Redirect to dashboard based on role ─────────────────────────────
 function redirectToDashboard() {
+  // Kung may naka-render na dashboard button (server-side), i-click ito
+  const dashboardBtn = document.querySelector('.dashboard-btn');
+  if (dashboardBtn) {
+    // Kunin yung URL mula sa onclick attribute ng button
+    const onclickAttr = dashboardBtn.getAttribute('onclick') || '';
+    const match = onclickAttr.match(/href=['"]([^'"]+)['"]/);
+    if (match && match[1]) {
+      window.location.href = match[1];
+      return;
+    }
+  }
+  
+  // Fallback
   window.location.href = getDashboardUrl();
 }
 
@@ -61,69 +94,6 @@ function handleMainCta() {
   }
 }
 
-// ── Update navbar based on login status ─────────────────────────────
-function updateNavbar() {
-  const navButtons = document.getElementById('navButtons');
-  
-  console.log('🔄 Updating navbar... Is logged in?', isLoggedIn());
-  
-  if (isLoggedIn()) {
-    // Show Dashboard button only
-    if (navButtons) {
-      navButtons.innerHTML = `
-        <button class="dashboard-btn" onclick="redirectToDashboard()">
-          <i class="fas fa-tachometer-alt"></i> Open Dashboard
-        </button>
-      `;
-    }
-    
-    // Update CTA buttons
-    const heroCta = document.getElementById('heroCtaBtn');
-    const mainCta = document.getElementById('mainCtaBtn');
-    
-    if (heroCta) {
-      heroCta.innerHTML = '<i class="fas fa-tachometer-alt"></i> Go to Dashboard';
-      heroCta.onclick = redirectToDashboard;
-    }
-    
-    if (mainCta) {
-      mainCta.innerHTML = '<i class="fas fa-tachometer-alt"></i> Open Dashboard';
-      mainCta.className = 'btn-tutorial';
-      mainCta.onclick = redirectToDashboard;
-      console.log('✅ Main CTA updated to: Open Dashboard');
-    }
-    
-  } else {
-    // Show Login + Register buttons — FIXED: direct navigation
-    if (navButtons) {
-      navButtons.innerHTML = `
-        <button class="login-btn" onclick="window.location.href='/login'">
-          <i class="fas fa-sign-in-alt"></i> Login
-        </button>
-        <button class="register-btn" onclick="window.location.href='/register'">
-          <i class="fas fa-user-plus"></i> Register
-        </button>
-      `;
-    }
-    
-    // Update CTA buttons
-    const heroCta = document.getElementById('heroCtaBtn');
-    const mainCta = document.getElementById('mainCtaBtn');
-    
-    if (heroCta) {
-      heroCta.innerHTML = '<i class="fas fa-rocket"></i> Get Started';
-      heroCta.onclick = () => window.location.href = '/login';
-    }
-    
-    if (mainCta) {
-      mainCta.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login to Get Started';
-      mainCta.className = 'btn-tutorial';
-      mainCta.onclick = () => window.location.href = '/login';
-      console.log('✅ Main CTA updated to: Login');
-    }
-  }
-}
-
 // ── Handle hero CTA button click ─────────────────────────────────────
 function handleHeroCta() {
   if (isLoggedIn()) {
@@ -132,6 +102,55 @@ function handleHeroCta() {
     window.location.href = '/login';
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// ⚠️ updateNavbar() — DISABLED
+// ─────────────────────────────────────────────────────────────────────
+// Ito yung cause ng problema kung bakit lumalabas yung "Open Dashboard"
+// kahit nag-logout ka na. Server-side (Flask session) na ang titingin
+// kung naka-login ka o hindi.
+//
+// HUWAG BURAHIN ito — kailangan pa rin ito ng ibang functions.
+// Pero HINDI NA TINATAWAG sa page load.
+// ═══════════════════════════════════════════════════════════════════════
+function updateNavbar() {
+  const navButtons = document.getElementById('navButtons');
+  
+  console.log('🔄 updateNavbar() called — but DISABLED to avoid conflict with server-side rendering');
+  
+  // ⚠️ DISABLED: Hindi na natin ito gagamitin para mag-override ng navbar
+  // Ang navbar ay server-side na controlled via Jinja template
+  
+  // Update CTA buttons lang (hero + main) — ito OK pa
+  const heroCta = document.getElementById('heroCtaBtn');
+  const mainCta = document.getElementById('mainCtaBtn');
+  
+  if (isLoggedIn()) {
+    if (heroCta) {
+      heroCta.innerHTML = '<i class="fas fa-tachometer-alt"></i> Go to Dashboard';
+      heroCta.onclick = redirectToDashboard;
+    }
+    if (mainCta) {
+      mainCta.innerHTML = '<i class="fas fa-tachometer-alt"></i> Open Dashboard';
+      mainCta.className = 'btn-tutorial';
+      mainCta.onclick = redirectToDashboard;
+    }
+  } else {
+    if (heroCta) {
+      heroCta.innerHTML = '<i class="fas fa-rocket"></i> Get Started';
+      heroCta.onclick = () => window.location.href = '/login';
+    }
+    if (mainCta) {
+      mainCta.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login to Get Started';
+      mainCta.className = 'btn-tutorial';
+      mainCta.onclick = () => window.location.href = '/login';
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// SCROLL ANIMATIONS
+// ═══════════════════════════════════════════════════════════════════════
 
 // ── Smooth scroll animation for navigation links ────────────────────
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -260,15 +279,19 @@ setTimeout(() => {
   });
 }, 100);
 
-// ── Initialize navbar on page load ───────────────────────────────────
-updateNavbar();
+// ═══════════════════════════════════════════════════════════════════════
+// INITIALIZATION
+// ═══════════════════════════════════════════════════════════════════════
 
-// ── Also check when returning to page ────────────────────────────────
-window.addEventListener('pageshow', () => {
-  updateNavbar();
-});
+// ── Initialize CTA buttons (PERO HINDI ang navbar) ───────────────────
+// Ang navbar ay server-side na controlled. Yung CTA buttons lang (hero + main)
+// ang aayusin natin via JS.
+updateNavbar(); // ← Ito ngayon, CTA buttons lang ang ini-update (navbar disabled)
 
-// ── Make functions globally available ────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════
+// GLOBAL EXPORTS
+// ═══════════════════════════════════════════════════════════════════════
+
 window.isLoggedIn = isLoggedIn;
 window.getUserRole = getUserRole;
 window.getDashboardUrl = getDashboardUrl;

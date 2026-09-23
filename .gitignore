@@ -29,6 +29,7 @@ instance/
 *.db
 *.sqlite
 *.sqlite3
+secure_auth.db
 
 # ML Models
 ml_models/
@@ -43,3 +44,6 @@ ml_models/
 # Logs
 *.log
 logs/
+
+# Serveo logs
+serveo.log

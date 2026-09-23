@@ -110,6 +110,12 @@ def init_db():
         c.execute("ALTER TABLE users ADD COLUMN verification_code TEXT")
         print("Migration completed!")
 
+    # ── ✨ NEW: Add name_changed_at column for 7-day name change cooldown ──
+    if 'name_changed_at' not in columns:
+        print("Adding name_changed_at column to users table...")
+        c.execute("ALTER TABLE users ADD COLUMN name_changed_at TEXT")
+        print("Migration completed!")
+
     # ── Pets table ──────────────────────────────────────────────────
     c.execute("""
         CREATE TABLE IF NOT EXISTS pets (
@@ -826,7 +832,20 @@ def handle_disconnect():
 # ── Routes ─────────────────────────────────────────────────────────────
 @app.route('/')
 def index():
-    return render_template('index.html')
+    # Compute dashboard URL based on role (server-side)
+    dashboard_url = '/login'
+    if session.get('jwt_token'):
+        role = session.get('role', 'user')
+        if role == 'admin':
+            dashboard_url = '/admin'
+        elif role == 'staff':
+            dashboard_url = '/staff'
+        elif role == 'vet':
+            dashboard_url = '/vet'
+        else:
+            dashboard_url = '/dashboard'
+    
+    return render_template('index.html', dashboard_url=dashboard_url)
 
 # ── REGISTER ROUTE ────────────────────────────────────────────────────
 @app.route('/register', methods=["GET", "POST"])
@@ -1006,8 +1025,76 @@ def login():
 
 @app.route('/logout')
 def logout():
+    """Logout — clear server session, then redirect to cleanup page"""
     session.clear()
-    return redirect(url_for('index'))
+    return redirect('/logout-cleanup')
+
+
+@app.route('/logout-cleanup')
+def logout_cleanup():
+    """Intermediate page that clears localStorage/sessionStorage then redirects to index"""
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Logging out...</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+        <style>
+            body {
+                margin: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                font-family: 'Poppins', sans-serif;
+                background: linear-gradient(135deg, #eaf3e0, #c5d9b4);
+                color: #5a7a3f;
+            }
+            .loader {
+                text-align: center;
+            }
+            .loader i {
+                font-size: 48px;
+                animation: spin 1s linear infinite;
+                color: #7ba05b;
+            }
+            .loader p {
+                margin-top: 16px;
+                font-size: 16px;
+                font-weight: 600;
+                color: #5a7a3f;
+            }
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="loader">
+            <i class="fas fa-paw"></i>
+            <p>🐾 Logging out...</p>
+        </div>
+        <script>
+            // Clear localStorage at sessionStorage
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // Clear cookies
+            document.cookie.split(";").forEach(function(c) {
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+            });
+            
+            console.log('🧹 Cleared all storage');
+            
+            // Redirect to homepage after 0.8 seconds
+            setTimeout(function() {
+                window.location.href = '/';
+            }, 800);
+        </script>
+    </body>
+    </html>
+    """
 
 # ── VERIFICATION ROUTES ──────────────────────────────────────────────
 @app.route('/api/verify', methods=["POST"])
@@ -1107,6 +1194,244 @@ def dashboard():
                          username=fullname,
                          email=user["sub"],
                          role=user["role"])
+
+# ── PROFILE SETTINGS ROUTE ────────────────────────────────────────────
+@app.route('/profile-settings')
+@jwt_required
+def profile_settings():
+    """Profile settings page for customers"""
+    user = request.current_user
+    conn = get_db()
+    db_user = conn.execute(
+        "SELECT email, fullname, phone, address, role, created_at, name_changed_at FROM users WHERE email=?",
+        (user["sub"],)
+    ).fetchone()
+    conn.close()
+    
+    if not db_user:
+        return redirect(url_for('login'))
+    
+    # ── Calculate name change cooldown (7 days) ────────────────────────
+    name_change_available = True
+    days_remaining = 0
+    next_change_date = None
+    
+    name_changed_at_value = db_user["name_changed_at"]
+    
+    if name_changed_at_value:
+        try:
+            # ── Flexible parsing — subukan lahat ng possible formats ──
+            last_change = None
+            
+            # Format 1: "%Y-%m-%d %H:%M:%S" (standard)
+            try:
+                last_change = datetime.strptime(str(name_changed_at_value), "%Y-%m-%d %H:%M:%S")
+            except ValueError:
+                pass
+            
+            # Format 2: "%Y-%m-%dT%H:%M:%S" (ISO with T)
+            if not last_change:
+                try:
+                    last_change = datetime.strptime(str(name_changed_at_value), "%Y-%m-%dT%H:%M:%S")
+                except ValueError:
+                    pass
+            
+            # Format 3: "%Y-%m-%d %H:%M:%S.%f" (with microseconds)
+            if not last_change:
+                try:
+                    last_change = datetime.strptime(str(name_changed_at_value), "%Y-%m-%d %H:%M:%S.%f")
+                except ValueError:
+                    pass
+            
+            # Format 4: ISO format via fromisoformat
+            if not last_change:
+                try:
+                    last_change = datetime.fromisoformat(str(name_changed_at_value).replace('Z', ''))
+                except (ValueError, AttributeError):
+                    pass
+            
+            # Kung na-parse successfully, kalkulahin ang cooldown
+            if last_change:
+                now = datetime.now()
+                cooldown_end = last_change + timedelta(days=7)
+                
+                print(f"📅 Name last changed: {last_change}")
+                print(f"📅 Cooldown ends: {cooldown_end}")
+                print(f"📅 Now: {now}")
+                print(f"📅 Still on cooldown? {now < cooldown_end}")
+                
+                if now < cooldown_end:
+                    name_change_available = False
+                    delta = cooldown_end - now
+                    days_remaining = delta.days
+                    
+                    # Kung less than 1 day pero may oras pa, i-show as 1
+                    if days_remaining == 0 and delta.seconds > 0:
+                        days_remaining = 1
+                    
+                    # Minimum 1 para hindi 0
+                    if days_remaining < 1:
+                        days_remaining = 1
+                    
+                    next_change_date = cooldown_end.strftime("%B %d, %Y")
+                    
+                    print(f"🔒 Locked! Days remaining: {days_remaining}, Next change: {next_change_date}")
+            else:
+                print(f"❌ Could not parse name_changed_at: {name_changed_at_value}")
+                # Kung hindi ma-parse, i-allow pa rin mag-change
+                name_change_available = True
+                
+        except Exception as e:
+            print(f"❌ Error parsing name_changed_at: {e}")
+            name_change_available = True
+    
+    return render_template('profile_settings.html',
+                         email=db_user["email"],
+                         fullname=db_user["fullname"] or db_user["email"],
+                         phone=db_user["phone"] or "",
+                         address=db_user["address"] or "",
+                         role=db_user["role"],
+                         created_at=db_user["created_at"] or "",
+                         name_change_available=name_change_available,
+                         days_remaining=days_remaining,
+                         next_change_date=next_change_date)
+
+
+# ── UPDATE PROFILE API ────────────────────────────────────────────────
+@app.route('/api/profile/update', methods=["PUT"])
+@jwt_required
+def update_profile():
+    """Update user profile information (with 7-day name change cooldown)"""
+    data = request.get_json()
+    email = request.current_user.get("sub")
+    
+    fullname = data.get("fullname", "").strip()
+    phone = data.get("phone", "").strip()
+    address = data.get("address", "").strip()
+    
+    if not fullname:
+        return jsonify({"success": False, "message": "Full name is required."})
+    
+    if phone and not is_valid_phone(phone):
+        return jsonify({"success": False, "message": "Please enter a valid Philippine phone number."})
+    
+    conn = get_db()
+    
+    # ── Get current user data ──────────────────────────────────────────
+    user = conn.execute(
+        "SELECT fullname, name_changed_at FROM users WHERE email=?",
+        (email,)
+    ).fetchone()
+    
+    if not user:
+        conn.close()
+        return jsonify({"success": False, "message": "User not found."})
+    
+    current_fullname = user["fullname"] or ""
+    name_is_changing = fullname != current_fullname
+    
+    # ── Check name change cooldown ─────────────────────────────────────
+    now = datetime.now()
+    
+    if name_is_changing and user["name_changed_at"]:
+        try:
+            last_change = datetime.strptime(user["name_changed_at"], "%Y-%m-%d %H:%M:%S")
+            cooldown_end = last_change + timedelta(days=7)
+            
+            if now < cooldown_end:
+                delta = cooldown_end - now
+                days_left = delta.days
+                if days_left == 0 and delta.seconds > 0:
+                    days_left = 1
+                
+                conn.close()
+                return jsonify({
+                    "success": False,
+                    "message": f"You cannot change your name yet. Please wait {days_left} more day(s) before changing your name again.",
+                    "name_cooldown": True,
+                    "days_remaining": days_left
+                })
+        except Exception as e:
+            print(f"Error parsing name_changed_at: {e}")
+    
+    # ── Update user info ───────────────────────────────────────────────
+    now_str = now.strftime("%Y-%m-%d %H:%M:%S")
+    
+    if name_is_changing:
+        # Update name AND set name_changed_at timestamp
+        conn.execute(
+            "UPDATE users SET fullname=?, phone=?, address=?, name_changed_at=? WHERE email=?",
+            (fullname, phone, address, now_str, email)
+        )
+        message = "Profile updated! Your name has been changed. You can change it again after 7 days."
+    else:
+        # Only update phone and address (name unchanged)
+        conn.execute(
+            "UPDATE users SET fullname=?, phone=?, address=? WHERE email=?",
+            (fullname, phone, address, email)
+        )
+        message = "Profile updated successfully!"
+    
+    conn.commit()
+    conn.close()
+    
+    session["fullname"] = fullname
+    
+    return jsonify({
+        "success": True, 
+        "message": message,
+        "name_changed": name_is_changing
+    })
+
+
+# ── CHANGE PASSWORD API ───────────────────────────────────────────────
+@app.route('/api/profile/change-password', methods=["PUT"])
+@jwt_required
+def change_password():
+    """Change user password"""
+    data = request.get_json()
+    email = request.current_user.get("sub")
+    
+    current_password = data.get("current_password", "")
+    new_password = data.get("new_password", "")
+    confirm_password = data.get("confirm_password", "")
+    
+    if not current_password or not new_password or not confirm_password:
+        return jsonify({"success": False, "message": "All password fields are required."})
+    
+    if new_password != confirm_password:
+        return jsonify({"success": False, "message": "New passwords do not match."})
+    
+    # Validate strength
+    ok, err = is_strong_password(new_password)
+    if not ok:
+        return jsonify({"success": False, "message": err})
+    
+    conn = get_db()
+    user = conn.execute("SELECT salt, hashed_password FROM users WHERE email=?", (email,)).fetchone()
+    
+    if not user:
+        conn.close()
+        return jsonify({"success": False, "message": "User not found."})
+    
+    # Verify current password
+    current_hash = hash_password(current_password, user["salt"])
+    if current_hash != user["hashed_password"]:
+        conn.close()
+        return jsonify({"success": False, "message": "Current password is incorrect."})
+    
+    # Generate new salt and hash
+    new_salt = generate_salt()
+    new_hash = hash_password(new_password, new_salt)
+    
+    conn.execute(
+        "UPDATE users SET salt=?, hashed_password=? WHERE email=?",
+        (new_salt, new_hash, email)
+    )
+    conn.commit()
+    conn.close()
+    
+    return jsonify({"success": True, "message": "Password changed successfully!"})
 
 # ── ADMIN ROUTES ──────────────────────────────────────────────────────
 @app.route('/admin')

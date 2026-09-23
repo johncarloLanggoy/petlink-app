@@ -261,12 +261,18 @@
       <li><a href="#about"><i class="fas fa-info-circle"></i> About</a></li>
     </ul>
     <div class="nav-buttons" id="navButtons">
-      <button class="login-btn" onclick="window.location.href='/login'">
-        <i class="fas fa-sign-in-alt"></i> Login
-      </button>
-      <button class="register-btn" onclick="window.location.href='/register'">
-        <i class="fas fa-user-plus"></i> Register
-      </button>
+      {% if session.get('jwt_token') %}
+        <a href="{{ dashboard_url }}" class="dashboard-btn" style="text-decoration: none;">
+          <i class="fas fa-tachometer-alt"></i> Open Dashboard
+        </a>
+      {% else %}
+        <a href="/login" class="login-btn" style="text-decoration: none;">
+          <i class="fas fa-sign-in-alt"></i> Login
+        </a>
+        <a href="/register" class="register-btn" style="text-decoration: none;">
+          <i class="fas fa-user-plus"></i> Register
+        </a>
+      {% endif %}
     </div>
   </nav>
 
