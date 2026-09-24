@@ -111,8 +111,31 @@ export function renderAppointments(appointments, container) {
         return;
     }
     
+    // ✅ SORT: Completed at cancelled sa dulo, pending at confirmed sa taas
+    const statusPriority = {
+        'pending': 1,
+        'confirmed': 2,
+        'completed': 3,
+        'cancelled': 4
+    };
+    
+    const sortedAppointments = [...appointments].sort((a, b) => {
+        // Unahin ang priority (pending/confirmed sa taas)
+        const priorityA = statusPriority[a.status] || 99;
+        const priorityB = statusPriority[b.status] || 99;
+        
+        if (priorityA !== priorityB) {
+            return priorityA - priorityB;
+        }
+        
+        // Kung pareho ang status, i-sort by date (pinakamalapit sa taas)
+        const dateA = new Date(`${a.appointment_date} ${a.appointment_time}`);
+        const dateB = new Date(`${b.appointment_date} ${b.appointment_time}`);
+        return dateA - dateB;
+    });
+    
     let html = '';
-    appointments.forEach(app => {
+    sortedAppointments.forEach(app => {
         const statusClass = `status-${app.status}`;
         const statusLabel = app.status.charAt(0).toUpperCase() + app.status.slice(1);
         const canCancel = app.status === 'pending' || app.status === 'confirmed';

@@ -9,6 +9,7 @@ let currentYear = new Date().getFullYear();
 let selectedDate = null;
 let selectedTime = null;
 let cachedAvailability = null;
+let isJumping = false;  // ✅ Prevents multiple auto-jumps
 
 // ── Render Date Picker ─────────────────────────────────────────────
 export function renderDatePicker() {
@@ -125,7 +126,7 @@ async function checkMonthAvailability() {
 }
 
 // ── Select Date ────────────────────────────────────────────────────
-export function selectDate(dateStr) {
+export function selectDate(dateStr, autoJump = true) {
     const grid = document.getElementById('datePickerGrid');
     const cells = grid.querySelectorAll('.day-cell');
     
@@ -164,11 +165,12 @@ export function selectDate(dateStr) {
     document.getElementById('timeSlotDateLabel').textContent = 
         `Available slots for ${localDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}`;
     
-    loadTimeSlots(dateStr);
+    // ✅ I-set ang selectedDateDisplay at loadTimeSlots with autoJump
+    loadTimeSlots(dateStr, autoJump);
 }
 
 // ── Load Time Slots ────────────────────────────────────────────────
-export async function loadTimeSlots(dateStr) {
+export async function loadTimeSlots(dateStr, autoJump = true) {
     const grid = document.getElementById('timeSlotsGrid');
     const msg = document.getElementById('availabilityMessage');
     
@@ -192,24 +194,39 @@ export async function loadTimeSlots(dateStr) {
         const isDailyFull = data.is_daily_full || false;
         const dailyBooked = data.daily_booked || 0;
         const dailyMax = data.daily_max || 3;
+        const isDateClosed = data.is_date_closed || false;
         
-        if (!dayAvailable) {
+        // ✅ CASE 1: Clinic closed on this day
+        if (!dayAvailable || isDateClosed) {
             grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 20px;">❌ Clinic is closed on ${dayName}</div>`;
             msg.className = 'availability-unavailable';
             msg.textContent = `❌ The clinic is closed on ${dayName}. Please choose another day.`;
             msg.style.display = 'block';
+            
+            // ✅ AUTO-JUMP: Hanapin ang susunod na available date
+            if (autoJump && !isJumping) {
+                msg.innerHTML = `❌ The clinic is closed on ${dayName}. <span style="color: #38bdf8;">Finding next available date...</span>`;
+                await jumpToNextAvailableDate(dateStr);
+            }
             return;
         }
         
+        // ✅ CASE 2: Daily capacity full
         if (isDailyFull) {
             grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 20px;">❌ Fully booked on ${dayName} (${dailyBooked}/${dailyMax} appointments)</div>`;
             msg.className = 'availability-unavailable';
             msg.textContent = `❌ This day is fully booked (${dailyBooked}/${dailyMax} appointments). Please choose another day.`;
             msg.style.display = 'block';
+            
+            // ✅ AUTO-JUMP: Hanapin ang susunod na available date
+            if (autoJump && !isJumping) {
+                msg.innerHTML = `❌ This day is fully booked. <span style="color: #38bdf8;">Finding next available date...</span>`;
+                await jumpToNextAvailableDate(dateStr);
+            }
             return;
         }
         
-        // ✅ NEW: Get current time for comparison
+        // ✅ Get current time for comparison
         const now = new Date();
         const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         const isToday = dateStr === todayStr;
@@ -230,7 +247,7 @@ export async function loadTimeSlots(dateStr) {
             const maxSlots = slotInfo.max_slots || 1;
             const isFull = booked >= maxSlots;
             
-            // ✅ NEW: Check if the time slot is in the past for today's date
+            // ✅ Check if the time slot is in the past for today's date
             let isPastTime = false;
             if (isToday) {
                 const [slotHour, slotMinute] = time.split(':').map(Number);
@@ -244,7 +261,6 @@ export async function loadTimeSlots(dateStr) {
             btn.className = 'time-slot-btn';
             btn.dataset.time = time;
             
-            // ✅ MODIFIED: Consider isPastTime
             if (isAvailable && !isFull && !isPastTime) {
                 btn.classList.add('available');
                 availableCount++;
@@ -272,7 +288,7 @@ export async function loadTimeSlots(dateStr) {
                 ${maxSlots > 1 && !isPastTime ? `<span class="slot-count">${booked}/${maxSlots} booked</span>` : ''}
             `;
             
-            // ✅ MODIFIED: Only allow click if not past time
+            // ✅ Only allow click if not past time
             if (isAvailable && !isFull && !isPastTime) {
                 btn.onclick = () => selectTime(time);
             }
@@ -284,10 +300,17 @@ export async function loadTimeSlots(dateStr) {
         document.getElementById('slotCountLabel').textContent = 
             `${remainingSlots} slot${remainingSlots !== 1 ? 's' : ''} remaining today (${availableCount} time slots available)`;
         
+        // ✅ CASE 3: Walang available time slots
         if (availableCount === 0) {
             msg.className = 'availability-unavailable';
             msg.textContent = `❌ No available time slots on ${dayName}. Please choose another day.`;
             msg.style.display = 'block';
+            
+            // ✅ AUTO-JUMP: Hanapin ang susunod na available date
+            if (autoJump && !isJumping) {
+                msg.innerHTML = `❌ No available time slots. <span style="color: #38bdf8;">Finding next available date...</span>`;
+                await jumpToNextAvailableDate(dateStr);
+            }
         } else {
             msg.className = 'availability-available';
             msg.textContent = `✅ ${availableCount} time slot${availableCount !== 1 ? 's' : ''} available on ${dayName} (${dailyBooked}/${dailyMax} booked today)`;
@@ -299,6 +322,104 @@ export async function loadTimeSlots(dateStr) {
     } catch (error) {
         console.error('Error loading time slots:', error);
         grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 20px;">❌ Error loading time slots</div>';
+    }
+}
+
+// ✅ NEW: Auto-jump sa susunod na available date
+async function jumpToNextAvailableDate(currentDateStr) {
+    if (isJumping) return;
+    isJumping = true;
+    
+    try {
+        // Start sa susunod na araw
+        const [year, month, day] = currentDateStr.split('-').map(Number);
+        let searchDate = new Date(year, month - 1, day + 1);
+        
+        // Maghanap ng available date sa loob ng 30 araw
+        const maxDaysToSearch = 30;
+        
+        for (let i = 0; i < maxDaysToSearch; i++) {
+            const dateStr = `${searchDate.getFullYear()}-${String(searchDate.getMonth() + 1).padStart(2, '0')}-${String(searchDate.getDate()).padStart(2, '0')}`;
+            
+            try {
+                const data = await fetchBookedSlots(dateStr);
+                
+                if (data.success && data.day_available && !data.is_daily_full && !data.is_date_closed) {
+                    // Check kung may available time slot
+                    let hasAvailableSlot = false;
+                    
+                    // Check kung today ba — kailangan i-check ang past time
+                    const now = new Date();
+                    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                    const isToday = dateStr === todayStr;
+                    const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes();
+                    
+                    for (const [time, info] of Object.entries(data.slots)) {
+                        if (info.available && info.is_active) {
+                            // Kung today, i-check kung hindi pa past time
+                            if (isToday) {
+                                const [slotHour, slotMinute] = time.split(':').map(Number);
+                                const slotTimeInMinutes = slotHour * 60 + slotMinute;
+                                if (slotTimeInMinutes > currentTimeInMinutes) {
+                                    hasAvailableSlot = true;
+                                    break;
+                                }
+                            } else {
+                                hasAvailableSlot = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (hasAvailableSlot) {
+                        // ✅ Nahanap! I-set ang current month/year at i-select ang date
+                        currentMonth = searchDate.getMonth();
+                        currentYear = searchDate.getFullYear();
+                        
+                        // Re-render ang date picker
+                        renderDatePicker();
+                        
+                        // I-select ang date (with auto-jump disabled para hindi mag-loop)
+                        setTimeout(() => {
+                            selectDate(dateStr, false);
+                            
+                            // ✅ Ipakita ang notification
+                            const msg = document.getElementById('availabilityMessage');
+                            if (msg) {
+                                msg.className = 'availability-available';
+                                msg.innerHTML = `✅ Auto-selected <strong>${searchDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</strong> — may available time slots.`;
+                                msg.style.display = 'block';
+                            }
+                            
+                            showToast(`Auto-selected ${searchDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`, 'success');
+                        }, 300);
+                        
+                        isJumping = false;
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error('Error checking date:', e);
+            }
+            
+            // Next day
+            searchDate.setDate(searchDate.getDate() + 1);
+        }
+        
+        // Walang nahanap sa loob ng 30 araw
+        const msg = document.getElementById('availabilityMessage');
+        if (msg) {
+            msg.className = 'availability-unavailable';
+            msg.textContent = '❌ No available dates found in the next 30 days. Please contact us directly.';
+            msg.style.display = 'block';
+        }
+        
+        showToast('No available dates found in the next 30 days.', 'error');
+        
+    } catch (error) {
+        console.error('Error jumping to next available date:', error);
+    } finally {
+        isJumping = false;
     }
 }
 

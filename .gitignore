@@ -47,3 +47,7 @@ logs/
 
 # Serveo logs
 serveo.log
+
+# Cloudflare Tunnel
+cloudflared.exe
+cloudflared-windows-amd64.exe

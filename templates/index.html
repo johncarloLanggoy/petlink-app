@@ -242,6 +242,511 @@
       }
     }
   </style>
+  <!-- ═══════════════════════════════════════════════════════════════
+      🎨 MOBILE VIEW OVERRIDES — INDEX.HTML
+      ═══════════════════════════════════════════════════════════════ -->
+  <style>
+      /* ═══════════════════════════════════════════════════════════════
+        📱 TABLET VIEW (max-width: 1024px)
+        ═══════════════════════════════════════════════════════════════ */
+      @media (max-width: 1024px) {
+          /* ── NAVBAR ──────────────────────────────────────────────── */
+          nav {
+              padding: 14px 24px;
+          }
+
+          nav ul {
+              gap: 20px;
+          }
+
+          nav ul li a {
+              font-size: 14px;
+          }
+
+          /* ── HERO ────────────────────────────────────────────────── */
+          .hero {
+              padding: 100px 40px 60px;
+              flex-direction: column;
+              text-align: center;
+          }
+
+          .hero-content {
+              max-width: 100%;
+          }
+
+          .hero h2 {
+              font-size: 42px;
+          }
+
+          .hero p {
+              font-size: 16px;
+          }
+
+          .hero-buttons {
+              justify-content: center;
+          }
+
+          .hero-visual {
+              position: relative;
+              right: auto;
+              top: auto;
+              transform: none;
+              width: 100%;
+              max-width: 500px;
+              margin: 40px auto 0;
+          }
+
+          .dashboard-preview {
+              transform: none;
+          }
+
+          .dashboard-preview:hover {
+              transform: translateY(-5px);
+          }
+
+          /* ── TUTORIAL SECTION ────────────────────────────────────── */
+          .tutorial-section {
+              padding: 60px 30px 70px;
+          }
+
+          .tutorial-steps {
+              grid-template-columns: repeat(2, 1fr);
+              gap: 20px;
+          }
+
+          .no-account-box {
+              flex-direction: row;
+              text-align: left;
+          }
+
+          /* ── FEATURES ────────────────────────────────────────────── */
+          .features {
+              padding: 50px 30px 70px;
+              gap: 25px;
+          }
+
+          /* ── STATS ───────────────────────────────────────────────── */
+          .stats-wrapper {
+              padding: 50px 30px 70px;
+          }
+
+          .stats {
+              grid-template-columns: repeat(3, 1fr);
+              gap: 20px;
+          }
+
+          .stat-number {
+              font-size: 36px;
+          }
+      }
+
+      /* ═══════════════════════════════════════════════════════════════
+        📱 MOBILE VIEW (max-width: 768px)
+        ═══════════════════════════════════════════════════════════════ */
+      @media (max-width: 768px) {
+          /* ── NAVBAR ──────────────────────────────────────────────── */
+          nav {
+              padding: 12px 16px;
+              flex-direction: row;
+              flex-wrap: wrap;
+              gap: 10px;
+          }
+
+          nav h1 {
+              font-size: 18px;
+          }
+
+          nav h1 .brand-text {
+              font-size: 16px;
+          }
+
+          nav h1 img,
+          nav h1 .navbar-logo {
+              width: 36px;
+              height: 36px;
+          }
+
+          nav ul {
+              display: flex;
+              overflow-x: auto;
+              white-space: nowrap;
+              gap: 12px;
+              padding-bottom: 4px;
+              scrollbar-width: none;
+              -ms-overflow-style: none;
+              order: 3;
+              width: 100%;
+          }
+
+          nav ul::-webkit-scrollbar {
+              display: none;
+          }
+
+          nav ul li a {
+              font-size: 12px;
+              padding: 6px 10px;
+              background: rgba(123, 160, 91, 0.08);
+              border-radius: 8px;
+              display: inline-block;
+          }
+
+          nav ul li a::after {
+              display: none;
+          }
+
+          .nav-buttons {
+              margin-left: auto;
+              gap: 8px;
+          }
+
+          .nav-buttons button,
+          .dashboard-btn {
+              padding: 8px 14px;
+              font-size: 12px;
+              border-radius: 8px;
+          }
+
+          .nav-buttons button i,
+          .dashboard-btn i {
+              font-size: 12px;
+          }
+
+          /* ── HERO ────────────────────────────────────────────────── */
+          .hero {
+              padding: 90px 20px 40px;
+              min-height: auto;
+          }
+
+          .hero h2 {
+              font-size: 32px;
+              line-height: 1.2;
+          }
+
+          .hero p {
+              font-size: 15px;
+              line-height: 1.6;
+          }
+
+          .hero-buttons {
+              flex-direction: column;
+              width: 100%;
+              gap: 12px;
+          }
+
+          .hero-buttons .btn-primary,
+          .hero-buttons .btn-secondary {
+              width: 100%;
+              justify-content: center;
+              padding: 14px 20px;
+              font-size: 15px;
+          }
+
+          .hero-visual {
+              max-width: 100%;
+              margin: 30px auto 0;
+          }
+
+          /* ── TUTORIAL SECTION ────────────────────────────────────── */
+          .tutorial-section {
+              padding: 50px 16px 60px;
+          }
+
+          .tutorial-header h2 {
+              font-size: 26px;
+          }
+
+          .tutorial-header p {
+              font-size: 15px;
+          }
+
+          .tutorial-steps {
+              grid-template-columns: 1fr;
+              gap: 16px;
+          }
+
+          .step-card {
+              padding: 28px 20px;
+          }
+
+          .step-card h3 {
+              font-size: 18px;
+          }
+
+          .step-card p {
+              font-size: 13px;
+          }
+
+          .step-number {
+              width: 36px;
+              height: 36px;
+              font-size: 15px;
+          }
+
+          .step-icon {
+              width: 56px;
+              height: 56px;
+              font-size: 24px;
+          }
+
+          /* ── NO ACCOUNT BOX ──────────────────────────────────────── */
+          .no-account-box {
+              flex-direction: column;
+              text-align: center;
+              padding: 24px 20px;
+              gap: 16px;
+          }
+
+          .no-account-box .icon-large {
+              width: 56px;
+              height: 56px;
+              font-size: 24px;
+          }
+
+          .no-account-box .content h4 {
+              font-size: 16px;
+          }
+
+          .no-account-box .content p {
+              font-size: 13px;
+          }
+
+          .no-account-box .btn-visit-clinic {
+              width: 100%;
+              justify-content: center;
+              padding: 12px 20px;
+          }
+
+          /* ── TUTORIAL FEATURES ───────────────────────────────────── */
+          .tutorial-features {
+              grid-template-columns: repeat(2, 1fr);
+              gap: 16px;
+          }
+
+          .tutorial-feature-item {
+              font-size: 12px;
+          }
+
+          .tutorial-feature-item .icon {
+              font-size: 22px;
+          }
+
+          /* ── TUTORIAL CTA ────────────────────────────────────────── */
+          .tutorial-cta {
+              display: flex;
+              flex-direction: column;
+              gap: 12px;
+          }
+
+          .tutorial-cta .btn-tutorial,
+          .tutorial-cta .btn-tutorial-secondary {
+              width: 100%;
+              justify-content: center;
+              margin-left: 0;
+              padding: 14px 20px;
+              font-size: 14px;
+          }
+
+          /* ── FEATURES ────────────────────────────────────────────── */
+          .features {
+              padding: 40px 16px 60px;
+              gap: 20px;
+              grid-template-columns: 1fr;
+          }
+
+          .card {
+              padding: 30px 20px;
+          }
+
+          .card h3 {
+              font-size: 18px;
+          }
+
+          .card p {
+              font-size: 14px;
+          }
+
+          .card .icon-wrapper {
+              width: 60px;
+              height: 60px;
+              font-size: 26px;
+          }
+
+          /* ── STATS ───────────────────────────────────────────────── */
+          .stats-wrapper {
+              padding: 40px 16px 60px;
+          }
+
+          .stats {
+              grid-template-columns: 1fr;
+              gap: 16px;
+          }
+
+          .stat-item {
+              padding: 24px 16px;
+          }
+
+          .stat-number {
+              font-size: 32px;
+          }
+
+          .stat-number i {
+              font-size: 24px;
+          }
+
+          .stat-label {
+              font-size: 13px;
+          }
+
+          /* ── ABOUT ───────────────────────────────────────────────── */
+          .about {
+              padding: 50px 20px 60px;
+          }
+
+          .about h2 {
+              font-size: 28px;
+          }
+
+          .about p {
+              font-size: 15px;
+          }
+
+          .about .feature-badges {
+              flex-direction: column;
+              align-items: center;
+              gap: 12px;
+          }
+
+          .about .feature-badges .badge {
+              width: 100%;
+              justify-content: center;
+              font-size: 13px;
+          }
+
+          /* ── FOOTER ──────────────────────────────────────────────── */
+          footer {
+              padding: 40px 20px;
+          }
+
+          footer .footer-brand {
+              font-size: 18px;
+          }
+
+          footer .footer-links {
+              flex-direction: column;
+              gap: 12px;
+          }
+
+          footer .footer-links a {
+              font-size: 13px;
+          }
+
+          footer .footer-contact {
+              flex-direction: column;
+              gap: 8px;
+              font-size: 12px;
+          }
+
+          footer p {
+              font-size: 12px;
+          }
+      }
+
+      /* ═══════════════════════════════════════════════════════════════
+        📱 SMALL MOBILE (max-width: 480px)
+        ═══════════════════════════════════════════════════════════════ */
+      @media (max-width: 480px) {
+          /* ── NAVBAR ──────────────────────────────────────────────── */
+          nav {
+              padding: 10px 12px;
+          }
+
+          nav h1 {
+              font-size: 16px;
+          }
+
+          nav h1 .brand-text {
+              display: none; /* Itago ang text, logo lang */
+          }
+
+          .nav-buttons button,
+          .dashboard-btn {
+              padding: 8px 12px;
+              font-size: 11px;
+          }
+
+          .nav-buttons button i,
+          .dashboard-btn i {
+              margin-right: 4px;
+          }
+
+          /* ── HERO ────────────────────────────────────────────────── */
+          .hero {
+              padding: 80px 16px 30px;
+          }
+
+          .hero h2 {
+              font-size: 26px;
+          }
+
+          .hero p {
+              font-size: 14px;
+          }
+
+          .hero-buttons .btn-primary,
+          .hero-buttons .btn-secondary {
+              padding: 12px 16px;
+              font-size: 14px;
+          }
+
+          /* ── TUTORIAL ────────────────────────────────────────────── */
+          .tutorial-section {
+              padding: 40px 12px 50px;
+          }
+
+          .tutorial-header h2 {
+              font-size: 22px;
+          }
+
+          .tutorial-header p {
+              font-size: 14px;
+          }
+
+          .tutorial-features {
+              grid-template-columns: 1fr;
+          }
+
+          /* ── FEATURES ────────────────────────────────────────────── */
+          .features {
+              padding: 30px 12px 50px;
+          }
+
+          .card {
+              padding: 24px 16px;
+          }
+
+          .card h3 {
+              font-size: 16px;
+          }
+
+          /* ── ABOUT ───────────────────────────────────────────────── */
+          .about h2 {
+              font-size: 24px;
+          }
+
+          .about p {
+              font-size: 14px;
+          }
+
+          /* ── FOOTER ──────────────────────────────────────────────── */
+          footer {
+              padding: 30px 16px;
+          }
+
+          footer .footer-brand {
+              font-size: 16px;
+          }
+      }
+  </style>
 </head>
 <body>
 

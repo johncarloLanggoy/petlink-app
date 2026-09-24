@@ -164,13 +164,24 @@ function clearAllergies(mode) {
 
 // ── Handle Pet Type Change (Add Modal) ──────────────────────────────
 function handleAddPetTypeChange() {
-    const petType = document.getElementById('addPetType').value;
+    const select = document.getElementById('addPetType');
+    const petType = select.value;
+    
+    // ✅ I-reset ang color kapag may valid na napili
+    if (petType) {
+        select.style.color = '#2d3e1f';  // dark green (tulad ng normal input)
+    } else {
+        select.style.color = '#94a3b8';  // grey (placeholder)
+    }
+    
     selectedAllergiesAdd = [];
     renderAllergyDropdown(petType, 'addPetAllergiesContainer', selectedAllergiesAdd, false);
 }
 
 // ── Handle Pet Type Change (Edit Modal) ─────────────────────────────
 function handleEditPetTypeChange() {
+    // ✅ Hindi na ito tinatawag dahil disabled na ang pet type select
+    // Pero kung tatawagin man, gamitin ang hidden input value
     const petType = document.getElementById('editPetDetailsType').value;
     const currentAllergies = document.getElementById('editPetDetailsAllergies').value;
     
@@ -252,10 +263,12 @@ export async function loadMyPets() {
                     <div class="pet-card">
                         <div class="pet-avatar">
                             ${pet.pet_image ? 
-                                `<img src="${pet.pet_image}" alt="${pet.name}" id="petImg-${pet.id}">` : 
+                                `<img src="${pet.pet_image}" alt="${pet.name}" id="petImg-${pet.id}" 
+                                    style="cursor: pointer;" 
+                                    onclick="event.stopPropagation(); window.openPetViewer('${pet.pet_image}', '${pet.name.replace(/'/g, "\\'")}')">` : 
                                 `<span style="font-size: 60px; color: #7ba05b;">${petIconHTML}</span>`
                             }
-                            <button class="edit-image-btn" onclick="window.showEditPetImageModal(${pet.id}, '${pet.name}')" title="Change pet photo">
+                            <button class="edit-image-btn" onclick="event.stopPropagation(); window.showEditPetImageModal(${pet.id}, '${pet.name.replace(/'/g, "\\'")}')" title="Change pet photo">
                                 <i class="fas fa-camera"></i>
                             </button>
                         </div>
@@ -336,6 +349,11 @@ export async function submitNewPet(e) {
         return;
     }
     
+    if (!pet_type) {
+        showToast('Please choose a pet type (Dog or Cat).', 'error');
+        return;
+    }
+    
     const btn = document.getElementById('addPetSubmitBtn');
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
     btn.disabled = true;
@@ -384,7 +402,7 @@ export async function updatePetDetails(e) {
     
     const petId = document.getElementById('editPetDetailsId').value;
     const name = document.getElementById('editPetDetailsName').value.trim();
-    const pet_type = document.getElementById('editPetDetailsType').value;
+    const pet_type = document.getElementById('editPetDetailsType').value; // ✅ Hidden input - value mula sa database
     const breed = document.getElementById('editPetDetailsBreed').value.trim();
     const age = document.getElementById('editPetDetailsAge').value;
     const gender = document.getElementById('editPetDetailsGender').value;
@@ -459,6 +477,11 @@ export function showAddPetModal() {
     document.getElementById('addPetSubmitBtn').disabled = false;
     document.getElementById('addPetSubmitBtn').innerHTML = '<i class="fas fa-save"></i> Register Pet';
     
+    // ✅ I-reset ang pet type sa placeholder at i-grey ang text
+    const petTypeSelect = document.getElementById('addPetType');
+    petTypeSelect.value = '';
+    petTypeSelect.style.color = '#94a3b8';
+    
     // Reset allergies dropdown (disabled since no pet type selected)
     selectedAllergiesAdd = [];
     renderAllergyDropdown('', 'addPetAllergiesContainer', [], false);
@@ -487,7 +510,9 @@ export function previewAddPetImage(event) {
     reader.readAsDataURL(file);
 }
 
-// ── Show Edit Pet Details Modal ───────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+// ✅ SHOW EDIT PET DETAILS MODAL — ITO LANG ANG TAMANG VERSION
+// ═══════════════════════════════════════════════════════════════════
 export async function showEditPetDetailsModal(petId) {
     const email = getLoggedInEmail();
     if (!email) return;
@@ -497,9 +522,15 @@ export async function showEditPetDetailsModal(petId) {
         if (data.success) {
             const pet = data.pets.find(p => p.id === petId);
             if (pet) {
+                const petType = pet.pet_type || 'Dog';
+                
                 document.getElementById('editPetDetailsId').value = pet.id;
                 document.getElementById('editPetDetailsName').value = pet.name || '';
-                document.getElementById('editPetDetailsType').value = pet.pet_type || 'Dog';
+                
+                // ✅ I-set ang DISPLAY (disabled) at HIDDEN input
+                document.getElementById('editPetDetailsTypeDisplay').value = petType;
+                document.getElementById('editPetDetailsType').value = petType;
+                
                 document.getElementById('editPetDetailsBreed').value = pet.breed || '';
                 document.getElementById('editPetDetailsAge').value = pet.age || '';
                 document.getElementById('editPetDetailsGender').value = pet.gender || '';
@@ -513,7 +544,7 @@ export async function showEditPetDetailsModal(petId) {
                     ? pet.allergies.split(',').map(a => a.trim()).filter(a => a)
                     : [];
                 
-                renderAllergyDropdown(pet.pet_type || 'Dog', 'editPetAllergiesContainer', selectedAllergiesEdit, true);
+                renderAllergyDropdown(petType, 'editPetAllergiesContainer', selectedAllergiesEdit, true);
                 
                 document.getElementById('editPetDetailsModal').style.display = 'flex';
             }

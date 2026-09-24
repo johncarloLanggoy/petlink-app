@@ -702,6 +702,12 @@ export async function loadFirstUnreadConversation() {
 export async function loadCustomerConversation(staffEmail) {
     currentStaffEmail = staffEmail;
     
+    // ✅ MOBILE: I-activate ang conversation view (slide-in)
+    const messagesContainer = document.getElementById('myMessagesContainer');
+    if (messagesContainer && window.innerWidth <= 768) {
+        messagesContainer.classList.add('has-active-conversation');
+    }
+    
     const container = document.getElementById('conversationMessagesStaff');
     const currentUser = getLoggedInEmail();
     
@@ -1135,6 +1141,14 @@ export async function sendMessage(e) {
     btn.disabled = false;
 }
 
+// ✅ NEW: Back to Staff List (Mobile) ──────────────────────────────
+export function backToStaffList() {
+    const messagesContainer = document.getElementById('myMessagesContainer');
+    if (messagesContainer) {
+        messagesContainer.classList.remove('has-active-conversation');
+    }
+}
+
 // ── Make functions globally available ──────────────────────────────
 window.loadStaffConversations = loadStaffConversations;
 window.loadCustomerConversation = loadCustomerConversation;
@@ -1145,6 +1159,7 @@ window.updateMessageBadge = updateMessageBadge;
 window.showContactModal = showContactModal;
 window.closeContactModal = closeContactModal;
 window.sendMessage = sendMessage;
+window.backToStaffList = backToStaffList;
 
 // Emoji and Image functions
 window.toggleEmojiPicker = toggleEmojiPicker;
@@ -1154,3 +1169,21 @@ window.closeImageUploadModal = closeImageUploadModal;
 window.sendImageMessage = sendImageMessage;
 window.openImageFullscreen = openImageFullscreen;
 window.initEmojiPicker = initEmojiPicker;
+
+// ✅ NEW: Mobile back button event listener ────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+    const conversationHeader = document.getElementById('conversationHeaderStaff');
+    
+    if (conversationHeader) {
+        conversationHeader.addEventListener('click', function(e) {
+            // Check kung clinick ang back button area (::before pseudo-element)
+            const rect = this.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            
+            // Sa mobile (≤768px), kapag clinick sa loob ng 50px mula sa kaliwa
+            if (clickX <= 50 && window.innerWidth <= 768) {
+                backToStaffList();
+            }
+        });
+    }
+});

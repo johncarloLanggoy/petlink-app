@@ -587,7 +587,7 @@ def role_required(*roles):
 
 # ── Email Helper Function ─────────────────────────────────────────────
 def send_verification_email(email, code, fullname):
-    """Send verification code email"""
+    """Send verification code email (Light Theme)"""
     try:
         msg = Message("🔐 Verify Your PetLink Account", recipients=[email])
         
@@ -595,17 +595,17 @@ def send_verification_email(email, code, fullname):
         <html>
         <head>
             <style>
-                body {{ font-family: Arial, sans-serif; background-color: #0f172a; color: #e2e8f0; margin: 0; padding: 20px; }}
-                .container {{ max-width: 600px; margin: 0 auto; padding: 30px; background: #1e293b; border-radius: 16px; border: 1px solid #334155; }}
-                .header {{ text-align: center; border-bottom: 1px solid #334155; padding-bottom: 20px; }}
-                .header h1 {{ color: #38bdf8; font-size: 28px; margin: 0; }}
-                .header .subtitle {{ color: #94a3b8; font-size: 14px; }}
+                body {{ font-family: Arial, sans-serif; background-color: #f0f7eb; color: #2d3e1f; margin: 0; padding: 20px; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 30px; background: #ffffff; border-radius: 16px; border: 1px solid #d4e5c4; box-shadow: 0 4px 20px rgba(123, 160, 91, 0.1); }}
+                .header {{ text-align: center; border-bottom: 1px solid #d4e5c4; padding-bottom: 20px; }}
+                .header h1 {{ color: #5a7a3f; font-size: 28px; margin: 0; }}
+                .header .subtitle {{ color: #94a387; font-size: 14px; }}
                 .content {{ padding: 20px 0; }}
-                .content h2 {{ color: #38bdf8; font-size: 22px; margin-bottom: 10px; }}
-                .content p {{ color: #94a3b8; line-height: 1.6; }}
-                .code-box {{ background: #0f172a; border-radius: 12px; padding: 20px; border: 1px solid #334155; text-align: center; margin: 20px 0; }}
-                .code-box .code {{ font-size: 32px; font-weight: 700; color: #38bdf8; letter-spacing: 8px; font-family: monospace; }}
-                .footer {{ text-align: center; border-top: 1px solid #334155; padding-top: 20px; color: #64748b; font-size: 12px; }}
+                .content h2 {{ color: #5a7a3f; font-size: 22px; margin-bottom: 10px; }}
+                .content p {{ color: #4a5a3f; line-height: 1.6; }}
+                .code-box {{ background: #f7fbf3; border-radius: 12px; padding: 20px; border: 1px solid #d4e5c4; text-align: center; margin: 20px 0; }}
+                .code-box .code {{ font-size: 32px; font-weight: 700; color: #5a7a3f; letter-spacing: 8px; font-family: monospace; }}
+                .footer {{ text-align: center; border-top: 1px solid #d4e5c4; padding-top: 20px; color: #94a387; font-size: 12px; }}
             </style>
         </head>
         <body>
@@ -643,7 +643,7 @@ def send_verification_email(email, code, fullname):
         return False
 
 def send_password_reset_email(email, reset_link):
-    """Send password reset link email"""
+    """Send password reset link email (Light Theme)"""
     try:
         msg = Message("🔐 Reset Your PetLink Password", recipients=[email])
         
@@ -713,14 +713,14 @@ def send_password_reset_email(email, reset_link):
         return False
 
 def send_email_notification(recipient, subject, body, appointment_data=None):
-    """Send email notification for appointment updates with HTML formatting."""
+    """Send email notification for appointment updates with HTML formatting (Light Theme)."""
     try:
         msg = Message(subject, recipients=[recipient])
         
         status_colors = {
             'pending': '#f59e0b',
             'confirmed': '#10b981',
-            'completed': '#38bdf8',
+            'completed': '#7ba05b',
             'cancelled': '#ef4444'
         }
         status_color = status_colors.get(appointment_data.get('status', 'pending') if appointment_data else 'pending', '#94a3b8')
@@ -729,21 +729,25 @@ def send_email_notification(recipient, subject, body, appointment_data=None):
         <html>
         <head>
             <style>
-                body {{ font-family: Arial, sans-serif; background-color: #0f172a; color: #e2e8f0; margin: 0; padding: 20px; }}
-                .container {{ max-width: 600px; margin: 0 auto; padding: 30px; background: #1e293b; border-radius: 16px; border: 1px solid #334155; }}
-                .header {{ text-align: center; border-bottom: 1px solid #334155; padding-bottom: 20px; }}
-                .header h1 {{ color: #38bdf8; font-size: 28px; margin: 0; }}
-                .header .subtitle {{ color: #94a3b8; font-size: 14px; }}
+                body {{ font-family: Arial, sans-serif; background-color: #f0f7eb; color: #2d3e1f; margin: 0; padding: 20px; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 30px; background: #ffffff; border-radius: 16px; border: 1px solid #d4e5c4; box-shadow: 0 4px 20px rgba(123, 160, 91, 0.1); }}
+                .header {{ text-align: center; border-bottom: 1px solid #d4e5c4; padding-bottom: 20px; }}
+                .header h1 {{ color: #5a7a3f; font-size: 28px; margin: 0; }}
+                .header .subtitle {{ color: #94a387; font-size: 14px; }}
                 .content {{ padding: 20px 0; }}
-                .content h2 {{ color: #38bdf8; font-size: 22px; margin-bottom: 10px; }}
-                .content p {{ color: #94a3b8; line-height: 1.6; }}
-                .details {{ background: #0f172a; border-radius: 12px; padding: 20px; border: 1px solid #334155; margin-top: 20px; }}
-                .detail {{ padding: 8px 0; border-bottom: 1px solid #1e293b; }}
+                .content h2 {{ color: #5a7a3f; font-size: 22px; margin-bottom: 10px; }}
+                .content p {{ color: #4a5a3f; line-height: 1.6; }}
+                .details {{ background: #f7fbf3; border-radius: 12px; padding: 20px; border: 1px solid #d4e5c4; margin-top: 20px; }}
+                .details h3 {{ color: #5a7a3f !important; margin-top: 0; margin-bottom: 15px; }}
+                .detail {{ padding: 8px 0; border-bottom: 1px solid #eaf3e0; color: #2d3e1f; }}
                 .detail:last-child {{ border-bottom: none; }}
-                .detail strong {{ color: #38bdf8; }}
-                .status-badge {{ display: inline-block; padding: 4px 16px; border-radius: 20px; font-weight: 600; font-size: 14px; background: {status_color}; color: #0f172a; }}
-                .footer {{ text-align: center; border-top: 1px solid #334155; padding-top: 20px; color: #64748b; font-size: 12px; }}
-                .footer .address {{ color: #94a3b8; }}
+                .detail strong {{ color: #5a7a3f; }}
+                .status-badge {{ display: inline-block; padding: 4px 16px; border-radius: 20px; font-weight: 600; font-size: 14px; background: {status_color}; color: #ffffff; }}
+                .footer {{ text-align: center; border-top: 1px solid #d4e5c4; padding-top: 20px; color: #94a387; font-size: 12px; }}
+                .footer .address {{ color: #4a5a3f; }}
+                .contact-info {{ text-align: center; margin-top: 20px; }}
+                .contact-info p {{ color: #4a5a3f; font-size: 13px; }}
+                .contact-info strong {{ color: #5a7a3f; }}
             </style>
         </head>
         <body>
@@ -760,12 +764,26 @@ def send_email_notification(recipient, subject, body, appointment_data=None):
         if appointment_data:
             status_label = appointment_data.get('status', 'pending').upper()
             services = appointment_data.get('service', 'N/A')
-            total_price = appointment_data.get('total_price', 0)
-            total_duration = appointment_data.get('total_duration', 0)
+            
+            # ✅ SAFE: Handle total_price
+            try:
+                total_price = float(appointment_data.get('total_price', 0) or 0)
+            except (ValueError, TypeError):
+                total_price = 0.0
+            
+            # ✅ SAFE: Handle total_duration
+            try:
+                total_duration = int(appointment_data.get('total_duration', 0) or 0)
+            except (ValueError, TypeError):
+                total_duration = 0
+            
+            # ✅ SAFE: Handle notes (escape special characters)
+            notes = appointment_data.get('notes', '') or ''
+            notes = str(notes).replace('"', '&quot;').replace("'", '&#39;').replace('<', '&lt;').replace('>', '&gt;')
             
             html_body += f"""
                     <div class="details">
-                        <h3 style="color: #38bdf8; margin-top: 0; margin-bottom: 15px;">📋 Appointment Details</h3>
+                        <h3>📋 Appointment Details</h3>
                         <div class="detail"><strong>🐕 Pet:</strong> {appointment_data.get('pet_name', 'N/A')}</div>
                         <div class="detail"><strong>✂️ Services:</strong> {services}</div>
                         <div class="detail"><strong>💰 Total Price:</strong> ₱{total_price:.2f}</div>
@@ -773,14 +791,14 @@ def send_email_notification(recipient, subject, body, appointment_data=None):
                         <div class="detail"><strong>📅 Date:</strong> {appointment_data.get('date', 'N/A')}</div>
                         <div class="detail"><strong>⏰ Time:</strong> {appointment_data.get('time', 'N/A')}</div>
                         <div class="detail"><strong>📌 Status:</strong> <span class="status-badge">{status_label}</span></div>
-                        {f'<div class="detail"><strong>📝 Notes:</strong> {appointment_data.get("notes", "")}</div>' if appointment_data.get('notes') else ''}
+                        {f'<div class="detail"><strong>📝 Notes:</strong> {notes}</div>' if notes else ''}
                     </div>
             """
         
         html_body += f"""
-                    <div style="text-align: center; margin-top: 20px;">
-                        <p style="color: #94a3b8; font-size: 13px;">
-                            💡 Need to reschedule or cancel? Contact us at <strong style="color: #38bdf8;">(02) 8123 4567</strong>
+                    <div class="contact-info">
+                        <p>
+                            💡 Need to reschedule or cancel? Contact us at <strong>(02) 8123 4567</strong>
                         </p>
                     </div>
                 </div>
@@ -3035,7 +3053,21 @@ def update_appointment_status(appointment_id):
             services = json.loads(appointment["services"])
             service_names = ', '.join(services)
         except:
+            services = []
             service_names = appointment["services"]
+        
+        # ✅ SAFE: Calculate total_price and total_duration
+        total_price = 0
+        total_duration = 0
+        
+        if services:
+            placeholders = ','.join(['?' for _ in services])
+            service_details = conn.execute(
+                f"SELECT name, price, duration FROM services WHERE name IN ({placeholders}) AND is_active = 1",
+                services
+            ).fetchall()
+            total_price = sum(s["price"] for s in service_details) if service_details else 0
+            total_duration = sum(s["duration"] for s in service_details) if service_details else 0
         
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         cursor.execute(
@@ -3050,7 +3082,9 @@ def update_appointment_status(appointment_id):
             'date': appointment["appointment_date"],
             'time': appointment["appointment_time"],
             'status': status,
-            'notes': appointment["notes"]
+            'notes': appointment["notes"],
+            'total_price': total_price,       # ✅ Nandito na
+            'total_duration': total_duration  # ✅ Nandito na
         }
         
         email_sent = False
@@ -3280,6 +3314,7 @@ def get_received_messages_only():
                u.email, 
                u.fullname,
                u.phone,
+               u.profile_image,
                (SELECT COUNT(*) FROM messages 
                 WHERE sender_email = u.email 
                 AND receiver_email = ? 

@@ -2481,3 +2481,155 @@ body.light-theme .user-name-clickable:hover strong {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
+/* ═══════════════════════════════════════════════════════════════════ */
+/* ── USER DETAILS MODAL — CLICKABLE IMAGES ───────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Profile Avatar sa Header (clickable) ──────────────────────── */
+#userDetailsModal .modal-profile-avatar {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#userDetailsModal .modal-profile-avatar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 30px rgba(56, 189, 248, 0.4);
+}
+
+#userDetailsModal .modal-profile-avatar img {
+    transition: transform 0.3s ease;
+}
+
+#userDetailsModal .modal-profile-avatar:hover img {
+    transform: scale(1.1);
+}
+
+/* ── Pet Avatar sa Pets Section (clickable) ────────────────────── */
+#userDetailsModal .modal-pet-avatar {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#userDetailsModal .modal-pet-avatar:hover {
+    transform: scale(1.08);
+    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
+}
+
+#userDetailsModal .modal-pet-avatar img {
+    transition: transform 0.3s ease;
+}
+
+#userDetailsModal .modal-pet-avatar:hover img {
+    transform: scale(1.15);
+}
+
+/* ── Kung walang image (default icon), hindi clickable ─────────── */
+#userDetailsModal .modal-profile-avatar.no-image,
+#userDetailsModal .modal-pet-avatar.no-image {
+    cursor: default;
+}
+
+#userDetailsModal .modal-profile-avatar.no-image:hover,
+#userDetailsModal .modal-pet-avatar.no-image:hover {
+    transform: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+/* ═══════════════════════════════════════════════════════════════════ */
+/* ── 🎨 USER DETAILS MODAL — LIGHT THEME OVERRIDES ───────────────── */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Modal Container ─────────────────────────────────────────────── */
+body.light-theme #userDetailsModal > div {
+  background: #ffffff !important;
+  border: 1px solid #d4e5c4 !important;
+  box-shadow: 0 20px 60px rgba(123, 160, 91, 0.2) !important;
+}
+
+/* ── User Name (h2) ──────────────────────────────────────────────── */
+body.light-theme #userDetailsModal h2 {
+  color: #2d3e1f !important;
+}
+
+/* ── User Email ──────────────────────────────────────────────────── */
+body.light-theme #userDetailsModal > div > div:first-child > div:last-child > div:first-child {
+  color: #4a5a3f !important;
+}
+
+/* ── Section Headings ("👤 Personal Information", "🐾 Pets") ─────── */
+body.light-theme #userDetailsModal h3 {
+  color: #5a7a3f !important;
+}
+
+/* ── All divs with light-colored text (override) ─────────────────── */
+body.light-theme #userDetailsModal div[style*="color: #e2e8f0"] {
+  color: #2d3e1f !important;
+}
+
+body.light-theme #userDetailsModal div[style*="color: #94a3b8"] {
+  color: #4a5a3f !important;
+}
+
+body.light-theme #userDetailsModal div[style*="color: #64748b"] {
+  color: #7a8a7c !important;
+}
+
+body.light-theme #userDetailsModal div[style*="color: #38bdf8"] {
+  color: #5a7a3f !important;
+}
+
+/* ── User info labels (PHONE, USER ID, ADDRESS, etc.) ────────────── */
+body.light-theme #userDetailsModal div[style*="text-transform: uppercase"] {
+  color: #94a387 !important;
+}
+
+/* ── User info values ────────────────────────────────────────────── */
+body.light-theme #userDetailsModal div[style*="font-size: 13px"] {
+  color: #2d3e1f !important;
+}
+
+/* ── Pets Section ────────────────────────────────────────────────── */
+body.light-theme #userDetailsModal div[style*="background: #0f172a"] {
+  background: #f7fbf3 !important;
+  border: 1px solid #d4e5c4 !important;
+}
+
+/* ── Pet name at breed text ──────────────────────────────────────── */
+body.light-theme #userDetailsModal div[style*="white-space: nowrap"] {
+  color: #2d3e1f !important;
+}
+
+/* ── Empty state (No pets registered) ────────────────────────────── */
+body.light-theme #userDetailsModal div[style*="border: 1px dashed #334155"] {
+  background: #f7fbf3 !important;
+  border: 1px dashed #d4e5c4 !important;
+  color: #4a5a3f !important;
+}
+
+/* ── Close X button ──────────────────────────────────────────────── */
+body.light-theme #userDetailsModal button[onclick="closeUserDetailsModal()"] {
+  color: #4a5a3f !important;
+}
+
+body.light-theme #userDetailsModal button[onclick="closeUserDetailsModal()"]:hover {
+  color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+
+/* ── Border colors (override #334155) ────────────────────────────── */
+body.light-theme #userDetailsModal div[style*="border-bottom: 1px solid #334155"] {
+  border-bottom-color: #d4e5c4 !important;
+}
+
+body.light-theme #userDetailsModal div[style*="border: 1px solid #334155"] {
+  border-color: #d4e5c4 !important;
+}
+
+/* ── Avatar border ───────────────────────────────────────────────── */
+body.light-theme #userDetailsModal div[style*="border: 3px solid #334155"] {
+  border-color: #d4e5c4 !important;
+}
+
+/* ── Appointment count (highlight) ───────────────────────────────── */
+body.light-theme #userDetailsModal div[style*="color: #38bdf8"] {
+  color: #5a7a3f !important;
+}

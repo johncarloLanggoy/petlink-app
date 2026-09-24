@@ -911,8 +911,14 @@ function renderAdminCustomerList(customers) {
         div.className = 'customer-item';
         if (isActive) div.classList.add('active');
         
+        // ✅ Avatar HTML — may profile image o default icon
+        const avatarHTML = sender.profile_image
+            ? `<img src="${sender.profile_image}" alt="${sender.fullname || sender.email}" 
+                    onclick="event.stopPropagation(); window.openAdminImageViewer('${sender.profile_image}')">`
+            : `<span style="font-size: 16px;">👤</span>`;
+        
         div.innerHTML = `
-            <div class="avatar">👤</div>
+            <div class="avatar">${avatarHTML}</div>
             <div class="info">
                 <div class="name">${sender.fullname || sender.email}</div>
                 <div class="email">${sender.email} • ${sender.phone || 'No phone'}</div>
@@ -987,13 +993,20 @@ async function loadAdminConversation(customerEmail) {
     adminCurrentCustomer = customerEmail;
     
     let customerName = customerEmail;
+    let customerProfileImage = null;
+    
     try {
         const usersRes = await fetch('/api/users');
         const usersData = await usersRes.json();
         if (usersData.success) {
             const user = usersData.users.find(u => u.email === customerEmail);
-            if (user && user.fullname && user.fullname.trim() !== '') {
-                customerName = user.fullname;
+            if (user) {
+                if (user.fullname && user.fullname.trim() !== '') {
+                    customerName = user.fullname;
+                }
+                if (user.profile_image) {
+                    customerProfileImage = user.profile_image;
+                }
             }
         }
     } catch (error) {
@@ -1001,9 +1014,19 @@ async function loadAdminConversation(customerEmail) {
         customerName = customerEmail;
     }
     
+    // ✅ Header avatar HTML (may profile image o default icon)
+    const headerAvatarHTML = customerProfileImage
+        ? `<img src="${customerProfileImage}" alt="${customerName}" 
+                onclick="event.stopPropagation(); window.openAdminImageViewer('${customerProfileImage}')">`
+        : `<span style="font-size: 20px;">👤</span>`;
+    
     document.getElementById('adminConversationHeader').innerHTML = `
         <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 20px;">👤</span>
+            <div class="header-avatar" 
+                 onclick="event.stopPropagation(); ${customerProfileImage ? `window.openAdminImageViewer('${customerProfileImage}')` : ''}"
+                 style="${customerProfileImage ? 'cursor: pointer;' : 'cursor: default;'}">
+                ${headerAvatarHTML}
+            </div>
             <div>
                 <div style="color: #e2e8f0; font-weight: 500;">${customerName}</div>
                 <div style="color: #64748b; font-size: 12px;">${customerEmail}</div>
@@ -1119,7 +1142,7 @@ async function loadAdminConversation(customerEmail) {
     }
 }
 
-// ── ADMIN IMAGE FULLSCREEN FUNCTION ──────────────────────────────
+// ── ADMIN IMAGE FULLSCREEN FUNCTION (MESSAGES) ────────────────────
 function openImageFullscreenAdmin(imageSrc) {
     const overlay = document.createElement('div');
     overlay.style.cssText = `
@@ -1158,6 +1181,40 @@ function openImageFullscreenAdmin(imageSrc) {
     
     document.body.appendChild(overlay);
 }
+
+// ── ADMIN PROFILE IMAGE VIEWER (FULLSCREEN) ───────────────────────
+function openAdminImageViewer(imageSrc) {
+    const viewer = document.getElementById('adminImageViewer');
+    const viewerImg = document.getElementById('adminViewerImage');
+    
+    if (!viewer || !viewerImg) return;
+    
+    viewerImg.src = imageSrc;
+    viewer.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeAdminImageViewer(event) {
+    if (event.target.id === 'adminImageViewer' || 
+        event.target.classList.contains('close-viewer')) {
+        const viewer = document.getElementById('adminImageViewer');
+        if (viewer) {
+            viewer.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+    }
+}
+
+// Close viewer on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const viewer = document.getElementById('adminImageViewer');
+        if (viewer && viewer.style.display === 'flex') {
+            viewer.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+    }
+});
 
 // ── SEND ADMIN REPLY ────────────────────────────────────────────
 async function sendAdminReply(e) {
@@ -1633,6 +1690,8 @@ window.loadUnreadCount = loadUnreadCount;
 window.connectAdminSocket = connectAdminSocket;
 window.loadFirstUnreadAdminConversation = loadFirstUnreadAdminConversation;
 window.openImageFullscreenAdmin = openImageFullscreenAdmin;
+window.openAdminImageViewer = openAdminImageViewer;
+window.closeAdminImageViewer = closeAdminImageViewer;
 window.toggleAdminEmojiPicker = toggleAdminEmojiPicker;
 window.insertAdminEmoji = insertAdminEmoji;
 window.showAdminImageUploadModal = showAdminImageUploadModal;
@@ -1730,7 +1789,8 @@ async function showUserDetailsModal(userId) {
         // ── Avatar HTML ─────────────────────────────────────────
         const initial = (user.fullname || 'U').trim()[0].toUpperCase();
         let avatarHTML;
-        
+        const hasProfileImage = !!user.profile_image;
+
         if (user.profile_image) {
             avatarHTML = `<img src="${user.profile_image}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
         } else {
@@ -1772,6 +1832,8 @@ async function showUserDetailsModal(userId) {
                     petAvatarHTML = `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 22px;">${petIcon}</div>`;
                 }
                 
+                const hasPetImage = !!pet.pet_image;
+
                 return `
                     <div style="
                         display: flex;
@@ -1783,7 +1845,9 @@ async function showUserDetailsModal(userId) {
                         border-radius: 12px;
                         margin-bottom: 8px;
                     ">
-                        <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden;">
+                        <div class="modal-pet-avatar ${hasPetImage ? '' : 'no-image'}"
+                            ${hasPetImage ? `onclick="event.stopPropagation(); window.openAdminImageViewer('${pet.pet_image}')"` : ''}
+                            style="width: 44px; height: 44px; border-radius: 10px; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden;">
                             ${petAvatarHTML}
                         </div>
                         <div style="flex: 1; min-width: 0;">
@@ -1844,15 +1908,17 @@ async function showUserDetailsModal(userId) {
                     align-items: center;
                     gap: 18px;
                 ">
-                    <div style="
-                        width: 80px;
-                        height: 80px;
-                        border-radius: 50%;
-                        overflow: hidden;
-                        flex-shrink: 0;
-                        border: 3px solid #334155;
-                        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-                    ">
+                    <div class="modal-profile-avatar ${hasProfileImage ? '' : 'no-image'}"
+                        ${hasProfileImage ? `onclick="window.openAdminImageViewer('${user.profile_image}')"` : ''}
+                        style="
+                            width: 80px;
+                            height: 80px;
+                            border-radius: 50%;
+                            overflow: hidden;
+                            flex-shrink: 0;
+                            border: 3px solid #334155;
+                            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                        ">
                         ${avatarHTML}
                     </div>
                     <div style="flex: 1; min-width: 0;">

@@ -62,8 +62,31 @@ function renderStaffAppointments() {
         return;
     }
     
+    // ✅ SORT: Completed at cancelled sa dulo, pending at confirmed sa taas
+    const statusPriority = {
+        'pending': 1,
+        'confirmed': 2,
+        'completed': 3,
+        'cancelled': 4
+    };
+    
+    const sortedAppointments = [...filtered].sort((a, b) => {
+        // Unahin ang priority
+        const priorityA = statusPriority[a.status] || 99;
+        const priorityB = statusPriority[b.status] || 99;
+        
+        if (priorityA !== priorityB) {
+            return priorityA - priorityB;
+        }
+        
+        // Kung pareho ang status, i-sort by date (pinakamalapit sa taas)
+        const dateA = new Date(`${a.appointment_date} ${a.appointment_time}`);
+        const dateB = new Date(`${b.appointment_date} ${b.appointment_time}`);
+        return dateA - dateB;
+    });
+    
     tbody.innerHTML = '';
-    filtered.forEach(app => {
+    sortedAppointments.forEach(app => {
         const statusClass = `status-${app.status}`;
         const statusLabel = app.status.charAt(0).toUpperCase() + app.status.slice(1);
         
@@ -111,8 +134,8 @@ function renderStaffAppointments() {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td style="white-space: nowrap;">${app.appointment_date}</td>
-            <td style="white-space: nowrap; font-weight: 600; color: #38bdf8;">${formatStaffTime(app.appointment_time)}</td>
-            <td style="font-weight: 600; color: #64748b;">#${app.id}</td>
+            <td style="white-space: nowrap; font-weight: 600; color: #7ba05b;">${formatStaffTime(app.appointment_time)}</td>
+            <td style="font-weight: 600; color: #94a387;">#${app.id}</td>
             <td>
                 <div class="pet-cell">
                     <span class="pet-icon">🐕</span>
@@ -431,24 +454,24 @@ function renderStaffCustomerList(customers) {
         const div = document.createElement('div');
         div.style.cssText = `
             padding: 12px 15px;
-            border-bottom: 1px solid #1e293b;
+            border-bottom: 1px solid #eaf3e0;
             cursor: pointer;
             transition: 0.3s;
             display: flex;
             align-items: center;
             gap: 10px;
-            ${isActive ? 'background: rgba(56, 189, 248, 0.1);' : ''}
+            ${isActive ? 'background: rgba(123, 160, 91, 0.08);' : ''}
         `;
-        div.onmouseover = () => { div.style.background = 'rgba(56, 189, 248, 0.05)'; };
-        div.onmouseout = () => { div.style.background = isActive ? 'rgba(56, 189, 248, 0.1)' : ''; };
+        div.onmouseover = () => { div.style.background = 'rgba(123, 160, 91, 0.05)'; };
+        div.onmouseout = () => { div.style.background = isActive ? 'rgba(123, 160, 91, 0.08)' : ''; };
         div.onclick = () => loadConversation(sender.email);
         
         div.innerHTML = `
-            <div style="width: 35px; height: 35px; border-radius: 50%; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; font-size: 16px;">👤</div>
+            <div style="width: 35px; height: 35px; border-radius: 50%; background: rgba(123, 160, 91, 0.15); color: #5a7a3f; display: flex; align-items: center; justify-content: center; font-size: 16px;">👤</div>
             <div style="flex: 1; min-width: 0;">
-                <div style="color: #e2e8f0; font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${sender.fullname || sender.email}</div>
-                <div style="color: #64748b; font-size: 11px;">${sender.email} • ${sender.phone || 'No phone'}</div>
-                ${lastMessageTime ? `<div style="color: #64748b; font-size: 10px; margin-top: 2px;"> ${lastMessageTime}</div>` : ''}
+                <div style="color: #2d3e1f; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${sender.fullname || sender.email}</div>
+                <div style="color: #7a8a7c; font-size: 11px;">${sender.email} • ${sender.phone || 'No phone'}</div>
+                ${lastMessageTime ? `<div style="color: #94a387; font-size: 10px; margin-top: 2px;"> ${lastMessageTime}</div>` : ''}
             </div>
             ${unreadBadge}
         `;
@@ -517,6 +540,12 @@ function initStaffMessageSearch() {
 async function loadConversation(customerEmail) {
     currentCustomerEmail = customerEmail;
     
+    // ✅ MOBILE: I-activate ang conversation view (slide-in)
+    const messagesGrid = document.getElementById('messagesGrid');
+    if (messagesGrid && window.innerWidth <= 768) {
+        messagesGrid.classList.add('has-active-conversation');
+    }
+    
     // ── FETCH CUSTOMER FULL NAME ──────────────────────────────────
     let customerName = customerEmail; // Default: email
     try {
@@ -537,10 +566,10 @@ async function loadConversation(customerEmail) {
     // ── UPDATE HEADER ──────────────────────────────────────────────
     document.getElementById('conversationHeader').innerHTML = `
         <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 20px;">👤</span>
+            <span style="font-size: 20px; color: #7ba05b;">👤</span>
             <div>
-                <div style="color: #e2e8f0; font-weight: 500;">${customerName}</div>
-                <div style="color: #64748b; font-size: 12px;">${customerEmail}</div>
+                <div style="color: #2d3e1f; font-weight: 600;">${customerName}</div>
+                <div style="color: #7a8a7c; font-size: 12px;">${customerEmail}</div>
             </div>
         </div>
     `;
@@ -605,9 +634,9 @@ async function loadConversation(customerEmail) {
                 // Build message HTML
                 let messageHTML = `
                     <div style="max-width: 70%;">
-                        <div style="background: ${isStaff ? '#38bdf8' : '#1e293b'}; padding: 10px 15px; border-radius: 12px; ${isStaff ? 'border-bottom-right-radius: 4px;' : 'border-bottom-left-radius: 4px;'}">
-                            <div style="font-size: 11px; color: ${isStaff ? '#0f172a' : '#38bdf8'}; font-weight: 600; margin-bottom: 3px;">${senderName}</div>
-                            ${messageText ? `<div style="color: ${isStaff ? '#0f172a' : '#e2e8f0'}; word-wrap: break-word;">${messageText}</div>` : ''}
+                        <div style="background: ${isStaff ? '#7ba05b' : '#ffffff'}; padding: 10px 15px; border-radius: 12px; ${isStaff ? 'border-bottom-right-radius: 4px;' : 'border-bottom-left-radius: 4px;'} ${isStaff ? '' : 'border: 1px solid #eaf3e0;'}">
+                            <div style="font-size: 11px; color: ${isStaff ? '#ffffff' : '#5a7a3f'}; font-weight: 600; margin-bottom: 3px;">${senderName}</div>
+                            ${messageText ? `<div style="color: ${isStaff ? '#ffffff' : '#2d3e1f'}; word-wrap: break-word;">${messageText}</div>` : ''}
                 `;
                 
                 // Add image if present
@@ -615,16 +644,16 @@ async function loadConversation(customerEmail) {
                     messageHTML += `
                         <div style="margin-top: 10px;">
                             <img src="${imageData}" 
-                                 style="max-width: 250px; max-height: 250px; border-radius: 8px; cursor: pointer; border: 1px solid #334155; display: block;" 
-                                 onclick="window.openImageFullscreen('${imageData}')"
-                                 alt="Image">
+                                style="max-width: 250px; max-height: 250px; border-radius: 8px; cursor: pointer; border: 2px solid #eaf3e0; display: block;" 
+                                onclick="window.openImageFullscreen('${imageData}')"
+                                alt="Image">
                         </div>
                     `;
                 }
                 
                 messageHTML += `
                         </div>
-                        <div style="font-size: 10px; color: #64748b; margin-top: 3px; ${isStaff ? 'text-align: right;' : ''}">
+                        <div style="font-size: 10px; color: #94a387; margin-top: 3px; ${isStaff ? 'text-align: right;' : ''}">
                             ${new Date(msg.created_at).toLocaleString()}
                         </div>
                     </div>
@@ -656,6 +685,14 @@ async function loadConversation(customerEmail) {
                 ❌ Error loading messages
             </div>
         `;
+    }
+}
+
+// ── CLOSE MOBILE CONVERSATION (Back button) ────────────────────────
+function closeMobileConversation() {
+    const messagesGrid = document.getElementById('messagesGrid');
+    if (messagesGrid) {
+        messagesGrid.classList.remove('has-active-conversation');
     }
 }
 
@@ -706,7 +743,7 @@ async function sendReply(e) {
         input.style.borderColor = '#ef4444';
         input.placeholder = '⚠️ Please enter a message';
         setTimeout(() => {
-            input.style.borderColor = '#334155';
+            input.style.borderColor = '#d4e5c4';
             input.placeholder = 'Type your reply...';
         }, 2000);
         return;
@@ -749,10 +786,10 @@ async function sendReply(e) {
             document.getElementById('replyMessage').value = '';
             const input = document.getElementById('replyMessage');
             input.placeholder = '✅ Message sent!';
-            input.style.borderColor = '#10b981';
+            input.style.borderColor = '#7ba05b';
             setTimeout(() => {
                 input.placeholder = 'Type your reply...';
-                input.style.borderColor = '#334155';
+                input.style.borderColor = '#d4e5c4';
             }, 2000);
             
             loadConversation(customerEmail);
@@ -1472,16 +1509,16 @@ function showStaffImageUploadModal() {
             <div class="modal-popup" style="max-width: 450px;">
                 <div style="text-align: center; margin-bottom: 20px;">
                     <div style="font-size: 48px; margin-bottom: 10px;">🖼️</div>
-                    <h3 style="color: #38bdf8; font-size: 24px; margin: 0;">Upload Image</h3>
-                    <p style="color: #94a3b8; font-size: 14px; margin-top: 5px;">Share a photo with your message</p>
+                    <h3 style="color: #5a7a3f; font-size: 24px; margin: 0;">Upload Image</h3>
+                    <p style="color: #7a8a7c; font-size: 14px; margin-top: 5px;">Share a photo with your message</p>
                 </div>
                 
-                <div style="background: #0f172a; border-radius: 12px; padding: 30px; border: 2px dashed #334155; text-align: center; cursor: pointer; transition: 0.3s;" 
-                     id="staffImageUploadDropzone"
-                     onclick="document.getElementById('staffImageUploadInput').click()">
-                    <div style="font-size: 48px; margin-bottom: 10px;">📷</div>
-                    <p style="color: #94a3b8; font-size: 14px;">Click or drag to upload image</p>
-                    <p style="color: #64748b; font-size: 12px;">JPG, PNG, GIF • Max 5MB</p>
+                <div style="background: #f7fbf3; border-radius: 12px; padding: 30px; border: 2px dashed #d4e5c4; text-align: center; cursor: pointer; transition: 0.3s;" 
+                    id="staffImageUploadDropzone"
+                    onclick="document.getElementById('staffImageUploadInput').click()">
+                    <div style="font-size: 48px; margin-bottom: 10px; color: #7ba05b;">📷</div>
+                    <p style="color: #4a5a3f; font-size: 14px;">Click or drag to upload image</p>
+                    <p style="color: #94a387; font-size: 12px;">JPG, PNG, GIF • Max 5MB</p>
                 </div>
                 
                 <input type="file" id="staffImageUploadInput" accept="image/*" style="display: none;">
@@ -1490,7 +1527,7 @@ function showStaffImageUploadModal() {
                     <img id="staffImagePreview" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 10px;">
                     <div style="display: flex; gap: 10px; margin-top: 10px;">
                         <button class="modal-btn modal-btn-cancel" onclick="closeStaffImageUploadModal()" style="flex: 1;">Cancel</button>
-                        <button class="modal-btn modal-btn-submit" onclick="sendStaffImageMessage()" id="staffSendImageBtn" style="flex: 1; background: #38bdf8; color: #0f172a;">📤 Send Image</button>
+                        <button class="modal-btn modal-btn-submit" onclick="sendStaffImageMessage()" id="staffSendImageBtn" style="flex: 1; background: #7ba05b; color: #ffffff;">📤 Send Image</button>
                     </div>
                 </div>
             </div>
@@ -1511,18 +1548,18 @@ function showStaffImageUploadModal() {
         const dropzone = document.getElementById('staffImageUploadDropzone');
         dropzone.addEventListener('dragover', function(e) {
             e.preventDefault();
-            this.style.borderColor = '#38bdf8';
-            this.style.background = 'rgba(56, 189, 248, 0.05)';
+            this.style.borderColor = '#7ba05b';
+            this.style.background = 'rgba(123, 160, 91, 0.05)';
         });
         dropzone.addEventListener('dragleave', function(e) {
             e.preventDefault();
-            this.style.borderColor = '#334155';
-            this.style.background = 'transparent';
+            this.style.borderColor = '#d4e5c4';
+            this.style.background = '#f7fbf3';
         });
         dropzone.addEventListener('drop', function(e) {
             e.preventDefault();
-            this.style.borderColor = '#334155';
-            this.style.background = 'transparent';
+            this.style.borderColor = '#d4e5c4';
+            this.style.background = '#f7fbf3';
             const files = e.dataTransfer.files;
             if (files.length > 0) {
                 document.getElementById('staffImageUploadInput').files = files;
@@ -1533,8 +1570,8 @@ function showStaffImageUploadModal() {
     
     document.getElementById('staffImagePreviewContainer').style.display = 'none';
     document.getElementById('staffImageUploadInput').value = '';
-    document.getElementById('staffImageUploadDropzone').style.borderColor = '#334155';
-    document.getElementById('staffImageUploadDropzone').style.background = 'transparent';
+    document.getElementById('staffImageUploadDropzone').style.borderColor = '#d4e5c4';
+    document.getElementById('staffImageUploadDropzone').style.background = '#f7fbf3';
     document.getElementById('staffSendImageBtn').disabled = false;
     document.getElementById('staffSendImageBtn').textContent = '📤 Send Image';
     staffPendingImage = null;
@@ -1665,8 +1702,8 @@ function initStaffEmojiPicker() {
         position: absolute;
         bottom: 70px;
         right: 0;
-        background: #1e293b;
-        border: 1px solid #334155;
+        background: #ffffff;
+        border: 1px solid #d4e5c4;
         border-radius: 12px;
         padding: 12px;
         width: 300px;
@@ -1675,7 +1712,7 @@ function initStaffEmojiPicker() {
         flex-wrap: wrap;
         gap: 6px;
         z-index: 1000;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        box-shadow: 0 10px 30px rgba(123, 160, 91, 0.2);
         flex-direction: row;
         align-content: flex-start;
     `;
@@ -1697,16 +1734,16 @@ function initStaffEmojiPicker() {
         btn.style.cssText = `
             width: 36px;
             height: 36px;
-            border: none;
-            background: #0f172a;
+            border: 1px solid #d4e5c4;
+            background: #ffffff;
             border-radius: 8px;
             cursor: pointer;
             font-size: 20px;
             transition: all 0.2s ease;
-            color: #fff;
+            color: #334155;
         `;
-        btn.onmouseover = () => { btn.style.background = '#334155'; };
-        btn.onmouseout = () => { btn.style.background = '#0f172a'; };
+        btn.onmouseover = () => { btn.style.background = '#f7fbf3'; btn.style.borderColor = '#7ba05b'; btn.style.transform = 'scale(1.1)'; };
+        btn.onmouseout = () => { btn.style.background = '#ffffff'; btn.style.borderColor = '#d4e5c4'; btn.style.transform = 'scale(1)'; };
         btn.onclick = () => insertStaffEmoji(emoji);
         picker.appendChild(btn);
     });
@@ -1758,16 +1795,16 @@ function addStaffMessageButtons() {
     emojiBtn.title = 'Insert Emoji';
     emojiBtn.style.cssText = `
         padding: 8px 14px;
-        background: #334155;
-        border: none;
+        background: #eaf3e0;
+        border: 1px solid #d4e5c4;
         border-radius: 10px;
-        color: white;
+        color: #4a5a3f;
         font-size: 18px;
         cursor: pointer;
         transition: 0.3s;
     `;
-    emojiBtn.onmouseover = () => { emojiBtn.style.background = '#475569'; };
-    emojiBtn.onmouseout = () => { emojiBtn.style.background = '#334155'; };
+    emojiBtn.onmouseover = () => { emojiBtn.style.background = '#d4e5c4'; emojiBtn.style.color = '#5a7a3f'; };
+    emojiBtn.onmouseout = () => { emojiBtn.style.background = '#eaf3e0'; emojiBtn.style.color = '#4a5a3f'; };
     emojiBtn.onclick = toggleStaffEmojiPicker;
     
     const imageBtn = document.createElement('button');
@@ -1777,16 +1814,16 @@ function addStaffMessageButtons() {
     imageBtn.title = 'Upload Image';
     imageBtn.style.cssText = `
         padding: 8px 14px;
-        background: #334155;
-        border: none;
+        background: #eaf3e0;
+        border: 1px solid #d4e5c4;
         border-radius: 10px;
-        color: white;
+        color: #4a5a3f;
         font-size: 18px;
         cursor: pointer;
         transition: 0.3s;
     `;
-    imageBtn.onmouseover = () => { imageBtn.style.background = '#475569'; };
-    imageBtn.onmouseout = () => { imageBtn.style.background = '#334155'; };
+    imageBtn.onmouseover = () => { imageBtn.style.background = '#d4e5c4'; imageBtn.style.color = '#5a7a3f'; };
+    imageBtn.onmouseout = () => { imageBtn.style.background = '#eaf3e0'; imageBtn.style.color = '#4a5a3f'; };
     imageBtn.onclick = showStaffImageUploadModal;
     
     const parent = sendBtn.parentNode;
@@ -2003,7 +2040,7 @@ async function loadStaffChartData(weekOffset = 0) {
             // Update week label
             if (weekLabel && chartData.trends.week_label) {
                 weekLabel.textContent = chartData.trends.week_label;
-                weekLabel.style.color = '#94a3b8';
+                weekLabel.style.color = '#94a387';
             }
             
             // Get the canvas
@@ -2032,12 +2069,12 @@ async function loadStaffChartData(weekOffset = 0) {
                     datasets: [{
                         label: 'Appointments',
                         data: chartData.trends.values,
-                        borderColor: '#38bdf8',
-                        backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                        borderColor: '#7ba05b',
+                        backgroundColor: 'rgba(123, 160, 91, 0.15)',
                         fill: true,
                         tension: 0.4,
-                        pointBackgroundColor: '#38bdf8',
-                        pointBorderColor: '#0f172a',
+                        pointBackgroundColor: '#7ba05b',
+                        pointBorderColor: '#ffffff',
                         pointBorderWidth: 2
                     }]
                 },
@@ -2047,18 +2084,18 @@ async function loadStaffChartData(weekOffset = 0) {
                     plugins: { 
                         legend: { 
                             labels: { 
-                                color: '#94a3b8' 
+                                color: '#5a7a3f' 
                             } 
                         } 
                     },
                     scales: {
                         x: { 
-                            grid: { color: 'rgba(51, 65, 85, 0.3)' }, 
-                            ticks: { color: '#94a3b8' } 
+                            grid: { color: 'rgba(212, 229, 196, 0.5)' }, 
+                            ticks: { color: '#4a5a3f' } 
                         },
                         y: { 
-                            grid: { color: 'rgba(51, 65, 85, 0.3)' }, 
-                            ticks: { color: '#94a3b8', stepSize: 1 }, 
+                            grid: { color: 'rgba(212, 229, 196, 0.5)' }, 
+                            ticks: { color: '#4a5a3f', stepSize: 1 }, 
                             beginAtZero: true 
                         }
                     },
@@ -2116,26 +2153,30 @@ function updateStaffButtons(weekOffset) {
         prevBtn.style.opacity = '1';
         prevBtn.style.cursor = 'pointer';
         prevBtn.disabled = false;
-        prevBtn.style.background = '#334155';
-        prevBtn.style.color = '#fff';
+        prevBtn.style.background = '#eaf3e0';
+        prevBtn.style.color = '#4a5a3f';
+        prevBtn.style.border = '1px solid #d4e5c4';
     }
     if (nextBtn) {
         nextBtn.style.opacity = '1';
         nextBtn.style.cursor = 'pointer';
         nextBtn.disabled = false;
-        nextBtn.style.background = '#334155';
-        nextBtn.style.color = '#fff';
+        nextBtn.style.background = '#eaf3e0';
+        nextBtn.style.color = '#4a5a3f';
+        nextBtn.style.border = '1px solid #d4e5c4';
     }
     if (todayBtn) {
         if (weekOffset === 0) {
-            todayBtn.style.background = '#38bdf8';
-            todayBtn.style.color = '#0f172a';
+            todayBtn.style.background = '#7ba05b';
+            todayBtn.style.color = '#ffffff';
+            todayBtn.style.border = 'none';
             todayBtn.style.opacity = '0.6';
             todayBtn.style.cursor = 'default';
             todayBtn.disabled = true;
         } else {
-            todayBtn.style.background = '#38bdf8';
-            todayBtn.style.color = '#0f172a';
+            todayBtn.style.background = '#7ba05b';
+            todayBtn.style.color = '#ffffff';
+            todayBtn.style.border = 'none';
             todayBtn.style.opacity = '1';
             todayBtn.style.cursor = 'pointer';
             todayBtn.disabled = false;
@@ -2174,8 +2215,8 @@ async function loadStaffPetTypeChart() {
                     labels: data.data.pet_types.labels,
                     datasets: [{
                         data: data.data.pet_types.values,
-                        backgroundColor: ['#38bdf8', '#f59e0b'],
-                        borderColor: ['#0f172a', '#0f172a'],
+                        backgroundColor: ['#7ba05b', '#f59e0b'],
+                        borderColor: ['#ffffff', '#ffffff'],
                         borderWidth: 2
                     }]
                 },
@@ -2185,7 +2226,7 @@ async function loadStaffPetTypeChart() {
                     plugins: {
                         legend: {
                             position: 'bottom',
-                            labels: { color: '#94a3b8', padding: 15, usePointStyle: true }
+                            labels: { color: '#4a5a3f', padding: 15, usePointStyle: true }
                         }
                     }
                 }
@@ -2224,7 +2265,7 @@ async function loadStaffAppointmentStatusChart() {
                     datasets: [{
                         label: 'Appointments',
                         data: data.data.status.values,
-                        backgroundColor: ['#f59e0b', '#10b981', '#38bdf8', '#ef4444'],
+                        backgroundColor: ['#f59e0b', '#7ba05b', '#7ba05b', '#ef4444'],
                         borderRadius: 6,
                         borderSkipped: false
                     }]
@@ -2234,8 +2275,8 @@ async function loadStaffAppointmentStatusChart() {
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
-                        y: { grid: { color: 'rgba(51, 65, 85, 0.3)' }, ticks: { color: '#94a3b8', stepSize: 1 }, beginAtZero: true }
+                        x: { grid: { display: false }, ticks: { color: '#4a5a3f' } },
+                        y: { grid: { color: 'rgba(212, 229, 196, 0.5)' }, ticks: { color: '#4a5a3f', stepSize: 1 }, beginAtZero: true }
                     }
                 }
             });
@@ -2273,8 +2314,8 @@ async function loadStaffMonthlyGrowthChart() {
                     datasets: [{
                         label: 'Appointments',
                         data: data.data.monthly_growth.values,
-                        backgroundColor: 'rgba(56, 189, 248, 0.6)',
-                        borderColor: '#38bdf8',
+                        backgroundColor: 'rgba(123, 160, 91, 0.6)',
+                        borderColor: '#7ba05b',
                         borderWidth: 1,
                         borderRadius: 4
                     }]
@@ -2284,8 +2325,8 @@ async function loadStaffMonthlyGrowthChart() {
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8', maxTicksLimit: 6 } },
-                        y: { grid: { color: 'rgba(51, 65, 85, 0.3)' }, ticks: { color: '#94a3b8', stepSize: 5 }, beginAtZero: true }
+                        x: { grid: { display: false }, ticks: { color: '#4a5a3f', maxTicksLimit: 6 } },
+                        y: { grid: { color: 'rgba(212, 229, 196, 0.5)' }, ticks: { color: '#4a5a3f', stepSize: 5 }, beginAtZero: true }
                     }
                 }
             });
@@ -2385,6 +2426,23 @@ document.addEventListener('DOMContentLoaded', function() {
             if (input) input.focus();
         });
     }
+
+    // ── ✅ MOBILE: Back button handler para sa conversation ─────────
+    const conversationHeader = document.getElementById('conversationHeader');
+    if (conversationHeader) {
+        conversationHeader.addEventListener('click', function(e) {
+            if (window.innerWidth > 768) return;
+            
+            const rect = this.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            
+            // Sa mobile, kapag clinick sa loob ng 60px mula sa kaliwa (back button area)
+            if (clickX <= 60) {
+                e.stopPropagation();
+                closeMobileConversation();
+            }
+        });
+    }
 });
 
 // ── Also reload when coming back to page ──────────────────────────
@@ -2428,6 +2486,7 @@ window.refreshAppointments = refreshAppointments;
 window.viewAppointmentDetails = viewAppointmentDetails;
 window.formatStaffTime = formatStaffTime;
 window.openImageFullscreen = openImageFullscreen;
+window.closeMobileConversation = closeMobileConversation;
 
 // ── Emoji and Image Functions ──────────────────────────────────────
 window.toggleStaffEmojiPicker = toggleStaffEmojiPicker;

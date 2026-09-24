@@ -391,6 +391,60 @@
             opacity: 1;
         }
 
+        /* ── Fullscreen Image Viewer ────────────────────────────── */
+        #profileImageViewer {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            animation: fadeIn 0.3s ease;
+        }
+
+        #profileImageViewer img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
+
+        #profileImageViewer img:hover {
+            transform: scale(1.02);
+        }
+
+        #profileImageViewer .close-viewer {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: #ffffff;
+            font-size: 40px;
+            font-weight: 300;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            line-height: 1;
+            z-index: 10000;
+            opacity: 0.8;
+        }
+
+        #profileImageViewer .close-viewer:hover {
+            opacity: 1;
+            transform: scale(1.2) rotate(90deg);
+            color: #ef4444;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
     </style>
 </head>
 <body>
@@ -512,6 +566,12 @@
 
     <!-- ── Toast ─────────────────────────────────────────────── -->
     <div class="toast" id="toast"></div>
+
+    <!-- ── Fullscreen Image Viewer ────────────────────────────── -->
+    <div id="profileImageViewer" onclick="closeProfileViewer(event)">
+        <span class="close-viewer" onclick="closeProfileViewer(event)">&times;</span>
+        <img id="profileViewerImage" src="" alt="Profile Picture">
+    </div>
 
     <script>
         // ── Toast Helper ──────────────────────────────────────
@@ -686,6 +746,72 @@
                 }
             } catch (error) {
                 showToast('Network error. Please try again.', 'error');
+            }
+        });
+
+        // ── Profile Picture Fullscreen Viewer ──────────────────────────
+        function openProfileViewer(imageSrc) {
+            const viewer = document.getElementById('profileImageViewer');
+            const viewerImg = document.getElementById('profileViewerImage');
+            
+            if (!viewer || !viewerImg) return;
+            
+            viewerImg.src = imageSrc;
+            viewer.style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        function closeProfileViewer(event) {
+            // Only close if clicking the overlay or close button
+            if (event.target.id === 'profileImageViewer' || 
+                event.target.classList.contains('close-viewer')) {
+                const viewer = document.getElementById('profileImageViewer');
+                if (viewer) {
+                    viewer.style.display = 'none';
+                    document.body.style.overflow = ''; // Restore scrolling
+                }
+            }
+        }
+
+        // ── Attach click event to avatar ──────────────────────────────
+        document.addEventListener('DOMContentLoaded', function() {
+            const avatarContainer = document.getElementById('avatarContainer');
+            
+            if (avatarContainer) {
+                // Make it look clickable
+                avatarContainer.style.cursor = 'pointer';
+                
+                avatarContainer.addEventListener('click', function(e) {
+                    // Don't trigger if clicking the camera button
+                    if (e.target.closest('.avatar-camera-btn')) return;
+                    
+                    // Get the image source
+                    const avatarImage = document.getElementById('avatarImage');
+                    let imageSrc = '';
+                    
+                    if (avatarImage && avatarImage.src) {
+                        imageSrc = avatarImage.src;
+                    } else {
+                        // If no image, skip
+                        console.log('No profile image to view.');
+                        return;
+                    }
+                    
+                    if (imageSrc) {
+                        openProfileViewer(imageSrc);
+                    }
+                });
+            }
+        });
+
+        // Close viewer on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const viewer = document.getElementById('profileImageViewer');
+                if (viewer && viewer.style.display === 'flex') {
+                    viewer.style.display = 'none';
+                    document.body.style.overflow = '';
+                }
             }
         });
     </script>
