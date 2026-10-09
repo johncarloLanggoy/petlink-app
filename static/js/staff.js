@@ -1,3 +1,586 @@
+// ── Toggle Mobile Sidebar ──────────────────────────────────────────
+function toggleMobileSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('mobile-open');
+}
+
+document.addEventListener('click', function(event) {
+    const sidebar = document.getElementById('sidebar');
+    const mobileBtn = document.querySelector('.mobile-menu-btn');
+    if (window.innerWidth <= 768) {
+        if (sidebar && mobileBtn && !sidebar.contains(event.target) && !mobileBtn.contains(event.target)) {
+            sidebar.classList.remove('mobile-open');
+        }
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// 👥 STAFF CUSTOMERS — Fetch from API (katulad ng Admin Panel)
+// ═══════════════════════════════════════════════════════════════════
+let staffAllCustomersList = [];
+
+async function loadStaffCustomers() {
+    const tbody = document.getElementById('staffCustomersTableBody');
+    const emptyState = document.getElementById('customerEmptyState');
+    
+    if (!tbody) return;
+    
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="7" style="text-align: center; color: #94a387; padding: 30px;">
+                <i class="fas fa-spinner fa-spin"></i> Loading customers...
+            </td>
+        </tr>
+    `;
+    if (emptyState) emptyState.style.display = 'none';
+    
+    try {
+        const res = await fetch('/api/users');
+        const data = await res.json();
+        
+        if (data.success && data.users && data.users.length > 0) {
+            staffAllCustomersList = data.users.filter(u => u.role === 'user');
+            renderStaffCustomers(staffAllCustomersList);
+        } else {
+            staffAllCustomersList = [];
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" style="text-align: center; color: #64748b; padding: 30px;">
+                        No registered customers yet.
+                    </td>
+                </tr>
+            `;
+            const countEl = document.getElementById('customerSearchResultCount');
+            if (countEl) countEl.textContent = '0 customers';
+        }
+    } catch (error) {
+        console.error('Error loading customers:', error);
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align: center; color: #ef4444; padding: 30px;">
+                    <i class="fas fa-times-circle"></i> Error loading customers. Please refresh.
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function renderStaffCustomers(customers) {
+    const tbody = document.getElementById('staffCustomersTableBody');
+    const emptyState = document.getElementById('customerEmptyState');
+    
+    if (!tbody) return;
+    
+    const countEl = document.getElementById('customerSearchResultCount');
+    if (countEl) {
+        countEl.textContent = `${customers.length} customer${customers.length !== 1 ? 's' : ''}`;
+    }
+    
+    if (!customers || customers.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align: center; color: #64748b; padding: 30px;">
+                    No customers found.
+                </td>
+            </tr>
+        `;
+        if (emptyState) emptyState.style.display = 'none';
+        return;
+    }
+    
+    tbody.innerHTML = '';
+    
+    customers.forEach((user, index) => {
+        const nameDisplay = user.fullname || '—';
+        const roleClass = `role-${user.role}`;
+        const roleDisplay = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+        const initial = nameDisplay !== '—' ? nameDisplay.trim()[0].toUpperCase() : 'U';
+        
+        let avatarHTML;
+        if (user.profile_image) {
+            avatarHTML = `
+                <img src="${user.profile_image}" 
+                     alt="${nameDisplay}" 
+                     class="customer-avatar"
+                     onclick="openStaffImageViewer('${user.profile_image}')"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="customer-avatar-circle ${roleClass}" style="display: none;">${initial}</div>
+            `;
+        } else {
+            avatarHTML = `<div class="customer-avatar-circle ${roleClass}">${initial}</div>`;
+        }
+        
+        const row = document.createElement('tr');
+        row.className = 'customer-row';
+        row.setAttribute('data-name', user.fullname || '');
+        row.setAttribute('data-email', user.email || '');
+        
+        row.innerHTML = `
+            <td data-label="ID">${index + 1}</td>
+            <td data-label="Name">
+                <div class="customer-name-wrap">
+                    ${avatarHTML}
+                    <strong class="customer-name">${nameDisplay}</strong>
+                </div>
+            </td>
+            <td data-label="Email"><span class="truncate" title="${user.email || ''}">${user.email || '—'}</span></td>
+            <td data-label="Phone">${user.phone || '—'}</td>
+            <td data-label="Address"><span class="truncate" title="${user.address || ''}">${user.address || '—'}</span></td>
+            <td data-label="Role">
+                <span class="role-badge ${roleClass}">
+                    ${roleDisplay}
+                </span>
+            </td>
+            <td data-label="Created At">${user.created_at || '—'}</td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+    
+    if (emptyState) emptyState.style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ✅ ALLERGY OPTIONS — Eksaktong kopya mula sa pets.js (customer UI)
+// ═══════════════════════════════════════════════════════════════════
+const ALLERGY_OPTIONS = {
+    Dog: [
+        'Chicken', 'Beef', 'Pork', 'Lamb', 'Fish', 'Salmon', 'Tuna',
+        'Eggs', 'Dairy', 'Cheese', 'Milk',
+        'Wheat', 'Corn', 'Soy', 'Grain', 'Rice', 'Barley', 'Oats',
+        'Beet Pulp', 'Peanut Butter', 'Liver', 'Turkey', 'Duck',
+        'Venison', 'Rabbit', 'Kangaroo', 'Bison',
+        'Pollen', 'Dust Mites', 'Fleas', 'Tick Saliva',
+        'Grass', 'Weeds', 'Tree Pollen', 'Ragweed',
+        'Mold Spores', 'Dander', 'Cockroach',
+        'Latex', 'Plastic', 'Nylon', 'Wool', 'Cotton',
+        'Leather', 'Rubber', 'Metal (Nickel)', 'Dyes',
+        'Certain Medications', 'Antibiotics', 'Vaccines',
+        'Shampoo/Conditioner', 'Perfume', 'Flea Treatment',
+        'Heartworm Medication', 'Anesthesia',
+        'Bee Stings', 'Wasp Stings', 'Ant Bites', 'Spider Bites',
+        'Mosquito Bites', 'Flea Bites',
+        'Storage Mites', 'Household Cleaners', 'Air Fresheners',
+        'Cigarette Smoke', 'Candles', 'Insecticides'
+    ],
+    Cat: [
+        'Chicken', 'Beef', 'Pork', 'Lamb', 'Fish', 'Tuna', 'Salmon',
+        'Eggs', 'Dairy', 'Cheese', 'Milk',
+        'Wheat', 'Corn', 'Soy', 'Grain', 'Rice', 'Barley', 'Oats',
+        'Turkey', 'Duck', 'Venison', 'Rabbit',
+        'Pollen', 'Dust Mites', 'Fleas', 'Grass',
+        'Tree Pollen', 'Ragweed', 'Weeds',
+        'Mold Spores', 'Dander', 'Cockroach',
+        'Latex', 'Plastic', 'Wool', 'Cotton',
+        'Leather', 'Rubber', 'Metal (Nickel)', 'Dyes',
+        'Certain Medications', 'Antibiotics', 'Vaccines',
+        'Shampoo/Conditioner', 'Perfume', 'Flea Treatment',
+        'Heartworm Medication', 'Anesthesia',
+        'Cat Litter (Clay)', 'Cat Litter (Clumping)', 'Cat Litter (Crystal)',
+        'Household Cleaners', 'Air Fresheners',
+        'Bee Stings', 'Wasp Stings', 'Ant Bites', 'Spider Bites',
+        'Mosquito Bites', 'Flea Bites',
+        'Cigarette Smoke', 'Candles', 'Insecticides', 'Storage Mites'
+    ]
+};
+
+// ── Track selected allergies (Staff Edit) ────────────────────────
+let selectedAllergiesEditStaff = [];
+let customAllergiesEditStaff = [];
+
+// ═══════════════════════════════════════════════════════════════════
+// ✅ AGE HELPER FUNCTIONS — Eksaktong kopya mula sa pets.js
+// ═══════════════════════════════════════════════════════════════════
+function parseAgeInput(value, unit) {
+    const num = parseInt(value) || 0;
+    if (unit === 'months') {
+        if (num >= 12) {
+            const years = Math.floor(num / 12);
+            const remMonths = num % 12;
+            return { age: years, age_months: remMonths };
+        }
+        return { age: 0, age_months: num };
+    }
+    return { age: num, age_months: 0 };
+}
+
+function ageToFormValue(ageYears, ageMonths) {
+    const years = parseInt(ageYears) || 0;
+    const months = parseInt(ageMonths) || 0;
+    if (years > 0) return { value: years, unit: 'years' };
+    if (months > 0) return { value: months, unit: 'months' };
+    return { value: '', unit: 'years' };
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ✅ RENDER ALLERGY DROPDOWN (Staff Edit) — Eksaktong kopya mula sa pets.js
+// ── Gagana ito kahit ano pa ang pet type basta may value
+// ═══════════════════════════════════════════════════════════════════
+function renderAllergyDropdownStaff(petType, selectedList = []) {
+    const container = document.getElementById('editPetAllergiesContainer');
+    if (!container) return;
+    
+    console.log('🎨 renderAllergyDropdownStaff called with:', petType, '| selected:', selectedList);
+    
+    if (!petType || petType === '') {
+        container.innerHTML = `
+            <div style="padding: 12px 16px; background: #f8fafc; border: 2px dashed #e2e8f0; border-radius: 10px; text-align: center; color: #94a3b8; font-size: 13px; cursor: not-allowed;">
+                <i class="fas fa-lock"></i> Please select a Pet Type first
+            </div>
+        `;
+        return;
+    }
+    
+    const options = ALLERGY_OPTIONS[petType] || [];
+    if (options.length === 0) {
+        container.innerHTML = `
+            <div style="padding: 12px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; color: #94a3b8; font-size: 13px;">
+                <i class="fas fa-info-circle"></i> No allergy options available for this pet type.
+            </div>
+        `;
+        return;
+    }
+    
+    const standardOptions = options;
+    const detectedCustom = selectedList.filter(a => !standardOptions.includes(a));
+    
+    detectedCustom.forEach(c => {
+        if (!customAllergiesEditStaff.includes(c)) customAllergiesEditStaff.push(c);
+    });
+    
+    const hasOthers = customAllergiesEditStaff.length > 0;
+    
+    let html = `
+        <div style="max-height: 220px; overflow-y: auto; padding: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+    `;
+    
+    options.forEach(allergy => {
+        const isChecked = selectedList.includes(allergy);
+        const safeId = `staff-edit-allergy-${allergy.replace(/[^a-zA-Z0-9]/g, '-')}`;
+        
+        html += `
+            <label for="${safeId}" style="display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: ${isChecked ? 'rgba(123, 160, 91, 0.08)' : '#ffffff'}; border: 1px solid ${isChecked ? '#7ba05b' : '#e2e8f0'}; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; font-size: 12px; color: #334155;">
+                <input type="checkbox" 
+                       id="${safeId}" 
+                       value="${allergy}" 
+                       ${isChecked ? 'checked' : ''}
+                       data-allergy-mode="edit-staff"
+                       style="width: 14px; height: 14px; accent-color: #7ba05b; cursor: pointer; flex-shrink: 0;"
+                       onchange="window.toggleAllergySelectionStaff(this)">
+                <span style="flex: 1; user-select: none;">${allergy}</span>
+            </label>
+        `;
+    });
+    
+    html += `
+            </div>
+        </div>
+        
+        <div style="margin-top: 12px; padding: 12px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600; color: #334155; user-select: none;" for="staff-edit-allergy-others">
+                <input type="checkbox" 
+                       id="staff-edit-allergy-others"
+                       ${hasOthers ? 'checked' : ''}
+                       onchange="window.toggleOthersAllergyStaff(this)"
+                       style="width: 16px; height: 16px; accent-color: #7ba05b; cursor: pointer; flex-shrink: 0;">
+                <span><i class="fas fa-plus-circle" style="color: #7ba05b;"></i> Others (not in list)</span>
+            </label>
+            
+            <div id="staff-edit-others-input-container" style="margin-top: 8px; display: ${hasOthers ? 'block' : 'none'};">
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <input type="text" 
+                           id="staff-edit-others-input" 
+                           placeholder="Type allergy name..."
+                           style="flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid #d4e5c4; background: #f7fbf3; font-size: 12px; color: #2d3e1f; outline: none; font-family: 'Poppins', sans-serif;"
+                           onkeydown="if(event.key === 'Enter'){ event.preventDefault(); window.addCustomAllergyStaff(); }">
+                    <button type="button" 
+                            onclick="window.addCustomAllergyStaff()"
+                            style="padding: 8px 14px; background: #7ba05b; color: #ffffff; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; font-family: 'Poppins', sans-serif; display: inline-flex; align-items: center; gap: 4px;">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
+                </div>
+                
+                <div id="staff-edit-custom-allergies-list" style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px;">
+                    ${customAllergiesEditStaff.length > 0 
+                        ? customAllergiesEditStaff.map((c, i) => `
+                            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(123, 160, 91, 0.12); border: 1px solid #7ba05b; border-radius: 20px; font-size: 11px; color: #5a7a3f; font-weight: 500;">
+                                <i class="fas fa-tag" style="font-size: 9px;"></i>
+                                ${c}
+                                <button type="button" 
+                                        onclick="window.removeCustomAllergyStaff(${i})"
+                                        style="background: transparent; border: none; color: #ef4444; cursor: pointer; padding: 0; font-size: 12px; line-height: 1; margin-left: 2px;"
+                                        title="Remove">
+                                    <i class="fas fa-times-circle"></i>
+                                </button>
+                            </span>
+                        `).join('')
+                        : '<span style="font-size: 11px; color: #94a3b8; font-style: italic;">No custom allergies added yet.</span>'
+                    }
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <span style="font-size: 11px; color: #64748b;" id="staff-edit-allergy-summary">
+                ${selectedList.length + customAllergiesEditStaff.length > 0 
+                    ? `<i class="fas fa-check-circle" style="color: #7ba05b;"></i> ${selectedList.length + customAllergiesEditStaff.length} allergy(ies) selected`
+                    : '<i class="fas fa-info-circle"></i> No allergies selected'}
+            </span>
+            <button type="button" 
+                    onclick="window.clearAllergiesStaff()"
+                    style="font-size: 11px; color: #ef4444; background: transparent; border: 1px solid #ef4444; padding: 3px 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; font-family: 'Poppins', sans-serif; display: inline-flex; align-items: center; gap: 4px;"
+                    onmouseover="this.style.background='#ef4444'; this.style.color='#fff';"
+                    onmouseout="this.style.background='transparent'; this.style.color='#ef4444';">
+                <i class="fas fa-times-circle"></i> Clear All
+            </button>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
+// ── Toggle Allergy Selection (Staff) ─────────────────────────────
+window.toggleAllergySelectionStaff = function(checkbox) {
+    const value = checkbox.value;
+    const label = checkbox.closest('label');
+    
+    if (checkbox.checked) {
+        if (!selectedAllergiesEditStaff.includes(value)) {
+            selectedAllergiesEditStaff.push(value);
+        }
+        if (label) {
+            label.style.borderColor = '#7ba05b';
+            label.style.background = 'rgba(123, 160, 91, 0.08)';
+        }
+    } else {
+        selectedAllergiesEditStaff = selectedAllergiesEditStaff.filter(a => a !== value);
+        if (label) {
+            label.style.borderColor = '#e2e8f0';
+            label.style.background = '#ffffff';
+        }
+    }
+    
+    updateAllergySummaryStaff();
+};
+
+// ── Toggle "Others" checkbox (Staff) ─────────────────────────────
+window.toggleOthersAllergyStaff = function(checkbox) {
+    const container = document.getElementById('staff-edit-others-input-container');
+    if (checkbox.checked) {
+        container.style.display = 'block';
+        const input = document.getElementById('staff-edit-others-input');
+        if (input) input.focus();
+    } else {
+        container.style.display = 'none';
+        customAllergiesEditStaff = [];
+        renderCustomAllergiesListStaff();
+        updateAllergySummaryStaff();
+    }
+};
+
+// ── Add Custom Allergy (Staff) ───────────────────────────────────
+window.addCustomAllergyStaff = function() {
+    const input = document.getElementById('staff-edit-others-input');
+    if (!input) return;
+    
+    const value = input.value.trim();
+    if (!value) {
+        showMessage('Please type an allergy name.', 'error');
+        return;
+    }
+    
+    const isDuplicate = customAllergiesEditStaff.some(c => c.toLowerCase() === value.toLowerCase());
+    if (isDuplicate) {
+        showMessage('This allergy is already added.', 'error');
+        input.value = '';
+        return;
+    }
+    
+    const petType = document.getElementById('editPetType').value;
+    const standardOptions = ALLERGY_OPTIONS[petType] || [];
+    
+    if (standardOptions.some(o => o.toLowerCase() === value.toLowerCase())) {
+        showMessage('This allergy is already in the list above.', 'error');
+        input.value = '';
+        return;
+    }
+    
+    customAllergiesEditStaff.push(value);
+    input.value = '';
+    renderCustomAllergiesListStaff();
+    updateAllergySummaryStaff();
+    showMessage(`"${value}" added.`, 'success');
+};
+
+// ── Remove Custom Allergy (Staff) ────────────────────────────────
+window.removeCustomAllergyStaff = function(index) {
+    customAllergiesEditStaff.splice(index, 1);
+    renderCustomAllergiesListStaff();
+    updateAllergySummaryStaff();
+};
+
+// ── Render Custom Allergies List (Staff) ─────────────────────────
+function renderCustomAllergiesListStaff() {
+    const container = document.getElementById('staff-edit-custom-allergies-list');
+    if (!container) return;
+    
+    if (customAllergiesEditStaff.length === 0) {
+        container.innerHTML = '<span style="font-size: 11px; color: #94a3b8; font-style: italic;">No custom allergies added yet.</span>';
+        return;
+    }
+    
+    container.innerHTML = customAllergiesEditStaff.map((c, i) => `
+        <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(123, 160, 91, 0.12); border: 1px solid #7ba05b; border-radius: 20px; font-size: 11px; color: #5a7a3f; font-weight: 500;">
+            <i class="fas fa-tag" style="font-size: 9px;"></i>
+            ${c}
+            <button type="button" 
+                    onclick="window.removeCustomAllergyStaff(${i})"
+                    style="background: transparent; border: none; color: #ef4444; cursor: pointer; padding: 0; font-size: 12px; line-height: 1; margin-left: 2px;"
+                    title="Remove">
+                <i class="fas fa-times-circle"></i>
+            </button>
+        </span>
+    `).join('');
+}
+
+// ── Update Allergy Summary (Staff) ───────────────────────────────
+function updateAllergySummaryStaff() {
+    const summaryEl = document.getElementById('staff-edit-allergy-summary');
+    if (!summaryEl) return;
+    
+    const totalCount = selectedAllergiesEditStaff.length + customAllergiesEditStaff.length;
+    
+    if (totalCount > 0) {
+        summaryEl.innerHTML = `<i class="fas fa-check-circle" style="color: #7ba05b;"></i> ${totalCount} allergy(ies) selected`;
+    } else {
+        summaryEl.innerHTML = '<i class="fas fa-info-circle"></i> No allergies selected';
+    }
+}
+
+// ── Clear All Allergies (Staff) ──────────────────────────────────
+window.clearAllergiesStaff = function() {
+    selectedAllergiesEditStaff = [];
+    customAllergiesEditStaff = [];
+    
+    const checkboxes = document.querySelectorAll('#editPetAllergiesContainer input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        cb.checked = false;
+        const label = cb.closest('label');
+        if (label) {
+            label.style.borderColor = '#e2e8f0';
+            label.style.background = '#ffffff';
+        }
+    });
+    
+    const othersContainer = document.getElementById('staff-edit-others-input-container');
+    if (othersContainer) othersContainer.style.display = 'none';
+    
+    const othersCheckbox = document.getElementById('staff-edit-allergy-others');
+    if (othersCheckbox) othersCheckbox.checked = false;
+    
+    const othersInput = document.getElementById('staff-edit-others-input');
+    if (othersInput) othersInput.value = '';
+    
+    renderCustomAllergiesListStaff();
+    updateAllergySummaryStaff();
+};
+
+// ── Get Selected Allergies as String (Staff) ─────────────────────
+function getSelectedAllergiesStringStaff() {
+    const combined = [...new Set([...selectedAllergiesEditStaff, ...customAllergiesEditStaff])];
+    return combined.join(', ');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ✅ UPDATED: Search by ID, Name, Email, Phone, Address, Role, Created At
+// ═══════════════════════════════════════════════════════════════════
+function searchCustomers() {
+    const input = document.getElementById('customerSearchInput');
+    const clearBtn = document.getElementById('clearCustomerSearchBtn');
+    
+    if (!input) return;
+    
+    const term = input.value.trim().toLowerCase();
+    
+    if (clearBtn) {
+        clearBtn.style.display = term !== '' ? 'flex' : 'none';
+    }
+    
+    if (term === '') {
+        renderStaffCustomers(staffAllCustomersList);
+        return;
+    }
+    
+    const termClean = term.replace(/^#/, '');
+    
+    const filtered = staffAllCustomersList.filter(u => {
+        const id = String(u.id || '').toLowerCase();
+        const name = (u.fullname || '').toLowerCase();
+        const email = (u.email || '').toLowerCase();
+        const phone = (u.phone || '').toLowerCase();
+        const address = (u.address || '').toLowerCase();
+        const role = (u.role || '').toLowerCase();
+        const createdAt = (u.created_at || '').toLowerCase();
+        
+        return id.includes(termClean) ||
+               name.includes(term) ||
+               email.includes(term) ||
+               phone.includes(term) ||
+               address.includes(term) ||
+               role.includes(term) ||
+               createdAt.includes(term);
+    });
+    
+    renderStaffCustomers(filtered);
+}
+
+function clearCustomerSearch() {
+    const input = document.getElementById('customerSearchInput');
+    const clearBtn = document.getElementById('clearCustomerSearchBtn');
+    if (input) {
+        input.value = '';
+        if (clearBtn) clearBtn.style.display = 'none';
+        renderStaffCustomers(staffAllCustomersList);
+        input.focus();
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 🖼️ STAFF IMAGE VIEWER FUNCTIONS
+// ═══════════════════════════════════════════════════════════════════
+function openStaffImageViewer(imageSrc) {
+    const viewer = document.getElementById('staffImageViewer');
+    const viewerImg = document.getElementById('staffViewerImage');
+    
+    if (!viewer || !viewerImg) return;
+    
+    viewerImg.src = imageSrc;
+    viewer.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeStaffImageViewer(event) {
+    if (event.target.id === 'staffImageViewer' || 
+        event.target.classList.contains('close-viewer')) {
+        const viewer = document.getElementById('staffImageViewer');
+        if (viewer) {
+            viewer.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const viewer = document.getElementById('staffImageViewer');
+        if (viewer && viewer.style.display === 'flex') {
+            viewer.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+    }
+});
+
 // ── STAFF APPOINTMENT FILTERING ────────────────────────────────────
 let staffCurrentFilter = 'all';
 let staffAllAppointments = [];
@@ -5,19 +588,17 @@ let staffAllAppointments = [];
 function filterStaffAppointments(status) {
     staffCurrentFilter = status;
     
-    // Update tabs
     document.querySelectorAll('.appointment-tab').forEach(tab => {
         tab.classList.remove('active');
         tab.style.background = 'transparent';
         tab.style.color = '#94a3b8';
         if (tab.dataset.tab === status) {
             tab.classList.add('active');
-            tab.style.background = '#38bdf8';
-            tab.style.color = '#0f172a';
+            tab.style.background = '#7BA05B';
+            tab.style.color = '#e2e8f0';
         }
     });
     
-    // Filter and render
     renderStaffAppointments();
 }
 
@@ -30,14 +611,54 @@ function renderStaffAppointments() {
         filtered = staffAllAppointments.filter(app => app.status === staffCurrentFilter);
     }
     
-    // Apply search filter if search term exists
     const searchInput = document.getElementById('appointmentSearchInput');
     if (searchInput && searchInput.value.trim() !== '') {
         const searchTerm = searchInput.value.trim().toLowerCase();
+        const searchTermClean = searchTerm.replace(/^#/, '');
+        
         filtered = filtered.filter(app => {
+            const appointmentId = String(app.id || '').toLowerCase();
             const petName = (app.pet_name || '').toLowerCase();
             const customerEmail = (app.customer_email || '').toLowerCase();
-            return petName.includes(searchTerm) || customerEmail.includes(searchTerm);
+            const appointmentDate = (app.appointment_date || '').toLowerCase();
+            const appointmentTime = (app.appointment_time || '').toLowerCase();
+            const formattedTime = (typeof formatStaffTime === 'function' 
+                ? formatStaffTime(app.appointment_time) 
+                : '').toLowerCase();
+            
+            let servicesText = '';
+            if (app.service_details && Array.isArray(app.service_details)) {
+                servicesText = app.service_details.map(s => 
+                    (s.name || '').toLowerCase()
+                ).join(' ');
+            } else if (app.services) {
+                try {
+                    const services = typeof app.services === 'string' 
+                        ? JSON.parse(app.services) 
+                        : app.services;
+                    servicesText = Array.isArray(services) 
+                        ? services.join(' ').toLowerCase() 
+                        : String(services).toLowerCase();
+                } catch (e) {
+                    servicesText = String(app.services).toLowerCase();
+                }
+            }
+            
+            const paymentStatus = (app.payment_status || 'unpaid').toLowerCase();
+            const appointmentStatus = (app.status || '').toLowerCase();
+            
+            const matchesId = appointmentId === searchTermClean || 
+                             appointmentId.includes(searchTermClean);
+            
+            return matchesId ||
+                   petName.includes(searchTerm) ||
+                   customerEmail.includes(searchTerm) ||
+                   appointmentDate.includes(searchTerm) ||
+                   appointmentTime.includes(searchTerm) ||
+                   formattedTime.includes(searchTerm) ||
+                   servicesText.includes(searchTerm) ||
+                   paymentStatus.includes(searchTerm) ||
+                   appointmentStatus.includes(searchTerm);
         });
     }
     
@@ -52,7 +673,7 @@ function renderStaffAppointments() {
         const label = statusLabels[staffCurrentFilter] || 'appointments';
         tbody.innerHTML = `
             <tr>
-                <td colspan="8" style="text-align: center; color: #64748b; padding: 40px;">
+                <td colspan="9" style="text-align: center; color: #64748b; padding: 40px;">
                     <div style="font-size: 40px; margin-bottom: 10px;">📅</div>
                     <h3 style="color: #e2e8f0; margin-bottom: 5px;">No ${label}</h3>
                     <p style="font-size: 13px;">${staffCurrentFilter === 'all' ? 'No appointments from customers yet.' : `No ${label} at the moment.`}</p>
@@ -62,7 +683,6 @@ function renderStaffAppointments() {
         return;
     }
     
-    // ✅ SORT: Completed at cancelled sa dulo, pending at confirmed sa taas
     const statusPriority = {
         'pending': 1,
         'confirmed': 2,
@@ -71,15 +691,9 @@ function renderStaffAppointments() {
     };
     
     const sortedAppointments = [...filtered].sort((a, b) => {
-        // Unahin ang priority
         const priorityA = statusPriority[a.status] || 99;
         const priorityB = statusPriority[b.status] || 99;
-        
-        if (priorityA !== priorityB) {
-            return priorityA - priorityB;
-        }
-        
-        // Kung pareho ang status, i-sort by date (pinakamalapit sa taas)
+        if (priorityA !== priorityB) return priorityA - priorityB;
         const dateA = new Date(`${a.appointment_date} ${a.appointment_time}`);
         const dateB = new Date(`${b.appointment_date} ${b.appointment_time}`);
         return dateA - dateB;
@@ -90,9 +704,50 @@ function renderStaffAppointments() {
         const statusClass = `status-${app.status}`;
         const statusLabel = app.status.charAt(0).toUpperCase() + app.status.slice(1);
         
-        // Get services
         let servicesDisplay = '—';
-        if (app.services) {
+        
+        if (app.service_details && Array.isArray(app.service_details) && app.service_details.length > 0) {
+            servicesDisplay = app.service_details.map(svc => {
+                const category = (svc.category || 'staff').toLowerCase();
+                const categoryLabel = category === 'vet' ? 'Veterinarian' : 'Staff';
+                const isVet = category === 'vet';
+                const bgColor = isVet ? 'rgba(59, 130, 246, 0.12)' : 'rgba(123, 160, 91, 0.12)';
+                const textColor = isVet ? '#2563eb' : '#5a7a3f';
+                const borderColor = isVet ? 'rgba(59, 130, 246, 0.3)' : 'rgba(123, 160, 91, 0.3)';
+                const icon = isVet ? 'fas fa-stethoscope' : 'fas fa-scissors';
+                
+                return `
+                    <span class="service-tag" style="
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 4px;
+                        background: ${bgColor};
+                        color: ${textColor};
+                        border: 1px solid ${borderColor};
+                        padding: 3px 10px;
+                        border-radius: 12px;
+                        font-size: 11px;
+                        font-weight: 500;
+                        margin: 2px 4px 2px 0;
+                        white-space: nowrap;
+                    " title="${svc.name} — ${categoryLabel}">
+                        <i class="${icon}" style="font-size: 9px;"></i>
+                        ${svc.name}
+                        <span style="
+                            background: ${isVet ? '#2563eb' : '#5a7a3f'};
+                            color: #fff;
+                            padding: 1px 7px;
+                            border-radius: 8px;
+                            font-size: 9px;
+                            font-weight: 700;
+                            letter-spacing: 0.3px;
+                            margin-left: 2px;
+                        ">${categoryLabel}</span>
+                    </span>
+                `;
+            }).join('');
+        }
+        else if (app.services) {
             try {
                 const services = typeof app.services === 'string' ? JSON.parse(app.services) : app.services;
                 if (Array.isArray(services) && services.length > 0) {
@@ -105,7 +760,29 @@ function renderStaffAppointments() {
             }
         }
         
-        // Determine actions based on status
+        let paymentBadge = '';
+        const paymentStatus = app.payment_status || 'unpaid';
+        
+        if (paymentStatus === 'paid') {
+            paymentBadge = `
+                <span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap;">
+                    <i class="fas fa-check-circle"></i> Paid
+                </span>
+            `;
+        } else if (paymentStatus === 'failed') {
+            paymentBadge = `
+                <span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap;">
+                    <i class="fas fa-times-circle"></i> Failed
+                </span>
+            `;
+        } else {
+            paymentBadge = `
+                <span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(245, 158, 11, 0.15); color: #f59e0b; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap;">
+                    <i class="fas fa-clock"></i> Unpaid
+                </span>
+            `;
+        }
+        
         let actionsHTML = '';
         if (app.status === 'pending') {
             actionsHTML = `
@@ -131,6 +808,12 @@ function renderStaffAppointments() {
             `;
         }
         
+        const petType = (app.pet_type || 'Dog').toLowerCase();
+        const isCat = petType === 'cat';
+        const petIcon = isCat 
+            ? '<i class="fas fa-cat" style="color: #f59e0b;"></i>' 
+            : '<i class="fas fa-dog" style="color: #7ba05b;"></i>';
+        
         const row = document.createElement('tr');
         row.innerHTML = `
             <td style="white-space: nowrap;">${app.appointment_date}</td>
@@ -138,7 +821,7 @@ function renderStaffAppointments() {
             <td style="font-weight: 600; color: #94a387;">#${app.id}</td>
             <td>
                 <div class="pet-cell">
-                    <span class="pet-icon">🐕</span>
+                    <span class="pet-icon">${petIcon}</span>
                     ${app.pet_name || 'Unknown'}
                 </div>
             </td>
@@ -149,6 +832,7 @@ function renderStaffAppointments() {
             </td>
             <td>${servicesDisplay}</td>
             <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+            <td>${paymentBadge}</td>
             <td><div class="action-buttons">${actionsHTML}</div></td>
         `;
         tbody.appendChild(row);
@@ -178,7 +862,6 @@ function updateStaffAppointmentCounts(appointments) {
         }
     });
     
-    // Update tab counts
     const allEl = document.getElementById('staffAllCount');
     const pendingEl = document.getElementById('staffPendingCount');
     const confirmedEl = document.getElementById('staffConfirmedCount');
@@ -205,124 +888,582 @@ function viewAppointmentDetails(appointmentId) {
     }
     
     let servicesDisplay = '—';
-    if (app.services) {
+    let servicesHTML = '';
+    
+    if (app.service_details && Array.isArray(app.service_details) && app.service_details.length > 0) {
+        servicesHTML = app.service_details.map(svc => {
+            const category = (svc.category || 'staff').toLowerCase();
+            const categoryLabel = category === 'vet' ? 'Veterinarian' : 'Staff';
+            const isVet = category === 'vet';
+            const bgColor = isVet ? 'rgba(59, 130, 246, 0.12)' : 'rgba(123, 160, 91, 0.12)';
+            const textColor = isVet ? '#2563eb' : '#5a7a3f';
+            const icon = isVet ? 'fas fa-stethoscope' : 'fas fa-scissors';
+            
+            return `
+                <div style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 8px 12px;
+                    background: ${bgColor};
+                    border: 1px solid ${isVet ? 'rgba(59, 130, 246, 0.3)' : 'rgba(123, 160, 91, 0.3)'};
+                    border-radius: 10px;
+                    margin-bottom: 6px;
+                    gap: 10px;
+                    flex-wrap: wrap;
+                ">
+                    <span style="color: ${textColor}; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+                        <i class="${icon}" style="font-size: 11px;"></i>
+                        ${svc.name}
+                    </span>
+                    <span style="
+                        background: ${isVet ? '#2563eb' : '#5a7a3f'};
+                        color: #fff;
+                        padding: 2px 10px;
+                        border-radius: 8px;
+                        font-size: 10px;
+                        font-weight: 700;
+                        letter-spacing: 0.3px;
+                        white-space: nowrap;
+                    ">${categoryLabel}</span>
+                </div>
+            `;
+        }).join('');
+    }
+    else if (app.services) {
         try {
             const services = typeof app.services === 'string' ? JSON.parse(app.services) : app.services;
-            servicesDisplay = Array.isArray(services) ? services.join(', ') : services;
+            if (Array.isArray(services) && services.length > 0) {
+                servicesHTML = services.map(s => `
+                    <div style="
+                        padding: 8px 12px;
+                        background: rgba(123, 160, 91, 0.08);
+                        border: 1px solid rgba(123, 160, 91, 0.2);
+                        border-radius: 10px;
+                        margin-bottom: 6px;
+                        color: #2d3e1f;
+                        font-size: 13px;
+                    ">${s}</div>
+                `).join('');
+            } else {
+                servicesHTML = `<div style="color: #2d3e1f; font-size: 13px;">${services}</div>`;
+            }
         } catch (e) {
-            servicesDisplay = app.services;
+            servicesHTML = `<div style="color: #2d3e1f; font-size: 13px;">${app.services}</div>`;
         }
+    } else {
+        servicesHTML = `<div style="color: #94a387; font-size: 13px; font-style: italic;">No services</div>`;
     }
     
+    const statusColors = {
+        'pending': { bg: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', icon: 'fas fa-hourglass-half' },
+        'confirmed': { bg: 'rgba(16, 185, 129, 0.15)', color: '#10b981', icon: 'fas fa-check-circle' },
+        'completed': { bg: 'rgba(123, 160, 91, 0.15)', color: '#5a7a3f', icon: 'fas fa-flag-checkered' },
+        'cancelled': { bg: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', icon: 'fas fa-times-circle' }
+    };
+    const statusStyle = statusColors[app.status] || statusColors['pending'];
     const statusLabel = app.status.charAt(0).toUpperCase() + app.status.slice(1);
-    const timeDisplay = formatStaffTime(app.appointment_time);
     
-    alert(
-        `📋 Appointment Details\n\n` +
-        `🆔 ID: #${app.id}\n` +
-        `🐕 Pet: ${app.pet_name || 'Unknown'}\n` +
-        `👤 Customer: ${app.customer_email || 'Unknown'}\n` +
-        `✂️ Services: ${servicesDisplay}\n` +
-        `📅 Date: ${app.appointment_date}\n` +
-        `⏰ Time: ${timeDisplay}\n` +
-        `📌 Status: ${statusLabel}\n` +
-        `${app.notes ? `📝 Notes: ${app.notes}` : ''}`
-    );
+    const paymentStatus = app.payment_status || 'unpaid';
+    let paymentBadge = '';
+    if (paymentStatus === 'paid') {
+        paymentBadge = `
+            <span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;">
+                <i class="fas fa-check-circle"></i> Paid
+            </span>
+        `;
+    } else if (paymentStatus === 'failed') {
+        paymentBadge = `
+            <span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;">
+                <i class="fas fa-times-circle"></i> Failed
+            </span>
+        `;
+    } else {
+        paymentBadge = `
+            <span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(245, 158, 11, 0.15); color: #f59e0b; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;">
+                <i class="fas fa-clock"></i> Unpaid
+            </span>
+        `;
+    }
+    
+    const petType = (app.pet_type || 'Dog').toLowerCase();
+    const isCat = petType === 'cat';
+    const petIcon = isCat 
+        ? '<i class="fas fa-cat" style="color: #f59e0b;"></i>' 
+        : '<i class="fas fa-dog" style="color: #7ba05b;"></i>';
+    const petTypeLabel = isCat ? 'Cat' : 'Dog';
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.id = 'appointmentDetailsModal';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(45, 62, 31, 0.5);
+        backdrop-filter: blur(6px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        padding: 20px;
+        animation: fadeIn 0.3s ease;
+    `;
+    
+    overlay.innerHTML = `
+        <div style="
+            background: #ffffff;
+            border-radius: 20px;
+            max-width: 560px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 50px rgba(123, 160, 91, 0.25);
+            border: 1px solid #7ba05b;
+            animation: slideUp 0.3s ease;
+            position: relative;
+        ">
+            <button type="button" 
+                    onclick="closeAppointmentDetailsModal()" 
+                    title="Close"
+                    style="
+                        position: absolute;
+                        top: 14px;
+                        right: 16px;
+                        background: transparent;
+                        border: none;
+                        color: #94a387;
+                        font-size: 24px;
+                        cursor: pointer;
+                        padding: 4px 10px;
+                        line-height: 1;
+                        border-radius: 8px;
+                        transition: all 0.2s ease;
+                        z-index: 10;
+                    "
+                    onmouseover="this.style.color='#ef4444'; this.style.background='rgba(239,68,68,0.1)'"
+                    onmouseout="this.style.color='#94a387'; this.style.background='transparent'">
+                ✕
+            </button>
+            
+            <div style="
+                padding: 26px 26px 18px;
+                border-bottom: 1px solid #eaf3e0;
+                display: flex;
+                align-items: center;
+                gap: 14px;
+            ">
+                <div style="
+                    width: 52px;
+                    height: 52px;
+                    border-radius: 14px;
+                    background: linear-gradient(135deg, #7ba05b, #5a7a3f);
+                    color: #ffffff;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 22px;
+                    flex-shrink: 0;
+                    box-shadow: 0 4px 12px rgba(123, 160, 91, 0.3);
+                ">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                    <h3 style="
+                        color: #5a7a3f;
+                        font-size: 19px;
+                        font-weight: 700;
+                        margin: 0 0 4px 0;
+                        line-height: 1.2;
+                    ">
+                        Appointment Details
+                    </h3>
+                    <p style="
+                        color: #94a387;
+                        font-size: 12.5px;
+                        margin: 0;
+                        line-height: 1.4;
+                    ">
+                        Full information about this booking
+                    </p>
+                </div>
+            </div>
+            
+            <div style="padding: 20px 26px;">
+                <div style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 10px 14px;
+                    background: #f7fbf3;
+                    border-radius: 10px;
+                    border: 1px solid #d4e5c4;
+                    margin-bottom: 18px;
+                ">
+                    <span style="color: #94a387; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">
+                        Appointment ID
+                    </span>
+                    <span style="color: #5a7a3f; font-size: 13px; font-weight: 700; font-family: monospace;">
+                        #${app.id}
+                    </span>
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <div style="
+                        color: #5a7a3f;
+                        font-size: 11px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.6px;
+                        margin-bottom: 8px;
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                    ">
+                        <i class="fas fa-paw"></i> Pet Information
+                    </div>
+                    <div style="
+                        background: #f7fbf3;
+                        border: 1px solid #d4e5c4;
+                        border-radius: 12px;
+                        padding: 12px 14px;
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                    ">
+                        <div style="
+                            width: 44px;
+                            height: 44px;
+                            border-radius: 12px;
+                            background: rgba(123, 160, 91, 0.15);
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 20px;
+                            flex-shrink: 0;
+                        ">
+                            ${petIcon}
+                        </div>
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="color: #2d3e1f; font-size: 15px; font-weight: 600; margin-bottom: 2px;">
+                                ${app.pet_name || 'Unknown'}
+                            </div>
+                            <div style="color: #94a387; font-size: 12px;">
+                                ${petTypeLabel}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <div style="
+                        color: #5a7a3f;
+                        font-size: 11px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.6px;
+                        margin-bottom: 8px;
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                    ">
+                        <i class="fas fa-user"></i> Customer
+                    </div>
+                    <div style="
+                        background: #f7fbf3;
+                        border: 1px solid #d4e5c4;
+                        border-radius: 12px;
+                        padding: 12px 14px;
+                    ">
+                        <div style="color: #2d3e1f; font-size: 13px; font-weight: 500; word-break: break-all;">
+                            <i class="fas fa-envelope" style="color: #7ba05b; margin-right: 6px;"></i>
+                            ${app.customer_email || 'Unknown'}
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <div style="
+                        color: #5a7a3f;
+                        font-size: 11px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.6px;
+                        margin-bottom: 8px;
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                    ">
+                        <i class="fas fa-scissors"></i> Services
+                    </div>
+                    <div>
+                        ${servicesHTML}
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <div style="
+                        color: #5a7a3f;
+                        font-size: 11px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.6px;
+                        margin-bottom: 8px;
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                    ">
+                        <i class="fas fa-calendar-alt"></i> Schedule
+                    </div>
+                    <div style="
+                        background: #f7fbf3;
+                        border: 1px solid #d4e5c4;
+                        border-radius: 12px;
+                        padding: 12px 14px;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 8px;
+                    ">
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                            <span style="color: #94a387; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-calendar-day" style="color: #7ba05b; width: 14px;"></i> Date
+                            </span>
+                            <span style="color: #2d3e1f; font-size: 13px; font-weight: 500; text-align: right;">
+                                ${app.appointment_date}
+                            </span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                            <span style="color: #94a387; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-clock" style="color: #7ba05b; width: 14px;"></i> Time
+                            </span>
+                            <span style="color: #2d3e1f; font-size: 13px; font-weight: 500; text-align: right;">
+                                ${formatStaffTime(app.appointment_time)}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <div style="
+                            color: #5a7a3f;
+                            font-size: 11px;
+                            font-weight: 700;
+                            text-transform: uppercase;
+                            letter-spacing: 0.6px;
+                            margin-bottom: 8px;
+                            display: flex;
+                            align-items: center;
+                            gap: 6px;
+                        ">
+                            <i class="fas fa-info-circle"></i> Status
+                        </div>
+                        <div style="
+                            background: ${statusStyle.bg};
+                            border-radius: 10px;
+                            padding: 10px 14px;
+                            text-align: center;
+                            color: ${statusStyle.color};
+                            font-size: 13px;
+                            font-weight: 700;
+                        ">
+                            <i class="${statusStyle.icon}" style="margin-right: 4px;"></i>
+                            ${statusLabel}
+                        </div>
+                    </div>
+                    <div>
+                        <div style="
+                            color: #5a7a3f;
+                            font-size: 11px;
+                            font-weight: 700;
+                            text-transform: uppercase;
+                            letter-spacing: 0.6px;
+                            margin-bottom: 8px;
+                            display: flex;
+                            align-items: center;
+                            gap: 6px;
+                        ">
+                            <i class="fas fa-credit-card"></i> Payment
+                        </div>
+                        <div style="text-align: center; padding: 5px 0;">
+                            ${paymentBadge}
+                        </div>
+                    </div>
+                </div>
+                
+                ${app.notes ? `
+                <div style="margin-top: 16px;">
+                    <div style="
+                        color: #5a7a3f;
+                        font-size: 11px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.6px;
+                        margin-bottom: 8px;
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                    ">
+                        <i class="fas fa-pencil-alt"></i> Notes
+                    </div>
+                    <div style="
+                        background: #f7fbf3;
+                        border: 1px solid #d4e5c4;
+                        border-radius: 12px;
+                        padding: 12px 14px;
+                        color: #2d3e1f;
+                        font-size: 13px;
+                        line-height: 1.5;
+                        word-break: break-word;
+                    ">
+                        ${app.notes}
+                    </div>
+                </div>
+                ` : ''}
+            </div>
+            
+            <div style="
+                padding: 16px 26px 22px;
+                border-top: 1px solid #eaf3f0;
+                background: #f7fbf3;
+                border-radius: 0 0 20px 20px;
+                display: flex;
+                gap: 10px;
+                justify-content: flex-end;
+            ">
+                <button type="button" 
+                        onclick="closeAppointmentDetailsModal()" 
+                        style="
+                            padding: 10px 22px;
+                            border-radius: 10px;
+                            border: 1.5px solid #d4e5c4;
+                            background: #ffffff;
+                            color: #5a7a3f;
+                            font-size: 13px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            font-family: 'Poppins', sans-serif;
+                            transition: all 0.2s ease;
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 6px;
+                        "
+                        onmouseover="this.style.borderColor='#7ba05b'; this.style.background='#f7fbf3';"
+                        onmouseout="this.style.borderColor='#d4e5c4'; this.style.background='#ffffff';">
+                    <i class="fas fa-times"></i> Close
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+            closeAppointmentDetailsModal();
+        }
+    });
+    
+    const escHandler = function(e) {
+        if (e.key === 'Escape') {
+            closeAppointmentDetailsModal();
+            document.removeEventListener('keydown', escHandler);
+        }
+    };
+    document.addEventListener('keydown', escHandler);
 }
 
-// ── Tab Navigation ───────────────────────────────────────────────────
+function closeAppointmentDetailsModal() {
+    const modal = document.getElementById('appointmentDetailsModal');
+    if (modal) {
+        modal.style.animation = 'fadeOut 0.2s ease';
+        setTimeout(() => {
+            if (modal.parentNode) modal.remove();
+        }, 200);
+    }
+}
+
 function showDashboardTab() {
     document.getElementById('dashboardSection').style.display = 'block';
     document.getElementById('customerSection').style.display = 'none';
     document.getElementById('petSection').style.display = 'none';
-    document.getElementById('appointmentsSection').style.display = 'none';
     document.getElementById('messagesSection').style.display = 'none';
     
     document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
     document.getElementById('navDashboard').classList.add('active');
     
+    sessionStorage.setItem('staffActiveTab', 'dashboard');
+    
     loadStaffStats();
-    loadStaffChartData(0);
-    loadStaffPetTypeChart();
-    loadStaffAppointmentStatusChart();
-    loadStaffMonthlyGrowthChart();
+    loadAllAppointments();
 }
 
 function showCustomersTab() {
     document.getElementById('dashboardSection').style.display = 'none';
     document.getElementById('customerSection').style.display = 'block';
     document.getElementById('petSection').style.display = 'none';
-    document.getElementById('appointmentsSection').style.display = 'none';
     document.getElementById('messagesSection').style.display = 'none';
     
     document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
     document.getElementById('navCustomers').classList.add('active');
     
+    sessionStorage.setItem('staffActiveTab', 'customers');
     loadStaffStats();
+    loadStaffCustomers();
 }
 
 function showPetsTab() {
     document.getElementById('dashboardSection').style.display = 'none';
     document.getElementById('customerSection').style.display = 'none';
     document.getElementById('petSection').style.display = 'block';
-    document.getElementById('appointmentsSection').style.display = 'none';
     document.getElementById('messagesSection').style.display = 'none';
     
     document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
     document.getElementById('navPets').classList.add('active');
     
+    sessionStorage.setItem('staffActiveTab', 'pets');
     loadPets();
 }
 
-function showAppointmentsTab() {
-    document.getElementById('dashboardSection').style.display = 'none';
-    document.getElementById('customerSection').style.display = 'none';
-    document.getElementById('petSection').style.display = 'none';
-    document.getElementById('appointmentsSection').style.display = 'block';
-    document.getElementById('messagesSection').style.display = 'none';
-    
-    document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
-    document.getElementById('navAppointments').classList.add('active');
-    
-    loadAllAppointments();
-}
-
-// ── Messages Tab ──────────────────────────────────────────────────────
 let currentCustomerEmail = null;
 
 function showMessagesTab() {
     document.getElementById('dashboardSection').style.display = 'none';
     document.getElementById('customerSection').style.display = 'none';
     document.getElementById('petSection').style.display = 'none';
-    document.getElementById('appointmentsSection').style.display = 'none';
     document.getElementById('messagesSection').style.display = 'block';
     
     document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
     document.getElementById('navMessages').classList.add('active');
     
-    // Load customers and auto-select conversation with unread messages
-    loadCustomersWithMessages();
+    sessionStorage.setItem('staffActiveTab', 'messages');
     
-    // If there's a currentCustomerEmail, load that conversation immediately
-    if (currentCustomerEmail) {
-        loadConversation(currentCustomerEmail);
-    } else {
-        // If no currentCustomerEmail, load the first conversation with unread messages
-        loadFirstUnreadStaffConversation();
+    const messagesGrid = document.getElementById('messagesGrid');
+    if (messagesGrid) {
+        messagesGrid.classList.remove('has-active-conversation');
     }
     
-    // Force update badge
+    loadCustomersWithMessages();
+    
+    if (window.innerWidth > 768) {
+        if (currentCustomerEmail) {
+            loadConversation(currentCustomerEmail);
+        } else {
+            loadFirstUnreadStaffConversation();
+        }
+    }
+    
     loadUnreadCount();
 }
 
-// ── LOAD FIRST CONVERSATION WITH UNREAD MESSAGES (STAFF) ──────────
 async function loadFirstUnreadStaffConversation() {
     try {
         const res = await fetch('/api/messages/received-only');
         const data = await res.json();
         
         if (data.success && data.senders && data.senders.length > 0) {
-            // Sort by unread first, then by last_message_at
             const sortedSenders = data.senders.sort((a, b) => {
                 if (a.unread_count > 0 && b.unread_count === 0) return -1;
                 if (a.unread_count === 0 && b.unread_count > 0) return 1;
@@ -331,14 +1472,11 @@ async function loadFirstUnreadStaffConversation() {
                 return dateB - dateA;
             });
             
-            // Find the first sender with unread messages
             const unreadSenders = sortedSenders.filter(s => s.unread_count > 0);
             
             if (unreadSenders.length > 0) {
-                // Load the first sender with unread messages
                 await loadConversation(unreadSenders[0].email);
             } else {
-                // If no unread messages, load the first sender (most recent)
                 await loadConversation(sortedSenders[0].email);
             }
         }
@@ -347,11 +1485,9 @@ async function loadFirstUnreadStaffConversation() {
     }
 }
 
-// ── STAFF MESSAGES SEARCH ──────────────────────────────────────────
 let staffAllCustomers = [];
 let staffFilteredCustomers = [];
 
-// ── Load Customers with Messages (UPDATED with Search) ────────────
 async function loadCustomersWithMessages() {
     const container = document.getElementById('customerList');
     
@@ -366,13 +1502,9 @@ async function loadCustomersWithMessages() {
         const data = await res.json();
         
         if (data.success && data.senders && data.senders.length > 0) {
-            // Sort senders: Unread first, then by last_message_at (newest first)
             staffAllCustomers = data.senders.sort((a, b) => {
-                // Unread messages first
                 if (a.unread_count > 0 && b.unread_count === 0) return -1;
                 if (a.unread_count === 0 && b.unread_count > 0) return 1;
-                
-                // If both have unread or both don't, sort by last_message_at (newest first)
                 const dateA = a.last_message_at ? new Date(a.last_message_at) : new Date(0);
                 const dateB = b.last_message_at ? new Date(b.last_message_at) : new Date(0);
                 return dateB - dateA;
@@ -400,13 +1532,11 @@ async function loadCustomersWithMessages() {
     }
 }
 
-// ── Render Staff Customer List with Search ─────────────────────────
 function renderStaffCustomerList(customers) {
     const container = document.getElementById('customerList');
     const searchInput = document.getElementById('staffMessageSearch');
     const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
     
-    // Filter if search term exists
     let filtered = customers;
     if (searchTerm) {
         filtered = customers.filter(customer => {
@@ -417,11 +1547,9 @@ function renderStaffCustomerList(customers) {
         });
     }
     
-    // Keep the sort order (unread first, then by last_message_at)
     filtered = filtered.sort((a, b) => {
         if (a.unread_count > 0 && b.unread_count === 0) return -1;
         if (a.unread_count === 0 && b.unread_count > 0) return 1;
-        
         const dateA = a.last_message_at ? new Date(a.last_message_at) : new Date(0);
         const dateB = b.last_message_at ? new Date(b.last_message_at) : new Date(0);
         return dateB - dateA;
@@ -447,7 +1575,6 @@ function renderStaffCustomerList(customers) {
         const unreadBadge = sender.unread_count > 0 ? 
             `<span style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; margin-left: auto;">${sender.unread_count}</span>` : '';
         
-        // Show last message time for context
         const lastMessageTime = sender.last_message_at ? 
             new Date(sender.last_message_at).toLocaleDateString() : '';
         
@@ -464,10 +1591,25 @@ function renderStaffCustomerList(customers) {
         `;
         div.onmouseover = () => { div.style.background = 'rgba(123, 160, 91, 0.05)'; };
         div.onmouseout = () => { div.style.background = isActive ? 'rgba(123, 160, 91, 0.08)' : ''; };
-        div.onclick = () => loadConversation(sender.email);
+        div.onclick = () => {
+            if (window.innerWidth <= 768) {
+                const messagesGrid = document.getElementById('messagesGrid');
+                if (messagesGrid) {
+                    messagesGrid.classList.add('has-active-conversation');
+                }
+            }
+            loadConversation(sender.email);
+        };
+        
+        // ✅ DEFAULT AVATAR — FontAwesome user icon with green color (tugma sa theme)
+        const avatarHTML = sender.profile_image
+            ? `<img src="${sender.profile_image}" alt="${sender.fullname || sender.email}" 
+                    style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;"
+                    onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\\'fas fa-user\\' style=\\'color: #7ba05b; font-size: 16px;\\'></i>';">`
+            : `<i class="fas fa-user" style="color: #7ba05b; font-size: 16px;"></i>`;
         
         div.innerHTML = `
-            <div style="width: 35px; height: 35px; border-radius: 50%; background: rgba(123, 160, 91, 0.15); color: #5a7a3f; display: flex; align-items: center; justify-content: center; font-size: 16px;">👤</div>
+            <div style="width: 35px; height: 35px; min-width: 35px; border-radius: 50%; background: rgba(123, 160, 91, 0.15); color: #5a7a3f; display: flex; align-items: center; justify-content: center; font-size: 16px; overflow: hidden; flex-shrink: 0;">${avatarHTML}</div>
             <div style="flex: 1; min-width: 0;">
                 <div style="color: #2d3e1f; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${sender.fullname || sender.email}</div>
                 <div style="color: #7a8a7c; font-size: 11px;">${sender.email} • ${sender.phone || 'No phone'}</div>
@@ -479,7 +1621,6 @@ function renderStaffCustomerList(customers) {
     });
 }
 
-// ── Search Staff Messages ──────────────────────────────────────────
 function searchStaffMessages() {
     const input = document.getElementById('staffMessageSearch');
     const clearBtn = document.getElementById('staffClearSearchBtn');
@@ -495,7 +1636,6 @@ function searchStaffMessages() {
     }
 }
 
-// ── Clear Staff Message Search ─────────────────────────────────────
 function clearStaffMessageSearch() {
     const input = document.getElementById('staffMessageSearch');
     const clearBtn = document.getElementById('staffClearSearchBtn');
@@ -507,7 +1647,6 @@ function clearStaffMessageSearch() {
     }
 }
 
-// ── Update Staff Search Result Count ──────────────────────────────
 function updateStaffSearchCount(count) {
     const el = document.getElementById('staffSearchResultCount');
     if (el) {
@@ -515,7 +1654,6 @@ function updateStaffSearchCount(count) {
     }
 }
 
-// ── Init Staff Message Search ──────────────────────────────────────
 function initStaffMessageSearch() {
     const searchInput = document.getElementById('staffMessageSearch');
     if (searchInput) {
@@ -536,26 +1674,30 @@ function initStaffMessageSearch() {
     }
 }
 
-// ── LOAD CONVERSATION (UPDATED - re-renders list after loading) ──
 async function loadConversation(customerEmail) {
     currentCustomerEmail = customerEmail;
     
-    // ✅ MOBILE: I-activate ang conversation view (slide-in)
     const messagesGrid = document.getElementById('messagesGrid');
     if (messagesGrid && window.innerWidth <= 768) {
         messagesGrid.classList.add('has-active-conversation');
     }
     
-    // ── FETCH CUSTOMER FULL NAME ──────────────────────────────────
-    let customerName = customerEmail; // Default: email
+    let customerName = customerEmail;
+    let customerProfileImage = null;
+    
     try {
         const usersRes = await fetch('/api/users');
         const usersData = await usersRes.json();
         
         if (usersData.success) {
             const user = usersData.users.find(u => u.email === customerEmail);
-            if (user && user.fullname && user.fullname.trim() !== '') {
-                customerName = user.fullname;
+            if (user) {
+                if (user.fullname && user.fullname.trim() !== '') {
+                    customerName = user.fullname;
+                }
+                if (user.profile_image) {
+                    customerProfileImage = user.profile_image;
+                }
             }
         }
     } catch (error) {
@@ -563,17 +1705,41 @@ async function loadConversation(customerEmail) {
         customerName = customerEmail;
     }
     
-    // ── UPDATE HEADER ──────────────────────────────────────────────
+       // ✅ DEFAULT AVATAR — FontAwesome user icon with green color (tugma sa theme)
+    // ✅ FIXED: Perfect circle avatar + clickable fullscreen viewer
+    const safeCustomerName = (customerName || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    
+    let headerAvatarHTML;
+    let headerAvatarClickAttr;
+    let headerAvatarCursor;
+    
+    if (customerProfileImage) {
+        headerAvatarHTML = `<img src="${customerProfileImage}" alt="${customerName}" 
+                style="width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; object-fit: cover; border-radius: 50%; display: block;">`;
+        headerAvatarClickAttr = `onclick="event.stopPropagation(); window.openStaffImageViewer('${customerProfileImage.replace(/'/g, "\\'")}');"`;
+        headerAvatarCursor = 'pointer';
+    } else {
+        headerAvatarHTML = `<i class="fas fa-user" style="color: #7ba05b; font-size: 18px;"></i>`;
+        headerAvatarClickAttr = '';
+        headerAvatarCursor = 'default';
+    }
+    
     document.getElementById('conversationHeader').innerHTML = `
         <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 20px; color: #7ba05b;">👤</span>
+            <div class="header-avatar"
+                 ${headerAvatarClickAttr}
+                 title="${customerProfileImage ? 'Click to view profile picture' : customerName}"
+                 style="width: 40px !important; height: 40px !important; min-width: 40px !important; max-width: 40px !important; flex: 0 0 40px !important; flex-shrink: 0 !important; flex-grow: 0 !important; border-radius: 50% !important; background: rgba(123, 160, 91, 0.15); display: flex; align-items: center; justify-content: center; overflow: hidden; aspect-ratio: 1 / 1; box-sizing: border-box; cursor: ${headerAvatarCursor}; transition: transform 0.2s ease, box-shadow 0.2s ease;"
+                 onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 0 0 2px #7ba05b';"
+                 onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';">
+                ${headerAvatarHTML}
+            </div>
             <div>
                 <div style="color: #2d3e1f; font-weight: 600;">${customerName}</div>
                 <div style="color: #7a8a7c; font-size: 12px;">${customerEmail}</div>
             </div>
         </div>
     `;
-    
     document.getElementById('replyCustomerEmail').value = customerEmail;
     document.getElementById('replyMessage').value = '';
     document.getElementById('replyMessage').placeholder = 'Type your reply...';
@@ -589,18 +1755,20 @@ async function loadConversation(customerEmail) {
             data.messages.forEach(msg => {
                 const isStaff = msg.sender_email === customerEmail ? false : true;
                 
-                const div = document.createElement('div');
-                div.style.cssText = `
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = `
                     display: flex;
-                    justify-content: ${isStaff ? 'flex-end' : 'flex-start'};
-                    margin-bottom: 15px;
+                    flex-direction: column;
+                    width: 100%;
+                    margin-bottom: 10px;
+                    padding: 0;
+                    box-sizing: border-box;
+                    align-items: ${isStaff ? 'flex-end' : 'flex-start'};
                 `;
                 
-                // Extract image from message
                 let imageData = null;
                 let messageText = msg.message || '';
                 
-                // Pattern 1: [IMAGE:data:image/png;base64,...]
                 if (messageText.includes('[IMAGE:')) {
                     const imageMatch = messageText.match(/\[IMAGE:([^\]]+)\]/);
                     if (imageMatch) {
@@ -611,7 +1779,6 @@ async function loadConversation(customerEmail) {
                     }
                 }
                 
-                // Pattern 2: Direct data URI (fallback)
                 if (!imageData && messageText.includes('data:image')) {
                     const dataMatch = messageText.match(/data:image\/[^;]+;base64,[^\s]+/);
                     if (dataMatch) {
@@ -621,46 +1788,92 @@ async function loadConversation(customerEmail) {
                     }
                 }
                 
-                // Remove "Image" text if only image
                 if (!messageText || messageText === 'Image:' || messageText === '📷 Image:' || 
                     messageText === 'Screenshot' || messageText === '📷 Image' || 
                     messageText === 'Image' || messageText === 'image') {
                     messageText = '';
                 }
                 
-                // Get sender name
                 let senderName = isStaff ? 'Staff' : customerName;
                 
-                // Build message HTML
-                let messageHTML = `
-                    <div style="max-width: 70%;">
-                        <div style="background: ${isStaff ? '#7ba05b' : '#ffffff'}; padding: 10px 15px; border-radius: 12px; ${isStaff ? 'border-bottom-right-radius: 4px;' : 'border-bottom-left-radius: 4px;'} ${isStaff ? '' : 'border: 1px solid #eaf3e0;'}">
-                            <div style="font-size: 11px; color: ${isStaff ? '#ffffff' : '#5a7a3f'}; font-weight: 600; margin-bottom: 3px;">${senderName}</div>
-                            ${messageText ? `<div style="color: ${isStaff ? '#ffffff' : '#2d3e1f'}; word-wrap: break-word;">${messageText}</div>` : ''}
+                const bubbleContainer = document.createElement('div');
+                bubbleContainer.style.cssText = `
+                    display: flex;
+                    flex-direction: column;
+                    max-width: 78%;
+                    box-sizing: border-box;
+                    align-items: ${isStaff ? 'flex-end' : 'flex-start'};
+                    text-align: ${isStaff ? 'right' : 'left'};
                 `;
                 
-                // Add image if present
+                const nameEl = document.createElement('div');
+                nameEl.style.cssText = `
+                    font-size: 11px;
+                    font-weight: 600;
+                    color: #5a7a3f;
+                    margin-bottom: 3px;
+                    padding: 0 4px;
+                    line-height: 1.2;
+                    text-align: ${isStaff ? 'right' : 'left'};
+                    width: 100%;
+                `;
+                nameEl.textContent = senderName;
+                
+                const bubble = document.createElement('div');
+                bubble.style.cssText = `
+                    display: inline-block;
+                    padding: 8px 12px;
+                    border-radius: 14px;
+                    background: ${isStaff ? '#7ba05b' : '#ffffff'};
+                    color: ${isStaff ? '#ffffff' : '#2d3e1f'};
+                    border: ${isStaff ? 'none' : '1px solid #eaf3e0'};
+                    ${isStaff ? 'border-bottom-right-radius: 4px;' : 'border-bottom-left-radius: 4px;'}
+                    font-size: 13px;
+                    line-height: 1.4;
+                    word-wrap: break-word;
+                    overflow-wrap: anywhere;
+                    box-sizing: border-box;
+                    text-align: left;
+                    max-width: 100%;
+                `;
+                
+                let bubbleContent = '';
+                
+                if (messageText) {
+                    bubbleContent += `<div style="font-size: 13px; line-height: 1.4; word-wrap: break-word; overflow-wrap: anywhere;">${messageText}</div>`;
+                }
+                
                 if (imageData && imageData.startsWith('data:image')) {
-                    messageHTML += `
-                        <div style="margin-top: 10px;">
+                    bubbleContent += `
+                        <div style="margin-top: 6px;">
                             <img src="${imageData}" 
-                                style="max-width: 250px; max-height: 250px; border-radius: 8px; cursor: pointer; border: 2px solid #eaf3e0; display: block;" 
+                                style="max-width: 200px; max-height: 200px; border-radius: 8px; cursor: pointer; display: block;" 
                                 onclick="window.openImageFullscreen('${imageData}')"
                                 alt="Image">
                         </div>
                     `;
                 }
                 
-                messageHTML += `
-                        </div>
-                        <div style="font-size: 10px; color: #94a387; margin-top: 3px; ${isStaff ? 'text-align: right;' : ''}">
-                            ${new Date(msg.created_at).toLocaleString()}
-                        </div>
-                    </div>
-                `;
+                bubble.innerHTML = bubbleContent;
                 
-                div.innerHTML = messageHTML;
-                container.appendChild(div);
+                const timeEl = document.createElement('div');
+                timeEl.style.cssText = `
+                    font-size: 10px;
+                    color: #94a387;
+                    margin-top: 3px;
+                    padding: 0 4px;
+                    line-height: 1.2;
+                    text-align: ${isStaff ? 'right' : 'left'};
+                    width: 100%;
+                `;
+                timeEl.textContent = new Date(msg.created_at).toLocaleString();
+                
+                bubbleContainer.appendChild(nameEl);
+                bubbleContainer.appendChild(bubble);
+                bubbleContainer.appendChild(timeEl);
+                
+                wrapper.appendChild(bubbleContainer);
+                container.appendChild(wrapper);
             });
             container.scrollTop = container.scrollHeight;
             
@@ -674,7 +1887,6 @@ async function loadConversation(customerEmail) {
             `;
         }
         
-        // Re-render customer list with search applied
         renderStaffCustomerList(staffAllCustomers);
         loadUnreadCount();
         
@@ -688,7 +1900,6 @@ async function loadConversation(customerEmail) {
     }
 }
 
-// ── CLOSE MOBILE CONVERSATION (Back button) ────────────────────────
 function closeMobileConversation() {
     const messagesGrid = document.getElementById('messagesGrid');
     if (messagesGrid) {
@@ -696,7 +1907,6 @@ function closeMobileConversation() {
     }
 }
 
-// ── MARK MESSAGES AS READ (STAFF) ────────────────────────────────────
 async function markStaffMessagesAsRead(customerEmail) {
     try {
         const currentUser = localStorage.getItem('email') || sessionStorage.getItem('email');
@@ -713,12 +1923,9 @@ async function markStaffMessagesAsRead(customerEmail) {
         
         if (data.success) {
             console.log(`✅ Messages from ${customerEmail} marked as read`);
-            
-            // Update badge and list
             await loadCustomersWithMessages();
             loadUnreadCount();
             
-            // Remove unread badge from active item
             const activeItem = document.querySelector('#customerList div[style*="background: rgba(56, 189, 248, 0.1)"]');
             if (activeItem) {
                 const badge = activeItem.querySelector('span[style*="background: #ef4444"]');
@@ -807,7 +2014,6 @@ async function sendReply(e) {
     btn.disabled = false;
 }
 
-// ── IMAGE FULLSCREEN FUNCTION ──────────────────────────────────────
 function openImageFullscreen(imageSrc) {
     const overlay = document.createElement('div');
     overlay.style.cssText = `
@@ -871,7 +2077,6 @@ async function loadUnreadCount() {
     }
 }
 
-// ── SocketIO Connection for Staff ──────────────────────────────────
 let socket = null;
 
 function connectStaffSocket() {
@@ -887,12 +2092,9 @@ function connectStaffSocket() {
     socket.on('new_message', function(data) {
         const currentUser = localStorage.getItem('email') || sessionStorage.getItem('email');
         
-        // Update badge wherever the staff is
         if (data.receiver === currentUser || data.sender === currentUser) {
-            // Update badge count
             loadUnreadCount();
             
-            // Reload conversations if in messages tab
             if (document.getElementById('messagesSection').style.display !== 'none') {
                 loadCustomersWithMessages();
                 if (currentCustomerEmail && data.sender === currentCustomerEmail) {
@@ -922,23 +2124,6 @@ function updateUnreadBadge() {
     loadUnreadCount();
 }
 
-// ── Toggle Mobile Sidebar ──────────────────────────────────────────
-function toggleMobileSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    sidebar.classList.toggle('mobile-open');
-}
-
-document.addEventListener('click', function(event) {
-    const sidebar = document.getElementById('sidebar');
-    const mobileBtn = document.querySelector('.mobile-menu-btn');
-    if (window.innerWidth <= 768) {
-        if (sidebar && mobileBtn && !sidebar.contains(event.target) && !mobileBtn.contains(event.target)) {
-            sidebar.classList.remove('mobile-open');
-        }
-    }
-});
-
-// ── LOAD STAFF STATS FROM DATABASE ──────────────────────────────────
 async function loadStaffStats() {
     try {
         const res = await fetch('/api/staff/stats');
@@ -947,7 +2132,6 @@ async function loadStaffStats() {
         if (data.success) {
             const stats = data.stats;
             
-            // Update stat cards
             document.getElementById('totalCustomers').textContent = stats.total_customers;
             document.getElementById('totalPets').textContent = stats.total_pets;
             document.getElementById('totalAppointments').textContent = stats.total_appointments;
@@ -955,24 +2139,28 @@ async function loadStaffStats() {
             document.getElementById('confirmedAppointments').textContent = stats.confirmed;
             document.getElementById('cancelledAppointments').textContent = stats.cancelled;
             
-            // Update quick stats
-            document.getElementById('dailyAverage').textContent = stats.avg_appointments_per_day;
-            document.getElementById('newPetsThisMonth').textContent = stats.new_pets_this_month;
-            document.getElementById('newCustomersThisMonth').textContent = stats.new_customers_this_month;
-            document.getElementById('completionRate').textContent = stats.completion_rate + '%';
+            const dailyAvgEl = document.getElementById('dailyAverage');
+            if (dailyAvgEl) dailyAvgEl.textContent = stats.avg_appointments_per_day;
+            
+            const newPetsEl = document.getElementById('newPetsThisMonth');
+            if (newPetsEl) newPetsEl.textContent = stats.new_pets_this_month;
+            
+            const newCustomersEl = document.getElementById('newCustomersThisMonth');
+            if (newCustomersEl) newCustomersEl.textContent = stats.new_customers_this_month;
+            
+            const completionRateEl = document.getElementById('completionRate');
+            if (completionRateEl) completionRateEl.textContent = stats.completion_rate + '%';
         }
     } catch (error) {
         console.error('Error loading staff stats:', error);
     }
 }
 
-// ── REFRESH STATS ──────────────────────────────────────────────────
 async function refreshStats() {
     await loadStaffStats();
     showMessage('✅ Stats refreshed!', 'success');
 }
 
-// ── ML FUNCTIONS FOR STAFF ──────────────────────────────────────────
 async function checkMLStatus() {
     try {
         const res = await fetch('/api/ml/status');
@@ -999,7 +2187,6 @@ async function checkMLStatus() {
     }
 }
 
-// ── Show/Hide Messages ─────────────────────────────────────────────
 function showMessage(text, type) {
     const msg = document.getElementById('message');
     msg.textContent = text;
@@ -1010,7 +2197,6 @@ function showMessage(text, type) {
     }, 4000);
 }
 
-// ── Load Customers for Dropdown ────────────────────────────────────
 async function loadCustomers() {
     try {
         const res = await fetch('/api/customers');
@@ -1030,7 +2216,10 @@ async function loadCustomers() {
     }
 }
 
-// ── Load Registered Pets ONLY ───────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+// ✅ UPDATED: loadPets() — View button lang ang natira
+//              (Tinanggal na ang Edit at Delete buttons)
+// ═══════════════════════════════════════════════════════════════════
 async function loadPets() {
     const tbody = document.getElementById('registeredPetsTable');
     
@@ -1080,27 +2269,32 @@ async function loadPets() {
                 row.dataset.owner = pet.owner_email || '';
                 row.dataset.breed = pet.breed || '';
                 
+                const petImageHTML = pet.pet_image 
+                    ? `<img src="${pet.pet_image}" 
+                            style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 2px solid #d4e5c4; transition: all 0.2s ease;"
+                            onclick="window.showPetFullscreen('${pet.pet_image.replace(/'/g, "\\'")}', '${(pet.name || '').replace(/'/g, "\\'")}')"
+                            onmouseover="this.style.transform='scale(1.15)'; this.style.borderColor='#7ba05b';"
+                            onmouseout="this.style.transform='scale(1)'; this.style.borderColor='#d4e5c4';"
+                            title="Click to view full size">` 
+                    : `<span style="font-size: 24px;">${petIcon}</span>`;
+                
                 row.innerHTML = `
-                    <td>${pet.id}</td>
-                    <td>
+                    <td data-label="ID">${pet.id}</td>
+                    <td data-label="Pet">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            ${pet.pet_image ? 
-                                `<img src="${pet.pet_image}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">` : 
-                                `<span style="font-size: 24px;">${petIcon}</span>`
-                            }
+                            ${petImageHTML}
                             <strong>${pet.name}</strong>
                         </div>
                     </td>
-                    <td><span class="pet-type-badge ${petType === 'Cat' ? 'cat' : 'dog'}">${petTypeLabel}</span></td>
-                    <td>${pet.breed || '—'}</td>
-                    <td>${pet.age || '—'}</td>
-                    <td>${pet.gender || '—'}</td>
-                    <td><span class="truncate" title="${pet.owner_email}">${pet.owner_email}</span></td>
-                    <td><span class="pet-status ${statusClass}">${statusText}</span></td>
-                    <td>
+                    <td data-label="Type"><span class="pet-type-badge ${petType === 'Cat' ? 'cat' : 'dog'}">${petTypeLabel}</span></td>
+                    <td data-label="Breed">${pet.breed || '—'}</td>
+                    <td data-label="Age">${pet.age || '—'}</td>
+                    <td data-label="Gender">${pet.gender || '—'}</td>
+                    <td data-label="Owner"><span class="truncate" title="${pet.owner_email}">${pet.owner_email}</span></td>
+                    <td data-label="Status"><span class="pet-status ${statusClass}">${statusText}</span></td>
+                    <td data-label="Actions">
                         <div class="action-buttons">
-                            <button class="btn-edit" onclick="showEditPetModal(${pet.id})">✏️ Edit</button>
-                            <button class="btn-delete" onclick="deletePet(${pet.id})">🗑️ Delete</button>
+                            <button class="btn-view" onclick="showPetDetailsModal(${pet.id})">📋 View</button>
                         </div>
                     </td>
                 `;
@@ -1127,7 +2321,525 @@ async function loadPets() {
     }
 }
 
-// ── Update Appointment Counts ──────────────────────────────────────
+function showPetFullscreen(imageSrc, petName = 'Pet') {
+    const overlay = document.createElement('div');
+    overlay.id = 'petFullscreenViewer';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        animation: fadeIn 0.3s ease;
+        padding: 20px;
+        box-sizing: border-box;
+    `;
+    
+    overlay.innerHTML = `
+        <span style="
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: #fff;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+            transition: all 0.2s ease;
+            z-index: 10;
+        " onmouseover="this.style.color='#ef4444'; this.style.transform='scale(1.2)';" 
+           onmouseout="this.style.color='#fff'; this.style.transform='scale(1)';">&times;</span>
+        
+        <div style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            max-width: 90%;
+            max-height: 90%;
+            animation: slideUp 0.3s ease;
+        ">
+            <img src="${imageSrc}" 
+                 alt="${petName}"
+                 style="
+                    max-width: 100%;
+                    max-height: 80vh;
+                    border-radius: 16px;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                    border: 3px solid #7ba05b;
+                    object-fit: contain;
+                    background: #fff;
+                 ">
+            <div style="
+                color: #ffffff;
+                font-size: 18px;
+                font-weight: 600;
+                font-family: 'Poppins', sans-serif;
+                text-align: center;
+                background: rgba(123, 160, 91, 0.9);
+                padding: 8px 24px;
+                border-radius: 20px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            ">
+                🐾 ${petName}
+            </div>
+        </div>
+    `;
+    
+    overlay.onclick = function() { 
+        overlay.remove(); 
+        document.body.style.overflow = '';
+    };
+    
+    document.body.style.overflow = 'hidden';
+    document.body.appendChild(overlay);
+    
+    const escHandler = function(e) {
+        if (e.key === 'Escape') {
+            overlay.remove();
+            document.body.style.overflow = '';
+            document.removeEventListener('keydown', escHandler);
+        }
+    };
+    document.addEventListener('keydown', escHandler);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ✅ UPDATED: showPetDetailsModal() — Tinanggal ang Edit Pet button
+//              Close button na lang ang natira
+// ═══════════════════════════════════════════════════════════════════
+async function showPetDetailsModal(petId) {
+    console.log('🔍 Opening pet details for ID:', petId);
+    
+    try {
+        const res = await fetch('/api/pets');
+        const data = await res.json();
+        
+        if (!data.success || !data.pets) {
+            showMessage('❌ Failed to load pet details.', 'error');
+            return;
+        }
+        
+        const pet = data.pets.find(p => p.id === petId);
+        if (!pet) {
+            showMessage('❌ Pet not found.', 'error');
+            return;
+        }
+        
+        const petType = pet.pet_type || 'Dog';
+        const isCat = petType === 'Cat';
+        const petIcon = isCat ? '🐈' : '🐕';
+        const petTypeLabel = isCat ? 'Cat' : 'Dog';
+        
+        const ageYears = parseInt(pet.age) || 0;
+        const ageMonths = parseInt(pet.age_months) || 0;
+        let ageDisplay = '—';
+        if (ageYears > 0 && ageMonths > 0) {
+            ageDisplay = `${ageYears} year${ageYears !== 1 ? 's' : ''}, ${ageMonths} month${ageMonths !== 1 ? 's' : ''}`;
+        } else if (ageYears > 0) {
+            ageDisplay = `${ageYears} year${ageYears !== 1 ? 's' : ''}`;
+        } else if (ageMonths > 0) {
+            ageDisplay = `${ageMonths} month${ageMonths !== 1 ? 's' : ''}`;
+        }
+        
+        const hasRealAllergies = pet.allergies && 
+                                pet.allergies.trim() !== '' && 
+                                pet.allergies.trim().toLowerCase() !== 'none' &&
+                                pet.allergies.trim().toLowerCase() !== 'n/a';
+        
+        const hasRealMedicalHistory = pet.medical_history && 
+                                     pet.medical_history.trim() !== '' && 
+                                     pet.medical_history.trim().toLowerCase() !== 'none' &&
+                                     pet.medical_history.trim().toLowerCase() !== 'n/a';
+        
+        let statusClass = 'pet-status-healthy';
+        let statusText = '✅ Healthy';
+        let statusColor = '#10b981';
+        let statusBg = 'rgba(16, 185, 129, 0.15)';
+        
+        if (hasRealAllergies) {
+            statusClass = 'pet-status-critical';
+            statusText = '⚠️ Has Allergies';
+            statusColor = '#ef4444';
+            statusBg = 'rgba(239, 68, 68, 0.15)';
+        } else if (hasRealMedicalHistory) {
+            statusClass = 'pet-status-warning';
+            statusText = '⚠️ Needs Attention';
+            statusColor = '#f59e0b';
+            statusBg = 'rgba(245, 158, 11, 0.15)';
+        }
+        
+        const allergiesDisplay = hasRealAllergies ? pet.allergies : 'None';
+        const medicalHistoryDisplay = hasRealMedicalHistory ? pet.medical_history : 'None';
+        
+        const petImageHTML = pet.pet_image 
+            ? `<img src="${pet.pet_image}" 
+                    style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; cursor: pointer;"
+                    onclick="window.showPetFullscreen('${pet.pet_image.replace(/'/g, "\\'")}', '${(pet.name || '').replace(/'/g, "\\'")}')"
+                    title="Click to view full size">`
+            : `<span style="font-size: 64px;">${petIcon}</span>`;
+        
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.id = 'petDetailsModal';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(45, 62, 31, 0.5);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 20px;
+            animation: fadeIn 0.25s ease;
+        `;
+        
+        overlay.innerHTML = `
+            <div style="
+                background: #ffffff;
+                border-radius: 20px;
+                max-width: 560px;
+                width: 100%;
+                max-height: 90vh;
+                overflow-y: auto;
+                box-shadow: 0 20px 50px rgba(123, 160, 91, 0.25);
+                border: 1px solid #d4e5c4;
+                animation: slideUp 0.3s ease;
+                position: relative;
+            ">
+                <button type="button" 
+                        onclick="closePetDetailsModal()" 
+                        title="Close"
+                        style="
+                            position: absolute;
+                            top: 14px;
+                            right: 16px;
+                            background: transparent;
+                            border: none;
+                            color: #94a387;
+                            font-size: 22px;
+                            cursor: pointer;
+                            padding: 4px 10px;
+                            line-height: 1;
+                            border-radius: 8px;
+                            transition: all 0.2s ease;
+                            z-index: 10;
+                            font-family: 'Poppins', sans-serif;
+                        "
+                        onmouseover="this.style.color='#ef4444'; this.style.background='rgba(239,68,68,0.1)'"
+                        onmouseout="this.style.color='#94a387'; this.style.background='transparent'">
+                    ✕
+                </button>
+                
+                <div style="
+                    padding: 30px 26px 20px;
+                    text-align: center;
+                    background: linear-gradient(135deg, rgba(123, 160, 91, 0.06), rgba(90, 122, 63, 0.06));
+                    border-radius: 20px 20px 0 0;
+                    border-bottom: 1px solid #eaf3e0;
+                ">
+                    <div style="
+                        width: 110px;
+                        height: 110px;
+                        border-radius: 50%;
+                        background: #ffffff;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin-bottom: 14px;
+                        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+                        border: 4px solid #7ba05b;
+                        overflow: hidden;
+                        cursor: ${pet.pet_image ? 'pointer' : 'default'};
+                        transition: all 0.2s ease;
+                    "
+                    onmouseover="${pet.pet_image ? "this.style.transform='scale(1.05)'; this.style.boxShadow='0 8px 25px rgba(123, 160, 91, 0.4)';" : ''}"
+                    onmouseout="${pet.pet_image ? "this.style.transform='scale(1)'; this.style.boxShadow='0 6px 20px rgba(0, 0, 0, 0.1)';" : ''}">
+                        ${petImageHTML}
+                    </div>
+                    <h3 style="
+                        color: #2d3e1f;
+                        font-size: 24px;
+                        font-weight: 700;
+                        margin: 0 0 4px 0;
+                        line-height: 1.3;
+                    ">
+                        ${pet.name || 'Unknown'}
+                    </h3>
+                    <p style="
+                        color: #64748b;
+                        font-size: 13px;
+                        margin: 0;
+                    ">
+                        ${petIcon} ${petTypeLabel} • ${pet.breed || 'Mixed Breed'}
+                    </p>
+                    <div style="
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 4px;
+                        background: ${statusBg};
+                        color: ${statusColor};
+                        padding: 5px 14px;
+                        border-radius: 20px;
+                        font-size: 12px;
+                        font-weight: 700;
+                        margin-top: 12px;
+                    ">
+                        ${statusText}
+                    </div>
+                </div>
+                
+                <div style="padding: 20px 26px;">
+                    <div style="
+                        color: #5a7a3f;
+                        font-size: 11px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.6px;
+                        margin-bottom: 10px;
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                    ">
+                        <i class="fas fa-paw"></i> Basic Information
+                    </div>
+                    <div style="
+                        background: #f7fbf3;
+                        border: 1px solid #d4e5c4;
+                        border-radius: 12px;
+                        padding: 14px 16px;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 10px;
+                        margin-bottom: 16px;
+                    ">
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                            <span style="color: #94a387; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-paw" style="color: #7ba05b; width: 14px;"></i> Type
+                            </span>
+                            <span style="color: #2d3e1f; font-size: 13px; font-weight: 600; text-align: right;">
+                                ${petIcon} ${petTypeLabel}
+                            </span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 8px; border-top: 1px solid #eaf3e0;">
+                            <span style="color: #94a387; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-dna" style="color: #7ba05b; width: 14px;"></i> Breed
+                            </span>
+                            <span style="color: #2d3e1f; font-size: 13px; font-weight: 500; text-align: right;">
+                                ${pet.breed || 'Mixed Breed'}
+                            </span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 8px; border-top: 1px solid #eaf3e0;">
+                            <span style="color: #94a387; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-calendar-alt" style="color: #7ba05b; width: 14px;"></i> Age
+                            </span>
+                            <span style="color: #2d3e1f; font-size: 13px; font-weight: 500; text-align: right;">
+                                ${ageDisplay}
+                            </span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 8px; border-top: 1px solid #eaf3e0;">
+                            <span style="color: #94a387; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-venus-mars" style="color: #7ba05b; width: 14px;"></i> Gender
+                            </span>
+                            <span style="color: #2d3e1f; font-size: 13px; font-weight: 500; text-align: right;">
+                                ${pet.gender || '—'}
+                            </span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 8px; border-top: 1px solid #eaf3e0;">
+                            <span style="color: #94a387; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-palette" style="color: #7ba05b; width: 14px;"></i> Color
+                            </span>
+                            <span style="color: #2d3e1f; font-size: 13px; font-weight: 500; text-align: right;">
+                                ${pet.color || '—'}
+                            </span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 8px; border-top: 1px solid #eaf3e0;">
+                            <span style="color: #94a387; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-weight" style="color: #7ba05b; width: 14px;"></i> Weight
+                            </span>
+                            <span style="color: #2d3e1f; font-size: 13px; font-weight: 500; text-align: right;">
+                                ${pet.weight ? pet.weight + ' kg' : '—'}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div style="
+                        color: #5a7a3f;
+                        font-size: 11px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.6px;
+                        margin-bottom: 10px;
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                    ">
+                        <i class="fas fa-user"></i> Owner Information
+                    </div>
+                    <div style="
+                        background: #f7fbf3;
+                        border: 1px solid #d4e5c4;
+                        border-radius: 12px;
+                        padding: 14px 16px;
+                        margin-bottom: 16px;
+                    ">
+                        <div style="color: #2d3e1f; font-size: 13px; font-weight: 500; word-break: break-all;">
+                            <i class="fas fa-envelope" style="color: #7ba05b; margin-right: 6px;"></i>
+                            ${pet.owner_email || 'Unknown'}
+                        </div>
+                    </div>
+                    
+                    <div style="
+                        color: #5a7a3f;
+                        font-size: 11px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.6px;
+                        margin-bottom: 10px;
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                    ">
+                        <i class="fas fa-heartbeat"></i> Health Information
+                    </div>
+                    
+                    <div style="
+                        background: ${hasRealAllergies ? 'rgba(239, 68, 68, 0.06)' : '#f7fbf3'};
+                        border: 1px solid ${hasRealAllergies ? 'rgba(239, 68, 68, 0.3)' : '#d4e5c4'};
+                        border-radius: 12px;
+                        padding: 14px 16px;
+                        margin-bottom: 10px;
+                    ">
+                        <div style="
+                            color: ${hasRealAllergies ? '#ef4444' : '#94a387'};
+                            font-size: 11px;
+                            font-weight: 700;
+                            text-transform: uppercase;
+                            margin-bottom: 6px;
+                            display: flex;
+                            align-items: center;
+                            gap: 6px;
+                        ">
+                            <i class="fas fa-exclamation-triangle"></i> Allergies
+                        </div>
+                        <div style="
+                            color: ${hasRealAllergies ? '#b91c1c' : '#2d3e1f'};
+                            font-size: 13px;
+                            font-weight: 500;
+                            line-height: 1.5;
+                            word-break: break-word;
+                        ">
+                            ${allergiesDisplay}
+                        </div>
+                    </div>
+                    
+                    <div style="
+                        background: ${hasRealMedicalHistory ? 'rgba(245, 158, 11, 0.06)' : '#f7fbf3'};
+                        border: 1px solid ${hasRealMedicalHistory ? 'rgba(245, 158, 11, 0.3)' : '#d4e5c4'};
+                        border-radius: 12px;
+                        padding: 14px 16px;
+                    ">
+                        <div style="
+                            color: ${hasRealMedicalHistory ? '#f59e0b' : '#94a387'};
+                            font-size: 11px;
+                            font-weight: 700;
+                            text-transform: uppercase;
+                            margin-bottom: 6px;
+                            display: flex;
+                            align-items: center;
+                            gap: 6px;
+                        ">
+                            <i class="fas fa-notes-medical"></i> Medical History
+                        </div>
+                        <div style="
+                            color: ${hasRealMedicalHistory ? '#b45309' : '#2d3e1f'};
+                            font-size: 13px;
+                            font-weight: 500;
+                            line-height: 1.5;
+                            word-break: break-word;
+                        ">
+                            ${medicalHistoryDisplay}
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="
+                    padding: 16px 26px 22px;
+                    border-top: 1px solid #eaf3f0;
+                    background: #f7fbf3;
+                    border-radius: 0 0 20px 20px;
+                    display: flex;
+                    gap: 10px;
+                    justify-content: flex-end;
+                    flex-wrap: wrap;
+                ">
+                    <button type="button" 
+                            onclick="closePetDetailsModal()" 
+                            style="
+                                padding: 10px 22px;
+                                border-radius: 10px;
+                                border: 1.5px solid #d4e5c4;
+                                background: #ffffff;
+                                color: #5a7a3f;
+                                font-size: 13px;
+                                font-weight: 600;
+                                cursor: pointer;
+                                font-family: 'Poppins', sans-serif;
+                                transition: all 0.2s ease;
+                                display: inline-flex;
+                                align-items: center;
+                                gap: 6px;
+                            "
+                            onmouseover="this.style.borderColor='#7ba05b'; this.style.background='#f7fbf3';"
+                            onmouseout="this.style.borderColor='#d4e5c4'; this.style.background='#ffffff';">
+                        <i class="fas fa-times"></i> Close
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(overlay);
+        
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                closePetDetailsModal();
+            }
+        });
+        
+        const escHandler = function(e) {
+            if (e.key === 'Escape') {
+                closePetDetailsModal();
+                document.removeEventListener('keydown', escHandler);
+            }
+        };
+        document.addEventListener('keydown', escHandler);
+        
+    } catch (error) {
+        console.error('❌ Error loading pet details:', error);
+        showMessage('❌ Error loading pet details. Please try again.', 'error');
+    }
+}
+
+function closePetDetailsModal() {
+    const modal = document.getElementById('petDetailsModal');
+    if (modal) {
+        modal.style.animation = 'fadeOut 0.2s ease';
+        setTimeout(() => {
+            if (modal.parentNode) modal.remove();
+        }, 200);
+    }
+}
+
 async function updateAppointmentCounts() {
     try {
         const totalRes = await fetch('/api/appointments/count');
@@ -1160,13 +2872,13 @@ async function updateAppointmentCounts() {
     }
 }
 
-// ── Load All Appointments (Enhanced) ──────────────────────────────
 async function loadAllAppointments() {
     const tbody = document.getElementById('staffAppointmentsTableBody');
+    if (!tbody) return;
     
     tbody.innerHTML = `
         <tr>
-            <td colspan="8" style="text-align: center; color: #64748b; padding: 40px;">
+            <td colspan="9" style="text-align: center; color: #64748b; padding: 40px;">
                 ⏳ Loading appointments...
             </td>
         </tr>
@@ -1182,7 +2894,6 @@ async function loadAllAppointments() {
             staffAllAppointments = data.appointments;
             updateStaffAppointmentCounts(staffAllAppointments);
             
-            // Apply current filter
             if (staffCurrentFilter !== 'all') {
                 filterStaffAppointments(staffCurrentFilter);
             } else {
@@ -1195,11 +2906,13 @@ async function loadAllAppointments() {
         }
     } catch (error) {
         console.error('Error loading appointments:', error);
-        document.getElementById('totalAppointments').textContent = '0';
-        document.getElementById('pendingAppointments').textContent = '0';
+        const totalApptEl = document.getElementById('totalAppointments');
+        if (totalApptEl) totalApptEl.textContent = '0';
+        const pendingApptEl = document.getElementById('pendingAppointments');
+        if (pendingApptEl) pendingApptEl.textContent = '0';
         tbody.innerHTML = `
             <tr>
-                <td colspan="8" style="text-align: center; color: #ef4444; padding: 40px;">
+                <td colspan="9" style="text-align: center; color: #ef4444; padding: 40px;">
                     ❌ Error loading appointments. Please refresh the page.
                 </td>
             </tr>
@@ -1207,8 +2920,369 @@ async function loadAllAppointments() {
     }
 }
 
-// ── Update Appointment Status ──────────────────────────────────────
 async function updateAppointmentStatus(appointmentId, status) {
+    const app = staffAllAppointments.find(a => a.id === appointmentId);
+    if (!app) {
+        showMessage('❌ Appointment not found.', 'error');
+        return;
+    }
+    
+    const statusConfig = {
+        'confirmed': {
+            title: 'Confirm Appointment?',
+            message: 'Are you sure you want to confirm this appointment? The customer will receive a confirmation email.',
+            icon: 'fas fa-check-circle',
+            iconColor: '#10b981',
+            btnText: 'Yes, Confirm',
+            btnColor: 'linear-gradient(135deg, #10b981, #059669)',
+            btnHoverShadow: '0 8px 25px rgba(16, 185, 129, 0.45)'
+        },
+        'completed': {
+            title: 'Complete Appointment?',
+            message: 'Are you sure you want to mark this appointment as completed? This action cannot be undone.',
+            icon: 'fas fa-flag-checkered',
+            iconColor: '#7ba05b',
+            btnText: 'Yes, Complete',
+            btnColor: 'linear-gradient(135deg, #7ba05b, #5a7a3f)',
+            btnHoverShadow: '0 8px 25px rgba(123, 160, 91, 0.45)'
+        },
+        'cancelled': {
+            title: 'Cancel Appointment?',
+            message: 'Are you sure you want to cancel this appointment? The customer will be notified via email.',
+            icon: 'fas fa-times-circle',
+            iconColor: '#ef4444',
+            btnText: 'Yes, Cancel',
+            btnColor: 'linear-gradient(135deg, #ef4444, #dc2626)',
+            btnHoverShadow: '0 8px 25px rgba(239, 68, 68, 0.45)'
+        },
+        'pending': {
+            title: 'Set to Pending?',
+            message: 'Are you sure you want to set this appointment back to pending status?',
+            icon: 'fas fa-hourglass-half',
+            iconColor: '#f59e0b',
+            btnText: 'Yes, Set Pending',
+            btnColor: 'linear-gradient(135deg, #f59e0b, #d97706)',
+            btnHoverShadow: '0 8px 25px rgba(245, 158, 11, 0.45)'
+        }
+    };
+    
+    const config = statusConfig[status] || statusConfig['confirmed'];
+    
+    const dateDisplay = app.appointment_date || 'N/A';
+    const timeDisplay = formatStaffTime(app.appointment_time);
+    
+    const petType = (app.pet_type || 'Dog').toLowerCase();
+    const isCat = petType === 'cat';
+    const petIcon = isCat 
+        ? '<i class="fas fa-cat" style="color: #f59e0b;"></i>' 
+        : '<i class="fas fa-dog" style="color: #7ba05b;"></i>';
+    const petTypeLabel = isCat ? 'Cat' : 'Dog';
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.id = 'appointmentStatusModal';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(45, 62, 31, 0.5);
+        backdrop-filter: blur(6px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        padding: 20px;
+        animation: fadeIn 0.25s ease;
+    `;
+    
+    overlay.innerHTML = `
+        <div style="
+            background: #ffffff;
+            border-radius: 20px;
+            max-width: 460px;
+            width: 100%;
+            box-shadow: 0 20px 50px rgba(123, 160, 91, 0.25);
+            border: 1px solid #d4e5c4;
+            animation: slideUp 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        ">
+            <button type="button" 
+                    onclick="closeAppointmentStatusModal()" 
+                    title="Close"
+                    style="
+                        position: absolute;
+                        top: 14px;
+                        right: 16px;
+                        background: transparent;
+                        border: none;
+                        color: #94a387;
+                        font-size: 22px;
+                        cursor: pointer;
+                        padding: 4px 10px;
+                        line-height: 1;
+                        border-radius: 8px;
+                        transition: all 0.2s ease;
+                        z-index: 10;
+                        font-family: 'Poppins', sans-serif;
+                    "
+                    onmouseover="this.style.color='#ef4444'; this.style.background='rgba(239,68,68,0.1)'"
+                    onmouseout="this.style.color='#94a387'; this.style.background='transparent'">
+                ✕
+            </button>
+            
+            <div style="
+                padding: 32px 26px 20px;
+                text-align: center;
+                background: linear-gradient(135deg, rgba(123, 160, 91, 0.06), rgba(90, 122, 63, 0.06));
+            ">
+                <div style="
+                    width: 72px;
+                    height: 72px;
+                    border-radius: 50%;
+                    background: #ffffff;
+                    color: ${config.iconColor};
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 32px;
+                    margin-bottom: 14px;
+                    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+                    border: 3px solid ${config.iconColor}20;
+                ">
+                    <i class="${config.icon}"></i>
+                </div>
+                <h3 style="
+                    color: #2d3e1f;
+                    font-size: 20px;
+                    font-weight: 700;
+                    margin: 0 0 6px 0;
+                    line-height: 1.3;
+                ">
+                    ${config.title}
+                </h3>
+                <p style="
+                    color: #64748b;
+                    font-size: 13px;
+                    line-height: 1.5;
+                    margin: 0;
+                    padding: 0 8px;
+                ">
+                    ${config.message}
+                </p>
+            </div>
+            
+            <div style="padding: 0 26px 20px;">
+                <div style="
+                    background: #f7fbf3;
+                    border: 1px solid #d4e5c4;
+                    border-radius: 12px;
+                    padding: 14px 16px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                ">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                        <span style="color: #94a387; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-paw" style="color: #7ba05b; width: 14px;"></i> Pet
+                        </span>
+                        <span style="color: #2d3e1f; font-size: 13px; font-weight: 600; text-align: right; display: flex; align-items: center; gap: 6px;">
+                            ${petIcon} ${app.pet_name || 'Unknown'}
+                            <span style="color: #94a387; font-weight: 400; font-size: 11px;">(${petTypeLabel})</span>
+                        </span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 8px; border-top: 1px solid #eaf3e0;">
+                        <span style="color: #94a387; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-user" style="color: #7ba05b; width: 14px;"></i> Customer
+                        </span>
+                        <span style="color: #2d3e1f; font-size: 12px; font-weight: 500; text-align: right; word-break: break-all; max-width: 60%;">
+                            ${app.customer_email || 'Unknown'}
+                        </span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 8px; border-top: 1px solid #eaf3e0;">
+                        <span style="color: #94a387; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-calendar-alt" style="color: #7ba05b; width: 14px;"></i> Date
+                        </span>
+                        <span style="color: #2d3e1f; font-size: 13px; font-weight: 500; text-align: right;">
+                            ${dateDisplay}
+                        </span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 8px; border-top: 1px solid #eaf3e0;">
+                        <span style="color: #94a387; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-clock" style="color: #7ba05b; width: 14px;"></i> Time
+                        </span>
+                        <span style="color: #2d3e1f; font-size: 13px; font-weight: 500; text-align: right;">
+                            ${timeDisplay}
+                        </span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 8px; border-top: 1px solid #eaf3e0;">
+                        <span style="color: #94a387; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-hashtag" style="color: #7ba05b; width: 14px;"></i> ID
+                        </span>
+                        <span style="color: #5a7a3f; font-size: 12px; font-weight: 700; font-family: monospace; text-align: right;">
+                            #${app.id}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="
+                padding: 0 26px 24px;
+                display: flex;
+                gap: 10px;
+            ">
+                <button type="button" 
+                        onclick="closeAppointmentStatusModal()" 
+                        style="
+                            flex: 1;
+                            padding: 12px 20px;
+                            border-radius: 12px;
+                            border: 1.5px solid #d4e5c4;
+                            background: #ffffff;
+                            color: #5a7a3f;
+                            font-size: 13px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            font-family: 'Poppins', sans-serif;
+                            transition: all 0.2s ease;
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 6px;
+                        "
+                        onmouseover="this.style.borderColor='#7ba05b'; this.style.background='#f7fbf3'; this.style.transform='translateY(-2px)';"
+                        onmouseout="this.style.borderColor='#d4e5c4'; this.style.background='#ffffff'; this.style.transform='translateY(0)';">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="button" 
+                        onclick="executeAppointmentStatusChange(${appointmentId}, '${status}')"
+                        id="confirmStatusBtn"
+                        style="
+                            flex: 1;
+                            padding: 12px 20px;
+                            border-radius: 12px;
+                            border: none;
+                            background: ${config.btnColor};
+                            color: #ffffff;
+                            font-size: 13px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            font-family: 'Poppins', sans-serif;
+                            transition: all 0.2s ease;
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 6px;
+                            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+                        "
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='${config.btnHoverShadow}';"
+                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 0, 0, 0.12)';">
+                    <i class="fas fa-check"></i> ${config.btnText}
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+            closeAppointmentStatusModal();
+        }
+    });
+    
+    const escHandler = function(e) {
+        if (e.key === 'Escape') {
+            closeAppointmentStatusModal();
+            document.removeEventListener('keydown', escHandler);
+        }
+    };
+    document.addEventListener('keydown', escHandler);
+}
+
+function closeAppointmentStatusModal() {
+    const modal = document.getElementById('appointmentStatusModal');
+    if (modal) {
+        modal.style.animation = 'fadeOut 0.2s ease';
+        setTimeout(() => {
+            if (modal.parentNode) modal.remove();
+        }, 200);
+    }
+}
+
+function showTableLoadingOverlay(message = 'Processing...') {
+    const wrapper = document.querySelector('#appointmentManagementCard .appointments-table-wrapper');
+    if (!wrapper) return;
+    
+    const existing = document.getElementById('tableLoadingOverlay');
+    if (existing) existing.remove();
+    
+    wrapper.style.position = 'relative';
+    
+    const overlay = document.createElement('div');
+    overlay.id = 'tableLoadingOverlay';
+    overlay.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(247, 251, 243, 0.85);
+        backdrop-filter: blur(3px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+        border-radius: 10px;
+        animation: fadeIn 0.2s ease;
+        min-height: 200px;
+    `;
+    
+    overlay.innerHTML = `
+        <div style="
+            display: inline-block;
+            width: 48px;
+            height: 48px;
+            border: 4px solid #d4e5c4;
+            border-top-color: #7ba05b;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 16px;
+        "></div>
+        <p style="
+            color: #5a7a3f;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            padding: 0 20px;
+        ">
+            <i class="fas fa-spinner fa-spin"></i> ${message}
+        </p>
+    `;
+    
+    wrapper.appendChild(overlay);
+}
+
+function hideTableLoadingOverlay() {
+    const overlay = document.getElementById('tableLoadingOverlay');
+    if (overlay) {
+        overlay.style.animation = 'fadeOut 0.2s ease';
+        setTimeout(() => {
+            if (overlay.parentNode) overlay.remove();
+        }, 200);
+    }
+}
+
+async function executeAppointmentStatusChange(appointmentId, status) {
     const statusLabels = {
         'pending': 'pending',
         'confirmed': 'confirmed',
@@ -1216,7 +3290,8 @@ async function updateAppointmentStatus(appointmentId, status) {
         'cancelled': 'cancelled'
     };
     
-    if (!confirm(`Are you sure you want to mark this appointment as ${statusLabels[status] || status}?`)) return;
+    closeAppointmentStatusModal();
+    showTableLoadingOverlay(`Updating appointment to ${statusLabels[status] || status}...`);
     
     try {
         const res = await fetch(`/api/appointments/${appointmentId}/status`, {
@@ -1226,20 +3301,22 @@ async function updateAppointmentStatus(appointmentId, status) {
         });
         const data = await res.json();
         
+        hideTableLoadingOverlay();
+        
         if (data.success) {
             showMessage(`✅ Appointment ${statusLabels[status] || status}!`, 'success');
-            loadAllAppointments();
-            refreshStats();
+            await loadAllAppointments();
+            await refreshStats();
         } else {
             showMessage(data.message || 'Error updating appointment.', 'error');
         }
     } catch (error) {
         console.error('Error:', error);
+        hideTableLoadingOverlay();
         showMessage('Something went wrong. Please try again.', 'error');
     }
 }
 
-// ── Add Pet Modal ──────────────────────────────────────────────────
 function showAddPetModal() {
     document.getElementById('addPetModal').style.display = 'flex';
     loadCustomers();
@@ -1309,42 +3386,99 @@ async function submitPet(e) {
     }
 }
 
-// ── Edit Pet Modal ──────────────────────────────────────────────────
 async function showEditPetModal(petId) {
-    document.getElementById('editPetModal').style.display = 'flex';
+    console.log('🔍 Opening edit modal for pet ID:', petId);
+    
+    const modal = document.getElementById('editPetModal');
+    if (!modal) {
+        console.error('❌ editPetModal not found in HTML');
+        showMessage('❌ Edit modal not found. Please refresh the page.', 'error');
+        return;
+    }
+    
+    modal.style.display = 'flex';
+    
+    selectedAllergiesEditStaff = [];
+    customAllergiesEditStaff = [];
     
     try {
         const res = await fetch('/api/pets');
         const data = await res.json();
-        if (data.success) {
+        
+        if (data.success && data.pets) {
             const pet = data.pets.find(p => p.id === petId);
+            
             if (pet) {
-                document.getElementById('editPetId').value = pet.id;
-                document.getElementById('editPetType').value = pet.pet_type || 'Dog';
+                console.log('✅ Pet found:', pet);
+                
+                const petType = pet.pet_type || 'Dog';
+                
+                document.getElementById('editPetId').value = pet.id || '';
                 document.getElementById('editPetName').value = pet.name || '';
                 document.getElementById('editPetBreed').value = pet.breed || '';
-                document.getElementById('editPetAge').value = pet.age || '';
                 document.getElementById('editPetGender').value = pet.gender || '';
                 document.getElementById('editPetColor').value = pet.color || '';
                 document.getElementById('editPetWeight').value = pet.weight || '';
-                document.getElementById('editPetAllergies').value = pet.allergies || '';
                 document.getElementById('editPetMedicalHistory').value = pet.medical_history || '';
                 
-                const preview = document.getElementById('editPetImagePreview');
-                if (pet.pet_image) {
-                    preview.innerHTML = `<img src="${pet.pet_image}" style="width: 100%; height: 100%; object-fit: cover;">`;
-                } else {
-                    preview.innerHTML = `<span style="color: #64748b; font-size: 12px; text-align: center;">No<br>Image</span>`;
+                const editPetTypeEl = document.getElementById('editPetType');
+                if (editPetTypeEl) {
+                    editPetTypeEl.value = petType;
                 }
+                
+                const ageForm = ageToFormValue(pet.age, pet.age_months);
+                document.getElementById('editPetAge').value = ageForm.value;
+                const ageUnitEl = document.getElementById('editPetAgeUnit');
+                if (ageUnitEl) ageUnitEl.value = ageForm.unit;
+                
+                const existingAllergies = pet.allergies 
+                    ? pet.allergies.split(',').map(a => a.trim()).filter(a => a && a !== 'None' && a !== 'none')
+                    : [];
+                selectedAllergiesEditStaff = [...existingAllergies];
+                
+                renderAllergyDropdownStaff(petType, selectedAllergiesEditStaff);
+                
+                const preview = document.getElementById('editPetImagePreview');
+                if (preview) {
+                    if (pet.pet_image) {
+                        preview.innerHTML = `<img src="${pet.pet_image}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                        preview.style.border = '2px solid #7ba05b';
+                    } else {
+                        preview.innerHTML = `
+                            <span style="font-size: 36px; color: #94a3b8;"><i class="fas fa-camera"></i></span>
+                            <span style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Tap to add photo</span>
+                        `;
+                        preview.style.border = '2px dashed #d4e5c4';
+                    }
+                }
+                
+                const submitBtn = document.getElementById('editPetSubmitBtn');
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<i class="fas fa-save"></i> Update Pet';
+                    submitBtn.disabled = false;
+                }
+                
+                console.log('✅ Edit modal loaded successfully');
+            } else {
+                showMessage('❌ Pet not found.', 'error');
+                closeEditPetModal();
             }
+        } else {
+            showMessage('❌ Failed to load pet details.', 'error');
+            closeEditPetModal();
         }
     } catch (error) {
-        console.error('Error loading pet details:', error);
+        console.error('❌ Error:', error);
+        showMessage('❌ Error loading pet details. Please try again.', 'error');
+        closeEditPetModal();
     }
 }
 
 function closeEditPetModal() {
-    document.getElementById('editPetModal').style.display = 'none';
+    const modal = document.getElementById('editPetModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
 }
 
 async function updatePet(e) {
@@ -1354,12 +3488,20 @@ async function updatePet(e) {
     const pet_type = document.getElementById('editPetType').value;
     const name = document.getElementById('editPetName').value.trim();
     const breed = document.getElementById('editPetBreed').value.trim();
-    const age = document.getElementById('editPetAge').value;
+    const ageValue = document.getElementById('editPetAge').value;
+    const ageUnit = document.getElementById('editPetAgeUnit').value;
     const gender = document.getElementById('editPetGender').value;
     const color = document.getElementById('editPetColor').value.trim();
     const weight = document.getElementById('editPetWeight').value;
-    const allergies = document.getElementById('editPetAllergies').value.trim();
+    const allergies = getSelectedAllergiesStringStaff();
     const medical_history = document.getElementById('editPetMedicalHistory').value.trim();
+    
+    if (!name) {
+        showMessage('Please enter pet name.', 'error');
+        return;
+    }
+    
+    const { age, age_months } = parseAgeInput(ageValue, ageUnit);
     
     const imageInput = document.getElementById('editPetImage');
     let pet_image = '';
@@ -1367,33 +3509,64 @@ async function updatePet(e) {
         pet_image = await getBase64Image(imageInput);
     }
     
-    if (!name) {
-        showMessage('Please enter pet name.', 'error');
-        return;
-    }
+    const submitBtn = document.getElementById('editPetSubmitBtn');
+    const originalHTML = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+    submitBtn.disabled = true;
     
     try {
         const res = await fetch(`/api/pets/${petId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pet_type, name, breed, age, gender, color, weight, allergies, medical_history, pet_image })
+            body: JSON.stringify({ 
+                pet_type, name, breed, age, age_months, gender, color, weight, 
+                allergies, medical_history, pet_image 
+            })
         });
         const data = await res.json();
         
         if (data.success) {
-            showMessage('Pet updated successfully! ✅', 'success');
+            showMessage('✅ Pet updated successfully!', 'success');
             closeEditPetModal();
             loadPets();
         } else {
-            showMessage(data.message || 'Error updating pet.', 'error');
+            showMessage('❌ ' + (data.message || 'Error updating pet.'), 'error');
+            submitBtn.innerHTML = originalHTML;
+            submitBtn.disabled = false;
         }
     } catch (error) {
         console.error('Error:', error);
-        showMessage('Something went wrong. Please try again.', 'error');
+        showMessage('❌ Something went wrong. Please try again.', 'error');
+        submitBtn.innerHTML = originalHTML;
+        submitBtn.disabled = false;
     }
 }
 
-// ── Delete Pet ──────────────────────────────────────────────────────
+function getBase64Image(input) {
+    return new Promise((resolve, reject) => {
+        const file = input.files[0];
+        if (!file) {
+            resolve('');
+            return;
+        }
+        
+        if (file.size > 5 * 1024 * 1024) {
+            showMessage('❌ File is too large. Max 5MB.', 'error');
+            resolve('');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            resolve(e.target.result);
+        };
+        reader.onerror = function(err) {
+            reject(err);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
 async function deletePet(petId) {
     if (!confirm('Are you sure you want to delete this pet? This action cannot be undone.')) {
         return;
@@ -1423,7 +3596,6 @@ async function deletePet(petId) {
     }
 }
 
-// ── Logout ──────────────────────────────────────────────────────────
 function showLogoutModal() {
     document.getElementById('logoutModal').style.display = 'flex';
 }
@@ -1436,6 +3608,7 @@ async function confirmLogout() {
     closeLogoutModal();
     try {
         await fetch('/logout');
+        sessionStorage.removeItem('staffActiveTab');
         sessionStorage.clear();
         localStorage.removeItem('rememberedEmail');
         localStorage.removeItem('email');
@@ -1445,11 +3618,11 @@ async function confirmLogout() {
         window.location.href = '/';
     } catch (error) {
         console.error('Logout error:', error);
+        sessionStorage.removeItem('staffActiveTab');
         window.location.href = '/';
     }
 }
 
-// ── Close modals on ESC key ──────────────────────────────────────
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeAddPetModal();
@@ -1458,7 +3631,6 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// ── Click outside modal to close ──────────────────────────────────
 document.addEventListener('click', function(e) {
     if (e.target.classList.contains('modal-overlay')) {
         closeAddPetModal();
@@ -1467,7 +3639,6 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// ── EMOJI PICKER FOR STAFF ──────────────────────────────────────────
 let staffEmojiPickerVisible = false;
 
 function toggleStaffEmojiPicker() {
@@ -1495,7 +3666,6 @@ function insertStaffEmoji(emoji) {
     }
 }
 
-// ── IMAGE UPLOAD FOR STAFF ──────────────────────────────────────────
 let staffPendingImage = null;
 
 function showStaffImageUploadModal() {
@@ -1686,7 +3856,6 @@ async function sendStaffImageMessage() {
     }
 }
 
-// ── INITIALIZE STAFF EMOJI PICKER ──────────────────────────────────
 function initStaffEmojiPicker() {
     if (document.getElementById('staffEmojiPicker')) return;
     
@@ -1769,7 +3938,6 @@ function initStaffEmojiPicker() {
     footer.appendChild(picker);
 }
 
-// ── ADD EMOJI AND IMAGE BUTTONS TO STAFF REPLY FORM ──────────────
 function addStaffMessageButtons() {
     const replyForm = document.getElementById('replyForm');
     if (!replyForm) return;
@@ -1834,56 +4002,6 @@ function addStaffMessageButtons() {
     sendBtn.style.marginLeft = 'auto';
 }
 
-// ── CUSTOMER SEARCH ──────────────────────────────────────────────────
-function searchCustomers() {
-    const input = document.getElementById('customerSearchInput');
-    const clearBtn = document.getElementById('clearCustomerSearchBtn');
-    const emptyState = document.getElementById('customerEmptyState');
-    const rows = document.querySelectorAll('#registeredCustomersTable .customer-row');
-    let visibleCount = 0;
-    
-    if (!input) return;
-    
-    const searchTerm = input.value.trim().toLowerCase();
-    
-    if (searchTerm !== '') {
-        clearBtn.style.display = 'inline-block';
-    } else {
-        clearBtn.style.display = 'none';
-    }
-    
-    rows.forEach(row => {
-        const name = (row.dataset.name || '').toLowerCase();
-        const email = (row.dataset.email || '').toLowerCase();
-        const match = name.includes(searchTerm) || email.includes(searchTerm);
-        row.style.display = match ? '' : 'none';
-        if (match) visibleCount++;
-    });
-    
-    if (emptyState) {
-        emptyState.style.display = visibleCount === 0 && rows.length > 0 ? 'block' : 'none';
-    }
-}
-
-function clearCustomerSearch() {
-    const input = document.getElementById('customerSearchInput');
-    const clearBtn = document.getElementById('clearCustomerSearchBtn');
-    const emptyState = document.getElementById('customerEmptyState');
-    
-    if (input) {
-        input.value = '';
-        if (clearBtn) clearBtn.style.display = 'none';
-        if (emptyState) emptyState.style.display = 'none';
-        
-        const rows = document.querySelectorAll('#registeredCustomersTable .customer-row');
-        rows.forEach(row => {
-            row.style.display = '';
-        });
-        input.focus();
-    }
-}
-
-// ── PET SEARCH ──────────────────────────────────────────────────────
 function searchPets() {
     const input = document.getElementById('petSearchInput');
     const clearBtn = document.getElementById('clearPetSearchBtn');
@@ -1932,11 +4050,9 @@ function clearPetSearch() {
     }
 }
 
-// ── APPOINTMENT SEARCH ──────────────────────────────────────────────
 function searchAppointments() {
     const input = document.getElementById('appointmentSearchInput');
     const clearBtn = document.getElementById('clearAppointmentSearchBtn');
-    const emptyState = document.getElementById('appointmentEmptyState');
     
     if (input) {
         const searchTerm = input.value.trim();
@@ -1957,12 +4073,10 @@ function searchAppointments() {
 function clearAppointmentSearch() {
     const input = document.getElementById('appointmentSearchInput');
     const clearBtn = document.getElementById('clearAppointmentSearchBtn');
-    const emptyState = document.getElementById('appointmentEmptyState');
     
     if (input) {
         input.value = '';
         if (clearBtn) clearBtn.style.display = 'none';
-        if (emptyState) emptyState.style.display = 'none';
         
         if (staffCurrentFilter !== 'all') {
             filterStaffAppointments(staffCurrentFilter);
@@ -1973,416 +4087,53 @@ function clearAppointmentSearch() {
     }
 }
 
-// ── SWITCH CHART ──────────────────────────────────────────────────
-function switchChart(chartName) {
-    document.querySelectorAll('.chart-container').forEach(el => {
-        el.style.display = 'none';
-    });
-    
-    const targetChart = document.getElementById('chart-' + chartName);
-    if (targetChart) {
-        targetChart.style.display = 'block';
-    }
-    
-    document.querySelectorAll('.dash-nav-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.dataset.chart === chartName) {
-            btn.classList.add('active');
-        }
-    });
-    
-    // Load chart data when tab is clicked
-    if (chartName === 'pettypes') {
-        loadStaffPetTypeChart();
-    } else if (chartName === 'status') {
-        loadStaffAppointmentStatusChart();
-    } else if (chartName === 'growth') {
-        loadStaffMonthlyGrowthChart();
-    } else if (chartName === 'trends') {
-        loadStaffChartData(staffWeekOffset);
-    }
-    
-    const labels = {
-        'trends': '📈 Appointment Trends',
-        'pettypes': '🐾 Pet Types',
-        'status': '📊 Appointment Status',
-        'growth': '📈 Monthly Growth'
-    };
-    document.getElementById('currentChartLabel').textContent = labels[chartName] || chartName;
-}
-
-// ── STAFF CHART WEEK NAVIGATION ──────────────────────────────────
-let staffWeekOffset = 0;
-let staffChartInstance = null;
-
-async function loadStaffChartData(weekOffset = 0) {
-    try {
-        // Store the new offset
-        staffWeekOffset = weekOffset;
-        
-        // Show loading state
-        const weekLabel = document.getElementById('staffWeekLabel');
-        if (weekLabel) {
-            weekLabel.textContent = '⏳ Loading...';
-            weekLabel.style.color = '#f59e0b';
-        }
-        
-        console.log(`📊 Fetching staff chart data for week offset: ${weekOffset}`);
-        
-        const res = await fetch(`/api/staff/chart-data?week_offset=${weekOffset}`);
-        const data = await res.json();
-        
-        console.log(`📊 Staff API Response:`, data);
-        
-        if (data.success) {
-            const chartData = data.data;
-            
-            // Update week label
-            if (weekLabel && chartData.trends.week_label) {
-                weekLabel.textContent = chartData.trends.week_label;
-                weekLabel.style.color = '#94a387';
-            }
-            
-            // Get the canvas
-            const canvas = document.getElementById('appointmentTrendChart');
-            if (!canvas) {
-                console.error('Canvas element not found');
-                return;
-            }
-            
-            const ctx = canvas.getContext('2d');
-            
-            // Destroy existing chart if it exists
-            if (staffChartInstance) {
-                staffChartInstance.destroy();
-                staffChartInstance = null;
-            }
-            
-            // Clear the canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Create new chart
-            staffChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: chartData.trends.labels,
-                    datasets: [{
-                        label: 'Appointments',
-                        data: chartData.trends.values,
-                        borderColor: '#7ba05b',
-                        backgroundColor: 'rgba(123, 160, 91, 0.15)',
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#7ba05b',
-                        pointBorderColor: '#ffffff',
-                        pointBorderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { 
-                            labels: { 
-                                color: '#5a7a3f' 
-                            } 
-                        } 
-                    },
-                    scales: {
-                        x: { 
-                            grid: { color: 'rgba(212, 229, 196, 0.5)' }, 
-                            ticks: { color: '#4a5a3f' } 
-                        },
-                        y: { 
-                            grid: { color: 'rgba(212, 229, 196, 0.5)' }, 
-                            ticks: { color: '#4a5a3f', stepSize: 1 }, 
-                            beginAtZero: true 
-                        }
-                    },
-                    animation: {
-                        duration: 500
-                    }
-                }
-            });
-            
-            // Force render
-            staffChartInstance.update();
-            
-            // Update button states
-            updateStaffButtons(weekOffset);
-            
-            console.log(`✅ Staff chart loaded for week offset: ${weekOffset}`);
-            console.log(`📊 Data:`, chartData.trends.values);
-        } else {
-            console.error('API returned error:', data);
-            const weekLabel = document.getElementById('staffWeekLabel');
-            if (weekLabel) {
-                weekLabel.textContent = '❌ Error loading data';
-                weekLabel.style.color = '#ef4444';
-            }
-        }
-    } catch (error) {
-        console.error('Error loading staff chart data:', error);
-        const weekLabel = document.getElementById('staffWeekLabel');
-        if (weekLabel) {
-            weekLabel.textContent = '❌ Error loading data';
-            weekLabel.style.color = '#ef4444';
-        }
-    }
-}
-
-function updateStaffButtons(weekOffset) {
-    // Find buttons by their onclick attributes
-    const allButtons = document.querySelectorAll('#chart-trends button');
-    let prevBtn = null;
-    let nextBtn = null;
-    let todayBtn = null;
-    
-    allButtons.forEach(btn => {
-        const onclick = btn.getAttribute('onclick') || '';
-        if (onclick.includes('changeStaffWeek(-1)')) {
-            prevBtn = btn;
-        } else if (onclick.includes('changeStaffWeek(1)')) {
-            nextBtn = btn;
-        } else if (onclick.includes('changeStaffWeek(0)')) {
-            todayBtn = btn;
-        }
-    });
-    
-    if (prevBtn) {
-        prevBtn.style.opacity = '1';
-        prevBtn.style.cursor = 'pointer';
-        prevBtn.disabled = false;
-        prevBtn.style.background = '#eaf3e0';
-        prevBtn.style.color = '#4a5a3f';
-        prevBtn.style.border = '1px solid #d4e5c4';
-    }
-    if (nextBtn) {
-        nextBtn.style.opacity = '1';
-        nextBtn.style.cursor = 'pointer';
-        nextBtn.disabled = false;
-        nextBtn.style.background = '#eaf3e0';
-        nextBtn.style.color = '#4a5a3f';
-        nextBtn.style.border = '1px solid #d4e5c4';
-    }
-    if (todayBtn) {
-        if (weekOffset === 0) {
-            todayBtn.style.background = '#7ba05b';
-            todayBtn.style.color = '#ffffff';
-            todayBtn.style.border = 'none';
-            todayBtn.style.opacity = '0.6';
-            todayBtn.style.cursor = 'default';
-            todayBtn.disabled = true;
-        } else {
-            todayBtn.style.background = '#7ba05b';
-            todayBtn.style.color = '#ffffff';
-            todayBtn.style.border = 'none';
-            todayBtn.style.opacity = '1';
-            todayBtn.style.cursor = 'pointer';
-            todayBtn.disabled = false;
-        }
-    }
-}
-
-function changeStaffWeek(delta) {
-    const newOffset = staffWeekOffset + delta;
-    console.log(`🔄 Changing staff week from ${staffWeekOffset} to ${newOffset}`);
-    loadStaffChartData(newOffset);
-}
-
-// ── LOAD PET TYPES CHART ──────────────────────────────────────────
-let petTypeChartInstance = null;
-
-async function loadStaffPetTypeChart() {
-    try {
-        const res = await fetch('/api/staff/chart-data');
-        const data = await res.json();
-        
-        if (data.success) {
-            const canvas = document.getElementById('petTypeChart');
-            if (!canvas) return;
-            
-            const ctx = canvas.getContext('2d');
-            
-            if (petTypeChartInstance) {
-                petTypeChartInstance.destroy();
-                petTypeChartInstance = null;
-            }
-            
-            petTypeChartInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: data.data.pet_types.labels,
-                    datasets: [{
-                        data: data.data.pet_types.values,
-                        backgroundColor: ['#7ba05b', '#f59e0b'],
-                        borderColor: ['#ffffff', '#ffffff'],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: { color: '#4a5a3f', padding: 15, usePointStyle: true }
-                        }
-                    }
-                }
-            });
-            
-            console.log('✅ Pet Type chart loaded');
-        }
-    } catch (error) {
-        console.error('Error loading pet type chart:', error);
-    }
-}
-
-// ── LOAD APPOINTMENT STATUS CHART ─────────────────────────────────
-let appointmentStatusChartInstance = null;
-
-async function loadStaffAppointmentStatusChart() {
-    try {
-        const res = await fetch('/api/staff/chart-data');
-        const data = await res.json();
-        
-        if (data.success) {
-            const canvas = document.getElementById('appointmentStatusChart');
-            if (!canvas) return;
-            
-            const ctx = canvas.getContext('2d');
-            
-            if (appointmentStatusChartInstance) {
-                appointmentStatusChartInstance.destroy();
-                appointmentStatusChartInstance = null;
-            }
-            
-            appointmentStatusChartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: data.data.status.labels,
-                    datasets: [{
-                        label: 'Appointments',
-                        data: data.data.status.values,
-                        backgroundColor: ['#f59e0b', '#7ba05b', '#7ba05b', '#ef4444'],
-                        borderRadius: 6,
-                        borderSkipped: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { grid: { display: false }, ticks: { color: '#4a5a3f' } },
-                        y: { grid: { color: 'rgba(212, 229, 196, 0.5)' }, ticks: { color: '#4a5a3f', stepSize: 1 }, beginAtZero: true }
-                    }
-                }
-            });
-            
-            console.log('✅ Appointment Status chart loaded');
-        }
-    } catch (error) {
-        console.error('Error loading appointment status chart:', error);
-    }
-}
-
-// ── LOAD MONTHLY GROWTH CHART ─────────────────────────────────────
-let monthlyGrowthChartInstance = null;
-
-async function loadStaffMonthlyGrowthChart() {
-    try {
-        const res = await fetch('/api/staff/chart-data');
-        const data = await res.json();
-        
-        if (data.success) {
-            const canvas = document.getElementById('monthlyGrowthChart');
-            if (!canvas) return;
-            
-            const ctx = canvas.getContext('2d');
-            
-            if (monthlyGrowthChartInstance) {
-                monthlyGrowthChartInstance.destroy();
-                monthlyGrowthChartInstance = null;
-            }
-            
-            monthlyGrowthChartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: data.data.monthly_growth.labels,
-                    datasets: [{
-                        label: 'Appointments',
-                        data: data.data.monthly_growth.values,
-                        backgroundColor: 'rgba(123, 160, 91, 0.6)',
-                        borderColor: '#7ba05b',
-                        borderWidth: 1,
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { grid: { display: false }, ticks: { color: '#4a5a3f', maxTicksLimit: 6 } },
-                        y: { grid: { color: 'rgba(212, 229, 196, 0.5)' }, ticks: { color: '#4a5a3f', stepSize: 5 }, beginAtZero: true }
-                    }
-                }
-            });
-            
-            console.log('✅ Monthly Growth chart loaded');
-        }
-    } catch (error) {
-        console.error('Error loading monthly growth chart:', error);
-    }
-}
-
-// ── LOAD DATA ON PAGE LOAD ──────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
     loadPets();
     loadAllAppointments();
     
-    // ── CHECK URL PARAMETER FOR TAB ──────────────────────────────
     const urlParams = new URLSearchParams(window.location.search);
     const tab = urlParams.get('tab');
     
+    const referrer = document.referrer || '';
+    const cameFromAvailability = referrer.includes('/staff-availability');
+    const savedTab = cameFromAvailability ? sessionStorage.getItem('staffActiveTab') : null;
+    
+    if (cameFromAvailability) {
+        sessionStorage.removeItem('staffActiveTab');
+    }
+    
     if (tab === 'customers') {
         showCustomersTab();
+    } else if (savedTab === 'customers') {
+        showCustomersTab();
+    } else if (savedTab === 'pets') {
+        showPetsTab();
+    } else if (savedTab === 'messages') {
+        showMessagesTab();
     } else {
-        showDashboardTab(); // Default to Dashboard tab
+        showDashboardTab();
     }
     
     loadUnreadCount();
     loadStaffStats();
-    // ⭐ START WITH CURRENT WEEK (offset = 0)
-    loadStaffChartData(0);
     
-    // Connect to WebSocket
     connectStaffSocket();
     
-    // Initialize emoji picker and buttons
     initStaffEmojiPicker();
     addStaffMessageButtons();
-    
-    // Initialize staff message search
     initStaffMessageSearch();
     
-    // Add appointment tab click handlers
     document.querySelectorAll('.appointment-tab').forEach(tab => {
         tab.addEventListener('click', function() {
             filterStaffAppointments(this.dataset.tab);
         });
     });
     
-    // ── SEARCH INPUT LISTENERS ──────────────────────────────────────────
     const customerSearchInput = document.getElementById('customerSearchInput');
     if (customerSearchInput) {
         customerSearchInput.addEventListener('input', searchCustomers);
         customerSearchInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                clearCustomerSearch();
-            }
+            if (e.key === 'Escape') clearCustomerSearch();
         });
     }
     const customerSearchWrapper = document.getElementById('customerSearchWrapper');
@@ -2397,9 +4148,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (petSearchInput) {
         petSearchInput.addEventListener('input', searchPets);
         petSearchInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                clearPetSearch();
-            }
+            if (e.key === 'Escape') clearPetSearch();
         });
     }
     const petSearchWrapper = document.getElementById('petSearchWrapper');
@@ -2414,9 +4163,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (appointmentSearchInput) {
         appointmentSearchInput.addEventListener('input', searchAppointments);
         appointmentSearchInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                clearAppointmentSearch();
-            }
+            if (e.key === 'Escape') clearAppointmentSearch();
         });
     }
     const appointmentSearchWrapper = document.getElementById('appointmentSearchWrapper');
@@ -2427,16 +4174,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // ── ✅ MOBILE: Back button handler para sa conversation ─────────
     const conversationHeader = document.getElementById('conversationHeader');
     if (conversationHeader) {
         conversationHeader.addEventListener('click', function(e) {
             if (window.innerWidth > 768) return;
-            
             const rect = this.getBoundingClientRect();
             const clickX = e.clientX - rect.left;
-            
-            // Sa mobile, kapag clinick sa loob ng 60px mula sa kaliwa (back button area)
             if (clickX <= 60) {
                 e.stopPropagation();
                 closeMobileConversation();
@@ -2445,22 +4188,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// ── Also reload when coming back to page ──────────────────────────
-window.addEventListener('pageshow', function() {
-    loadPets();
-    loadAllAppointments();
-    loadUnreadCount();
-    loadStaffStats();
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        loadPets();
+        loadAllAppointments();
+        loadUnreadCount();
+        loadStaffStats();
+    }
 });
 
-// ── Update unread count periodically ──────────────────────────────
 setInterval(loadUnreadCount, 30000);
 
-// ── Make functions available globally ────────────────────────────────
 window.showDashboardTab = showDashboardTab;
 window.showCustomersTab = showCustomersTab;
 window.showPetsTab = showPetsTab;
-window.showAppointmentsTab = showAppointmentsTab;
 window.showMessagesTab = showMessagesTab;
 window.toggleMobileSidebar = toggleMobileSidebar;
 window.showMessage = showMessage;
@@ -2478,7 +4219,10 @@ window.loadConversation = loadConversation;
 window.sendReply = sendReply;
 window.loadUnreadCount = loadUnreadCount;
 window.updateAppointmentStatus = updateAppointmentStatus;
-window.switchChart = switchChart;
+window.closeAppointmentStatusModal = closeAppointmentStatusModal;
+window.executeAppointmentStatusChange = executeAppointmentStatusChange;
+window.showTableLoadingOverlay = showTableLoadingOverlay;
+window.hideTableLoadingOverlay = hideTableLoadingOverlay;
 window.loadFirstUnreadStaffConversation = loadFirstUnreadStaffConversation;
 window.filterStaffAppointments = filterStaffAppointments;
 window.renderStaffAppointments = renderStaffAppointments;
@@ -2488,38 +4232,36 @@ window.formatStaffTime = formatStaffTime;
 window.openImageFullscreen = openImageFullscreen;
 window.closeMobileConversation = closeMobileConversation;
 
-// ── Emoji and Image Functions ──────────────────────────────────────
 window.toggleStaffEmojiPicker = toggleStaffEmojiPicker;
 window.insertStaffEmoji = insertStaffEmoji;
 window.showStaffImageUploadModal = showStaffImageUploadModal;
 window.closeStaffImageUploadModal = closeStaffImageUploadModal;
 window.sendStaffImageMessage = sendStaffImageMessage;
 
-
-// ── Search Functions ──────────────────────────────────────────────
+window.loadStaffCustomers = loadStaffCustomers;
+window.renderStaffCustomers = renderStaffCustomers;
 window.searchCustomers = searchCustomers;
 window.clearCustomerSearch = clearCustomerSearch;
+window.openStaffImageViewer = openStaffImageViewer;
+window.closeStaffImageViewer = closeStaffImageViewer;
+
 window.searchPets = searchPets;
 window.clearPetSearch = clearPetSearch;
 window.searchAppointments = searchAppointments;
 window.clearAppointmentSearch = clearAppointmentSearch;
 
-// ── Staff Message Search Functions ──────────────────────────────────
 window.searchStaffMessages = searchStaffMessages;
 window.clearStaffMessageSearch = clearStaffMessageSearch;
 window.initStaffMessageSearch = initStaffMessageSearch;
 window.renderStaffCustomerList = renderStaffCustomerList;
 
-// ── Load Staff Stats ──────────────────────────────────────────────
 window.loadStaffStats = loadStaffStats;
-
-// ── ML Functions ──────────────────────────────────────────────────
 window.checkMLStatus = checkMLStatus;
 window.refreshStats = refreshStats;
 
-// ── Staff Chart Functions ────────────────────────────────────────
-window.loadStaffChartData = loadStaffChartData;
-window.changeStaffWeek = changeStaffWeek;
-window.loadStaffPetTypeChart = loadStaffPetTypeChart;
-window.loadStaffAppointmentStatusChart = loadStaffAppointmentStatusChart;
-window.loadStaffMonthlyGrowthChart = loadStaffMonthlyGrowthChart;
+window.viewAppointmentDetails = viewAppointmentDetails;
+window.closeAppointmentDetailsModal = closeAppointmentDetailsModal;
+
+window.showPetFullscreen = showPetFullscreen;
+window.showPetDetailsModal = showPetDetailsModal;
+window.closePetDetailsModal = closePetDetailsModal;

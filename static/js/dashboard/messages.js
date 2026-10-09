@@ -413,8 +413,15 @@ export async function sendImageMessage() {
             showToast('Image sent successfully!', 'success');
             closeImageUploadModal();
             
+            // ✅ Kunin ang customer name mula sa DOM (para hindi na mag-fetch)
+            const customerNameEl = document.querySelector('#userNameDisplay, .user-info p, .user-name');
+            let customerName = 'You';
+            if (customerNameEl) {
+                customerName = customerNameEl.textContent.trim() || 'You';
+            }
+            
             const container = document.getElementById('conversationMessagesStaff');
-            appendNewMessage(container, currentUser, staffEmail, '📷 Image', imageData.data);
+            appendNewMessage(container, customerName, '📷 Image', imageData.data);
             
             await loadStaffConversations();
             updateMessageBadge();
@@ -488,35 +495,76 @@ export function openImageFullscreen(imageSrc) {
     document.body.appendChild(overlay);
 }
 
-// ── Helper: Append new message to conversation ──────────────────
-function appendNewMessage(container, sender, staffEmail, messageText, imageData) {
+// ═══════════════════════════════════════════════════════════════════
+// ✅ NEW: Append new message (STAFF-STYLE LAYOUT — NO RELOAD NEEDED)
+// ═══════════════════════════════════════════════════════════════════
+function appendNewMessage(container, customerName, messageText, imageData) {
     if (!container) return;
     
-    const isCustomer = true;
-    const bgColor = '#7ba05b';
-    const textColor = '#ffffff';
-    const align = 'flex-end';
-    const label = 'You';
-    const labelColor = '#ffffff';
-    
-    const div = document.createElement('div');
-    div.style.cssText = `
+    // ✅ Same structure as loadCustomerConversation()
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = `
         display: flex;
-        justify-content: ${align};
+        flex-direction: column;
+        width: 100%;
         margin-bottom: 15px;
-        animation: fadeIn 0.3s ease;
+        padding: 0;
+        box-sizing: border-box;
+        align-items: flex-end;
     `;
     
-    let messageHTML = `
-        <div style="max-width: 70%;">
-            <div style="background: ${bgColor}; padding: 10px 15px; border-radius: 12px; border-bottom-right-radius: 4px;">
-                <div style="font-size: 11px; color: ${labelColor}; font-weight: 600; margin-bottom: 3px;">${label}</div>
-                ${messageText && messageText !== '📷 Image' ? `<div style="color: ${textColor}; word-wrap: break-word;">${messageText}</div>` : ''}
+    const bubbleContainer = document.createElement('div');
+    bubbleContainer.style.cssText = `
+        display: flex;
+        flex-direction: column;
+        max-width: 78%;
+        box-sizing: border-box;
+        align-items: flex-end;
+        text-align: right;
     `;
+    
+    // Name — nasa TAAS
+    const nameEl = document.createElement('div');
+    nameEl.style.cssText = `
+        font-size: 11px;
+        font-weight: 600;
+        color: #7ba05b;
+        margin-bottom: 4px;
+        padding: 0 4px;
+        line-height: 1.2;
+        text-align: right;
+        width: 100%;
+    `;
+    nameEl.textContent = customerName;
+    
+    // Bubble — message content
+    const bubble = document.createElement('div');
+    bubble.style.cssText = `
+        display: inline-block;
+        padding: 10px 14px;
+        border-radius: 14px;
+        background: #7ba05b;
+        color: #ffffff;
+        border-bottom-right-radius: 4px;
+        font-size: 13.5px;
+        line-height: 1.45;
+        word-wrap: break-word;
+        overflow-wrap: anywhere;
+        box-sizing: border-box;
+        text-align: left;
+        max-width: 100%;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    `;
+    
+    let bubbleContent = '';
+    
+    if (messageText && messageText !== '📷 Image') {
+        bubbleContent += `<div style="font-size: 13.5px; line-height: 1.45; word-wrap: break-word; overflow-wrap: anywhere; color: #ffffff;">${messageText}</div>`;
+    }
     
     if (imageData && imageData.startsWith('data:image')) {
-        messageHTML += `
-            <div style="margin-top: 10px;">
+        bubbleContent += `
+            <div style="margin-top: 6px;">
                 <img src="${imageData}" 
                      style="max-width: 250px; max-height: 250px; border-radius: 8px; cursor: pointer; border: 1px solid #d4e5c4; display: block;" 
                      onclick="window.openImageFullscreen('${imageData}')"
@@ -525,19 +573,27 @@ function appendNewMessage(container, sender, staffEmail, messageText, imageData)
         `;
     }
     
-    const now = new Date();
-    const formattedTime = now.toLocaleString();
+    bubble.innerHTML = bubbleContent;
     
-    messageHTML += `
-            </div>
-            <div style="font-size: 10px; color: #64748b; margin-top: 3px; text-align: right;">
-                ${formattedTime}
-            </div>
-        </div>
+    // Time — nasa IBABA
+    const timeEl = document.createElement('div');
+    timeEl.style.cssText = `
+        font-size: 10px;
+        color: #64748b;
+        margin-top: 4px;
+        padding: 0 4px;
+        line-height: 1.2;
+        text-align: right;
+        width: 100%;
     `;
+    timeEl.textContent = new Date().toLocaleString();
     
-    div.innerHTML = messageHTML;
-    container.appendChild(div);
+    bubbleContainer.appendChild(nameEl);
+    bubbleContainer.appendChild(bubble);
+    bubbleContainer.appendChild(timeEl);
+    
+    wrapper.appendChild(bubbleContainer);
+    container.appendChild(wrapper);
     container.scrollTop = container.scrollHeight;
 }
 
@@ -748,17 +804,26 @@ export async function loadCustomerConversation(staffEmail) {
     }
     
     let staffName = roleLabel;
+    let customerName = 'You';  // ✅ Default fallback
+    
     try {
         const usersRes = await fetch('/api/users');
         const usersData = await usersRes.json();
         if (usersData.success) {
+            // ✅ Hanapin ang staff name
             const user = usersData.users.find(u => u.email === staffEmail);
             if (user && user.fullname) {
                 staffName = user.fullname;
             }
+            
+            // ✅ Hanapin ang CUSTOMER name (logged-in user)
+            const currentUserData = usersData.users.find(u => u.email === currentUser);
+            if (currentUserData && currentUserData.fullname) {
+                customerName = currentUserData.fullname;
+            }
         }
     } catch (error) {
-        console.error('Error fetching staff name:', error);
+        console.error('Error fetching user names:', error);
     }
     
     document.getElementById('conversationHeaderStaff').innerHTML = `
@@ -799,11 +864,8 @@ export async function loadCustomerConversation(staffEmail) {
             
             data.messages.forEach(msg => {
                 const isCustomer = msg.sender_email === currentUser;
-                const bgColor = isCustomer ? '#7ba05b' : '#f7fbf3';
-                const textColor = isCustomer ? '#ffffff' : '#2d3e1f';
-                const align = isCustomer ? 'flex-end' : 'flex-start';
-                const label = isCustomer ? 'You' : staffName;
-                const labelColor = isCustomer ? '#ffffff' : roleColor;
+                // ✅ GAMITIN ANG customerName IMBES NA 'You'
+                const senderName = isCustomer ? customerName : staffName;
                 
                 let imageData = null;
                 let messageText = msg.message || '';
@@ -833,23 +895,72 @@ export async function loadCustomerConversation(staffEmail) {
                     messageText = '';
                 }
                 
-                const div = document.createElement('div');
-                div.style.cssText = `
+                // ═══════════════════════════════════════════════════════════
+                // ✅ STAFF-STYLE LAYOUT (Same as admin/staff panel)
+                // ═══════════════════════════════════════════════════════════
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = `
                     display: flex;
-                    justify-content: ${align};
+                    flex-direction: column;
+                    width: 100%;
                     margin-bottom: 15px;
+                    padding: 0;
+                    box-sizing: border-box;
+                    align-items: ${isCustomer ? 'flex-end' : 'flex-start'};
                 `;
                 
-                let messageHTML = `
-                    <div style="max-width: 70%;">
-                        <div style="background: ${bgColor}; padding: 10px 15px; border-radius: 12px; ${isCustomer ? 'border-bottom-right-radius: 4px;' : 'border-bottom-left-radius: 4px; border: 1px solid #d4e5c4;'}">
-                            <div style="font-size: 11px; color: ${labelColor}; font-weight: 600; margin-bottom: 3px;">${label}</div>
-                            ${messageText ? `<div style="color: ${textColor}; word-wrap: break-word;">${messageText}</div>` : ''}
+                const bubbleContainer = document.createElement('div');
+                bubbleContainer.style.cssText = `
+                    display: flex;
+                    flex-direction: column;
+                    max-width: 78%;
+                    box-sizing: border-box;
+                    align-items: ${isCustomer ? 'flex-end' : 'flex-start'};
+                    text-align: ${isCustomer ? 'right' : 'left'};
                 `;
+                
+                const nameEl = document.createElement('div');
+                nameEl.style.cssText = `
+                    font-size: 11px;
+                    font-weight: 600;
+                    color: ${isCustomer ? '#7ba05b' : roleColor};
+                    margin-bottom: 4px;
+                    padding: 0 4px;
+                    line-height: 1.2;
+                    text-align: ${isCustomer ? 'right' : 'left'};
+                    width: 100%;
+                `;
+                nameEl.textContent = senderName;
+                
+                const bubble = document.createElement('div');
+                bubble.style.cssText = `
+                    display: inline-block;
+                    padding: 10px 14px;
+                    border-radius: 14px;
+                    background: ${isCustomer ? '#7ba05b' : '#f7fbf3'};
+                    color: ${isCustomer ? '#ffffff' : '#2d3e1f'};
+                    ${isCustomer 
+                        ? 'border-bottom-right-radius: 4px;' 
+                        : 'border-bottom-left-radius: 4px; border: 1px solid #d4e5c4;'}
+                    font-size: 13.5px;
+                    line-height: 1.45;
+                    word-wrap: break-word;
+                    overflow-wrap: anywhere;
+                    box-sizing: border-box;
+                    text-align: left;
+                    max-width: 100%;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+                `;
+                
+                let bubbleContent = '';
+                
+                if (messageText) {
+                    bubbleContent += `<div style="font-size: 13.5px; line-height: 1.45; word-wrap: break-word; overflow-wrap: anywhere; color: ${isCustomer ? '#ffffff' : '#2d3e1f'};">${messageText}</div>`;
+                }
                 
                 if (imageData && imageData.startsWith('data:image')) {
-                    messageHTML += `
-                        <div style="margin-top: 10px;">
+                    bubbleContent += `
+                        <div style="margin-top: 6px;">
                             <img src="${imageData}" 
                                  style="max-width: 250px; max-height: 250px; border-radius: 8px; cursor: pointer; border: 1px solid #d4e5c4; display: block;" 
                                  onclick="window.openImageFullscreen('${imageData}')"
@@ -858,16 +969,26 @@ export async function loadCustomerConversation(staffEmail) {
                     `;
                 }
                 
-                messageHTML += `
-                        </div>
-                        <div style="font-size: 10px; color: #64748b; margin-top: 3px; ${isCustomer ? 'text-align: right;' : ''}">
-                            ${new Date(msg.created_at).toLocaleString()}
-                        </div>
-                    </div>
-                `;
+                bubble.innerHTML = bubbleContent;
                 
-                div.innerHTML = messageHTML;
-                container.appendChild(div);
+                const timeEl = document.createElement('div');
+                timeEl.style.cssText = `
+                    font-size: 10px;
+                    color: #64748b;
+                    margin-top: 4px;
+                    padding: 0 4px;
+                    line-height: 1.2;
+                    text-align: ${isCustomer ? 'right' : 'left'};
+                    width: 100%;
+                `;
+                timeEl.textContent = new Date(msg.created_at).toLocaleString();
+                
+                bubbleContainer.appendChild(nameEl);
+                bubbleContainer.appendChild(bubble);
+                bubbleContainer.appendChild(timeEl);
+                
+                wrapper.appendChild(bubbleContainer);
+                container.appendChild(wrapper);
             });
             
             // ✅ I-scroll at mark as read LANG kung active ang messages section
@@ -993,8 +1114,15 @@ export async function sendCustomerReply(e) {
                 input.style.borderColor = '#d4e5c4';
             }, 2000);
             
+            // ✅ Kunin ang customer name mula sa DOM
+            const customerNameEl = document.querySelector('#userNameDisplay, .user-info p, .user-name');
+            let customerName = 'You';
+            if (customerNameEl) {
+                customerName = customerNameEl.textContent.trim() || 'You';
+            }
+            
             const container = document.getElementById('conversationMessagesStaff');
-            appendNewMessage(container, currentUser, staffEmail, message, null);
+            appendNewMessage(container, customerName, message, null);
             
             await loadStaffConversations();
             updateMessageBadge();

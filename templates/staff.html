@@ -9,83 +9,908 @@
   <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='images/logo.jpg') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/staff.css') }}">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
-  <!-- Chart.js for analytics graphs -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     /* ── Staff Message Search Styles ────────────────────────────── */
-    #staffSearchWrapper {
-      transition: all 0.3s ease !important;
-    }
+    #staffSearchWrapper { transition: all 0.3s ease !important; }
     #staffSearchWrapper:focus-within {
       border-color: #7ba05b !important;
       box-shadow: 0 0 0 3px rgba(123, 160, 91, 0.2) !important;
     }
-    #staffClearSearchBtn {
-      transition: all 0.3s ease !important;
+    #staffClearSearchBtn { transition: all 0.3s ease !important; }
+    #staffClearSearchBtn:hover { color: #ef4444 !important; transform: scale(1.2) !important; }
+    #staffSearchResultCount { font-variant-numeric: tabular-nums; color: #94a387; font-size: 11px; }
+
+    .sidebar-logo h2 { display: flex !important; align-items: center !important; gap: 10px !important; }
+    .sidebar-logo-img { width: 36px !important; height: 36px !important; object-fit: contain !important; border-radius: 50% !important; flex-shrink: 0 !important; }
+    .sidebar-logo-text { font-size: 20px !important; font-weight: 700 !important; white-space: nowrap !important; }
+    .sidebar-nav a .nav-icon i { font-size: 18px !important; }
+    .stat-card .stat-icon i { font-size: 24px !important; color: #7ba05b !important; }
+    .dash-nav-btn i { margin-right: 6px !important; }
+    .main-header h1 i { margin-right: 10px !important; }
+    .customer-name { color: #1f2937; }
+
+    /* ═══════════════════════════════════════════════════════════════
+       🖼️ CUSTOMER PROFILE — KATULAD NG ADMIN PANEL
+       ═══════════════════════════════════════════════════════════════ */
+
+    .customer-name-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
-    #staffClearSearchBtn:hover {
-      color: #ef4444 !important;
-      transform: scale(1.2) !important;
+
+    .customer-avatar {
+      width: 40px;
+      height: 40px;
+      min-width: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #e5e7eb;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+      background: #f7fbf3;
+      flex-shrink: 0;
+      cursor: pointer;
     }
-    #staffSearchResultCount {
+
+    .customer-avatar:hover {
+      transform: scale(1.1);
+      border-color: #7ba05b;
+      box-shadow: 0 4px 12px rgba(123, 160, 91, 0.3);
+    }
+
+    .customer-avatar-circle {
+      width: 40px;
+      height: 40px;
+      min-width: 40px;
+      border-radius: 50%;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: 'Poppins', sans-serif;
+      border: 2px solid #e5e7eb;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .customer-avatar-circle:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .customer-avatar-circle.role-admin { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+    .customer-avatar-circle.role-staff { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .customer-avatar-circle.role-vet   { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .customer-avatar-circle.role-user  { background: linear-gradient(135deg, #10b981, #059669); }
+
+    /* ═══════════════════════════════════════════════════════════════
+       🎨 CUSTOMER SEARCH BAR (Admin-style — pill shape)
+       ═══════════════════════════════════════════════════════════════ */
+    .customer-search-wrap {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .search-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #ffffff;
+      border: 1.5px solid #d4e5c4;
+      border-radius: 999px;
+      padding: 8px 18px;
+      min-width: 320px;
+      transition: all 0.3s ease;
+      cursor: text;
+    }
+
+    .search-wrapper:focus-within {
+      border-color: #7ba05b;
+      box-shadow: 0 0 0 4px rgba(123, 160, 91, 0.12);
+      background: #ffffff;
+    }
+
+    .search-wrapper .search-icon {
+      color: #7ba05b;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      opacity: 0.7;
+      transition: opacity 0.3s ease;
+    }
+
+    .search-wrapper:focus-within .search-icon {
+      opacity: 1;
+    }
+
+    .search-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #2d3e1f;
+      font-size: 14px;
+      font-family: 'Poppins', sans-serif;
+      padding: 4px 0;
+      min-width: 0;
+    }
+
+    .search-input::placeholder {
+      color: #94a387;
+    }
+
+    .clear-search-btn {
+      background: transparent;
+      border: none;
+      color: #94a387;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 4px 6px;
+      display: none;
+      border-radius: 50%;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+    }
+
+    .clear-search-btn:hover {
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.08);
+      transform: scale(1.1);
+    }
+
+    #customerSearchResultCount {
       font-variant-numeric: tabular-nums;
       color: #94a387;
-      font-size: 11px;
+      font-size: 12px;
+      white-space: nowrap;
+      font-weight: 500;
     }
 
-    /* ── SIDEBAR LOGO IMAGE ────────────────────────────────────────── */
-    .sidebar-logo h2 {
-      display: flex !important;
-      align-items: center !important;
-      gap: 10px !important;
+    /* ═══════════════════════════════════════════════════════════════
+    🎨 APPOINTMENT CARD — SINGLE SCROLL (INNER TABLE ONLY)
+    ═══════════════════════════════════════════════════════════════ */
+    #appointmentManagementCard {
+      /* ❌ Tinanggal ang max-height at overflow-y — para hindi double scrollbar */
+      overflow: visible;
     }
 
-    .sidebar-logo-img {
-      width: 36px !important;
-      height: 36px !important;
-      object-fit: contain !important;
-      border-radius: 50% !important;
-      flex-shrink: 0 !important;
+    #appointmentManagementCard .appointments-table-wrapper {
+      max-height: 500px;
+      overflow-y: auto;
     }
 
-    .sidebar-logo-text {
-      font-size: 20px !important;
-      font-weight: 700 !important;
-      white-space: nowrap !important;
+    #appointmentManagementCard::-webkit-scrollbar { width: 8px; }
+    #appointmentManagementCard::-webkit-scrollbar-track {
+      background: #eaf3e0;
+      border-radius: 10px;
+    }
+    #appointmentManagementCard::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #7ba05b, #5a7a3f);
+      border-radius: 10px;
+    }
+    #appointmentManagementCard::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, #5a7a3f, #4a6b32);
     }
 
-    /* ── NAV ICONS STYLING ─────────────────────────────────────────── */
-    .sidebar-nav a .nav-icon i {
-      font-size: 18px !important;
+    #appointmentManagementCard .appointments-table-wrapper::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    #appointmentManagementCard .appointments-table-wrapper::-webkit-scrollbar-track {
+      background: #eaf3e0;
+      border-radius: 10px;
+    }
+    #appointmentManagementCard .appointments-table-wrapper::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #7ba05b, #5a7a3f);
+      border-radius: 10px;
+    }
+    #appointmentManagementCard .appointments-table-wrapper::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, #5a7a3f, #4a6b32);
     }
 
-    .stat-card .stat-icon i {
-      font-size: 24px !important;
-      color: #7ba05b !important;
+    /* ═══════════════════════════════════════════════════════════════
+       🆕 MODAL CLOSE X + DIVIDER (para sa Edit Pet Modal)
+       ═══════════════════════════════════════════════════════════════ */
+    .modal-close-x {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      background: transparent;
+      border: none;
+      color: #94a387;
+      font-size: 28px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      padding: 4px 10px;
+      line-height: 1;
+      z-index: 10;
+      font-family: 'Poppins', sans-serif;
+      border-radius: 8px;
     }
 
-    /* ── CHART NAV BUTTON ICONS ───────────────────────────────────── */
-    .dash-nav-btn i {
-      margin-right: 6px !important;
+    .modal-close-x:hover {
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+      transform: scale(1.15);
     }
 
-    /* ── MAIN HEADER ICONS ────────────────────────────────────────── */
-    .main-header h1 i {
-      margin-right: 10px !important;
+    .divider-gradient {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #7ba05b, transparent);
+      margin-bottom: 25px;
     }
 
-    /* ── CUSTOMER NAME ────────────────────────────────────────────── */
-    .customer-name {
-      color: #1f2937;
+    .photo-preview:hover {
+      border-color: #7ba05b !important;
+      transform: scale(1.03);
+    }
+
+    /* ── Edit Pet Modal Form Fields ────────────────────────────────── */
+    #editPetModal .modal-popup input,
+    #editPetModal .modal-popup select,
+    #editPetModal .modal-popup textarea {
+      width: 100%;
+      padding: 12px 16px;
+      background: #f7fbf3;
+      border: 1px solid #d4e5c4;
+      border-radius: 12px;
+      color: #2d3e1f;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    #editPetModal .modal-popup input:focus,
+    #editPetModal .modal-popup select:focus,
+    #editPetModal .modal-popup textarea:focus {
+      outline: none;
+      border-color: #7ba05b;
+      box-shadow: 0 0 0 3px rgba(123, 160, 91, 0.15);
+      background: #ffffff;
+    }
+
+    #editPetModal .modal-popup select:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+      background: #ececec;
+    }
+
+    #editPetModal .modal-popup label {
+      display: block;
+      color: #3d5429;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+
+    #editPetModal .modal-popup textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    #editPetModal .modal-popup .modal-btn {
+      padding: 12px 30px;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      flex: 1;
+      font-family: 'Poppins', sans-serif;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    #editPetModal .modal-popup .modal-btn-cancel {
+      background: #e2e8f0;
+      color: #475569;
+    }
+
+    #editPetModal .modal-popup .modal-btn-cancel:hover {
+      background: #cbd5e1;
+      transform: translateY(-2px);
+    }
+
+    #editPetModal .modal-popup .modal-btn-submit {
+      background: linear-gradient(135deg, #7ba05b, #5a7a3f);
+      color: #fff;
+    }
+
+    #editPetModal .modal-popup .modal-btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(123, 160, 91, 0.35);
+    }
+
+    #editPetModal .modal-popup .modal-btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       🎯 FIX: ALISIN ANG HORIZONTAL SCROLL SA APPOINTMENT MANAGEMENT
+       ── DESKTOP ONLY (min-width: 769px)
+       ═══════════════════════════════════════════════════════════════ */
+    @media (min-width: 769px) {
+
+        #appointmentManagementCard {
+            overflow-x: hidden !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
+        #appointmentManagementCard .appointments-table-wrapper {
+            overflow-x: hidden !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
+        #appointmentManagementCard .appointments-table {
+            width: 100% !important;
+            min-width: 0 !important;
+            table-layout: fixed !important;
+            border-collapse: collapse !important;
+        }
+
+        #appointmentManagementCard .appointments-table th,
+        #appointmentManagementCard .appointments-table td {
+            padding: 10px 8px !important;
+            font-size: 12px !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            vertical-align: middle !important;
+        }
+
+        #appointmentManagementCard .appointments-table th:nth-child(1),
+        #appointmentManagementCard .appointments-table td:nth-child(1) {
+            width: 10% !important;
+            white-space: nowrap !important;
+        }
+
+        #appointmentManagementCard .appointments-table th:nth-child(2),
+        #appointmentManagementCard .appointments-table td:nth-child(2) {
+            width: 9% !important;
+            white-space: nowrap !important;
+        }
+
+        #appointmentManagementCard .appointments-table th:nth-child(3),
+        #appointmentManagementCard .appointments-table td:nth-child(3) {
+            width: 4% !important;
+            white-space: nowrap !important;
+        }
+
+        #appointmentManagementCard .appointments-table th:nth-child(4),
+        #appointmentManagementCard .appointments-table td:nth-child(4) {
+            width: 10% !important;
+        }
+
+        #appointmentManagementCard .appointments-table th:nth-child(5),
+        #appointmentManagementCard .appointments-table td:nth-child(5) {
+            width: 14% !important;
+            word-break: break-word !important;
+        }
+
+        #appointmentManagementCard .appointments-table th:nth-child(6),
+        #appointmentManagementCard .appointments-table td:nth-child(6) {
+            width: 22% !important;
+        }
+
+        #appointmentManagementCard .appointments-table th:nth-child(7),
+        #appointmentManagementCard .appointments-table td:nth-child(7) {
+            width: 9% !important;
+            text-align: center !important;
+        }
+
+        #appointmentManagementCard .appointments-table th:nth-child(8),
+        #appointmentManagementCard .appointments-table td:nth-child(8) {
+            width: 9% !important;
+            text-align: center !important;
+        }
+
+        #appointmentManagementCard .appointments-table th:nth-child(9),
+        #appointmentManagementCard .appointments-table td:nth-child(9) {
+            width: 13% !important;
+        }
+
+        #appointmentManagementCard .service-tag {
+            font-size: 10px !important;
+            padding: 3px 8px !important;
+            margin: 2px 2px 2px 0 !important;
+            max-width: 100% !important;
+            word-break: break-word !important;
+            white-space: normal !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 3px !important;
+        }
+
+        #appointmentManagementCard .action-buttons {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 4px !important;
+            width: 100% !important;
+        }
+
+        #appointmentManagementCard .action-buttons button {
+            width: 100% !important;
+            padding: 5px 8px !important;
+            font-size: 10px !important;
+            white-space: nowrap !important;
+        }
+
+        #appointmentManagementCard .customer-cell {
+            max-width: 100% !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+            font-size: 11px !important;
+        }
+
+        #appointmentManagementCard .pet-cell {
+            font-size: 12px !important;
+            gap: 4px !important;
+        }
+
+        #appointmentManagementCard::-webkit-scrollbar {
+            width: 8px !important;
+            height: 0 !important;
+        }
+
+        #appointmentManagementCard .appointments-table-wrapper::-webkit-scrollbar {
+            width: 8px !important;
+            height: 0 !important;
+        }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       🎨 MOBILE RESPONSIVE FIX — ALL SECTIONS
+       ═══════════════════════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+
+      html, body { overflow-x: hidden !important; max-width: 100% !important; }
+      .main { overflow-x: hidden !important; max-width: 100vw !important; padding-left: 12px !important; padding-right: 12px !important; }
+      .card { overflow-x: hidden !important; max-width: 100% !important; }
+
+        #appointmentManagementCard {
+        max-height: none !important;
+        overflow: visible !important;
+        overflow-x: hidden !important;
+      }
+
+      #appointmentManagementCard .appointments-table-wrapper {
+        max-height: none !important;
+        overflow-y: visible !important;
+        overflow-x: hidden !important;
+      }
+
+      .customer-search-wrap {
+        width: 100% !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+      }
+
+      .search-wrapper {
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 10px 16px !important;
+      }
+
+      #customerSearchResultCount {
+        text-align: right !important;
+        font-size: 11px !important;
+      }
+
+      #messagesCard { padding: 0 !important; overflow: visible !important; }
+      #messagesCard > div:first-child { padding: 15px 16px !important; margin-bottom: 0 !important; }
+
+      #messagesGrid {
+        position: relative !important;
+        overflow: hidden !important;
+        display: block !important;
+        height: calc(100vh - 190px) !important;
+        min-height: 500px !important;
+        max-height: 750px !important;
+        padding: 0 !important;
+        border-radius: 12px !important;
+        border: 1px solid #d4e5c4 !important;
+        background: #ffffff !important;
+      }
+
+      #customerListWrapper {
+        width: 100% !important; height: 100% !important; max-height: 100% !important;
+        transition: transform 0.3s ease, opacity 0.3s ease !important;
+        position: absolute !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+        z-index: 10 !important; border-radius: 12px !important; border: none !important;
+        display: flex !important; flex-direction: column !important; overflow: hidden !important;
+      }
+
+      #conversationWrapper {
+        position: absolute !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+        width: 100% !important; height: 100% !important; z-index: 20 !important;
+        transform: translateX(100%) !important; transition: transform 0.3s ease !important;
+        background: #f7fbf3 !important; border-radius: 12px !important;
+        display: flex !important; flex-direction: column !important; overflow: hidden !important; border: none !important;
+      }
+
+      #messagesGrid.has-active-conversation #conversationWrapper { transform: translateX(0) !important; }
+      #messagesGrid.has-active-conversation #customerListWrapper {
+        transform: translateX(-100%) !important; opacity: 0 !important; pointer-events: none !important;
+      }
+
+      #conversationHeader {
+        padding: 8px 14px 8px 54px !important;
+        display: flex !important; align-items: center !important;
+        background: #ffffff !important; border-bottom: 1px solid #d4e5c4 !important;
+        position: relative !important; flex-shrink: 0 !important;
+        min-height: 56px !important; box-sizing: border-box !important;
+      }
+
+      #conversationHeader::before {
+        content: '←' !important; position: absolute !important;
+        left: 10px !important; top: 50% !important; transform: translateY(-50%) !important;
+        font-size: 18px !important; color: #7ba05b !important; cursor: pointer !important;
+        font-weight: bold !important; display: flex !important; align-items: center !important; justify-content: center !important;
+        width: 32px !important; height: 32px !important; border-radius: 50% !important;
+        background: rgba(123, 160, 91, 0.1) !important; flex-shrink: 0 !important; z-index: 1 !important; line-height: 1 !important;
+      }
+
+      #conversationHeader > div { display: flex !important; align-items: center !important; gap: 10px !important; min-width: 0 !important; flex: 1 !important; width: 100% !important; }
+      #conversationHeader > div > span:first-child,
+      #conversationHeader .header-avatar,
+      #conversationHeader .avatar {
+        width: 36px !important; height: 36px !important; min-width: 36px !important; border-radius: 50% !important;
+        background: linear-gradient(135deg, rgba(123, 160, 91, 0.18), rgba(90, 122, 63, 0.18)) !important;
+        display: flex !important; align-items: center !important; justify-content: center !important;
+        font-size: 16px !important; flex-shrink: 0 !important; color: #5a7a3f !important; overflow: hidden !important;
+      }
+      #conversationHeader > div > div { min-width: 0 !important; flex: 1 !important; display: flex !important; flex-direction: column !important; justify-content: center !important; }
+      #conversationHeader > div > div > div:first-child {
+        font-size: 14px !important; font-weight: 600 !important; color: #2d3e1f !important;
+        white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; line-height: 1.2 !important;
+      }
+      #conversationHeader > div > div > div:last-child {
+        font-size: 11px !important; color: #94a387 !important;
+        white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important;
+        margin-top: 1px !important; line-height: 1.2 !important;
+      }
+
+      #conversationMessages {
+        flex: 1 1 auto !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        padding: 10px 8px !important;
+        -webkit-overflow-scrolling: touch !important;
+        display: block !important;
+        background: #eaf3e0 !important;
+      }
+
+      #conversationMessages > div {
+        display: block !important;
+        width: 100% !important;
+        clear: both !important;
+        margin-bottom: 10px !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+        padding: 0 !important;
+        float: none !important;
+      }
+
+      #conversationMessages > div > div {
+        display: inline-block !important;
+        max-width: 78% !important;
+        box-sizing: border-box !important;
+        clear: both !important;
+        vertical-align: top !important;
+        width: auto !important;
+      }
+
+      #conversationMessages > div[style*="flex-end"] > div,
+      #conversationMessages > div[style*="float: right"] > div {
+        float: right !important;
+        text-align: right !important;
+      }
+
+      #conversationMessages > div[style*="flex-start"] > div,
+      #conversationMessages > div[style*="float: left"] > div {
+        float: left !important;
+        text-align: left !important;
+      }
+
+      #conversationMessages > div > div > div:first-child {
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        color: #5a7a3f !important;
+        margin-bottom: 3px !important;
+        padding: 0 4px !important;
+        line-height: 1.2 !important;
+        display: block !important;
+      }
+
+      #conversationMessages > div > div > div:nth-child(2) {
+        display: inline-block !important;
+        padding: 8px 12px !important;
+        border-radius: 14px !important;
+        font-size: 13px !important;
+        line-height: 1.4 !important;
+        word-wrap: break-word !important;
+        overflow-wrap: anywhere !important;
+        box-sizing: border-box !important;
+        text-align: left !important;
+        max-width: 100% !important;
+      }
+
+      #conversationMessages > div[style*="flex-end"] > div > div:nth-child(2),
+      #conversationMessages > div[style*="float: right"] > div > div:nth-child(2) {
+        background: #7ba05b !important;
+        color: #ffffff !important;
+        border-bottom-right-radius: 4px !important;
+      }
+
+      #conversationMessages > div[style*="flex-start"] > div > div:nth-child(2),
+      #conversationMessages > div[style*="float: left"] > div > div:nth-child(2) {
+        background: #ffffff !important;
+        color: #2d3e1f !important;
+        border: 1px solid #eaf3e0 !important;
+        border-bottom-left-radius: 4px !important;
+      }
+
+      #conversationMessages > div > div > div:last-child {
+        font-size: 10px !important;
+        color: #94a387 !important;
+        margin-top: 3px !important;
+        padding: 0 4px !important;
+        line-height: 1.2 !important;
+        display: block !important;
+      }
+
+      #conversationMessages > div > div > div:nth-child(2) > div {
+        font-size: 13px !important;
+        line-height: 1.4 !important;
+        word-wrap: break-word !important;
+        overflow-wrap: anywhere !important;
+        display: block !important;
+      }
+
+      #conversationMessages img {
+        max-width: 200px !important;
+        max-height: 200px !important;
+        border-radius: 8px !important;
+        margin-top: 6px !important;
+        display: block !important;
+      }
+
+      #conversationFooter {
+        flex-shrink: 0 !important;
+        padding: 8px 10px !important;
+        background: #ffffff !important;
+        border-top: 1px solid #d4e5c4 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      #replyForm {
+        display: flex !important;
+        gap: 6px !important;
+        align-items: center !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        flex-wrap: nowrap !important;
+      }
+
+      #replyMessage {
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        width: auto !important;
+        height: 36px !important;
+        padding: 0 14px !important;
+        font-size: 14px !important;
+        border-radius: 18px !important;
+        box-sizing: border-box !important;
+        line-height: 36px !important;
+      }
+
+      #replyForm button {
+        flex: 0 0 auto !important;
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        max-width: 36px !important;
+        padding: 0 !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-sizing: border-box !important;
+        font-size: 15px !important;
+      }
+
+      #replyForm button[type="submit"] { font-size: 0 !important; }
+      #replyForm button[type="submit"] i { font-size: 15px !important; }
+
+      .table-wrapper, .appointments-table-wrapper,
+      #customerSection .table-wrapper,
+      #petSection > div[style*="overflow-x"],
+      #customerSection > div[style*="overflow-x"] {
+        overflow-x: visible !important; overflow-y: visible !important;
+        max-height: none !important; width: 100% !important; max-width: 100% !important;
+      }
+
+      #customerSection table, #petSection table, .appointments-table {
+        display: block !important; width: 100% !important; min-width: 0 !important;
+        max-width: 100% !important; table-layout: auto !important;
+        border-collapse: separate !important;
+      }
+
+      #customerSection thead, #petSection thead, .appointments-table thead { display: none !important; }
+
+      #customerSection tbody, #petSection tbody, .appointments-table tbody {
+        display: flex !important; flex-direction: column !important;
+        gap: 12px !important; width: 100% !important; max-width: 100% !important;
+      }
+
+      #customerSection .customer-row, #petSection .pet-row, .appointments-table tbody tr {
+        display: flex !important; flex-direction: column !important;
+        background: #ffffff !important; border: 1px solid #d4e5c4 !important;
+        border-left: 4px solid #7ba05b !important; border-radius: 14px !important;
+        padding: 16px !important; gap: 10px !important;
+        box-shadow: 0 2px 8px rgba(123, 160, 91, 0.06) !important;
+        width: 100% !important; max-width: 100% !important;
+        box-sizing: border-box !important; overflow: hidden !important;
+        table-layout: auto !important;
+      }
+
+      #customerSection .customer-row td, #petSection .pet-row td, .appointments-table tbody tr td {
+        display: flex !important; justify-content: space-between !important; align-items: flex-start !important;
+        border: none !important; padding: 6px 0 !important; font-size: 13px !important;
+        color: #2d3e1f !important; text-align: right !important; gap: 12px !important;
+        width: 100% !important; max-width: 100% !important; box-sizing: border-box !important;
+        min-width: 0 !important; overflow: hidden !important;
+        word-break: break-word !important; overflow-wrap: anywhere !important;
+        table-layout: auto !important;
+      }
+
+      #customerSection .customer-row td::before, #petSection .pet-row td::before, .appointments-table tbody tr td::before {
+        content: attr(data-label) !important; font-weight: 700 !important; color: #5a7a3f !important;
+        font-size: 11px !important; text-transform: uppercase !important; letter-spacing: 0.5px !important;
+        text-align: left !important; flex-shrink: 0 !important; white-space: nowrap !important; min-width: 80px !important;
+      }
+
+      #customerSection .customer-row td > *, #petSection .pet-row td > *, .appointments-table tbody tr td > * {
+        min-width: 0 !important; max-width: 100% !important;
+        word-break: break-word !important; overflow-wrap: anywhere !important;
+        white-space: normal !important; overflow: visible !important;
+      }
+
+      #customerSection .truncate, #petSection .truncate, .appointments-table .truncate,
+      #customerSection .customer-row td .truncate, #petSection .pet-row td .truncate {
+        max-width: 100% !important; width: auto !important; display: inline !important;
+        overflow: visible !important; text-overflow: clip !important;
+        white-space: normal !important; word-break: break-word !important;
+        overflow-wrap: anywhere !important; text-align: right !important;
+      }
+
+      #customerSection .customer-name { word-break: break-word !important; text-align: right !important; }
+      #customerSection .role-badge { white-space: nowrap !important; flex-shrink: 0 !important; }
+
+      #petSection .pet-row td > div, .appointments-table .pet-cell {
+        justify-content: flex-end !important; text-align: right !important;
+        flex-wrap: wrap !important; min-width: 0 !important; max-width: 100% !important;
+      }
+
+      .appointments-table .customer-cell { max-width: 100% !important; white-space: normal !important; word-break: break-word !important; }
+      .appointments-table tbody tr td:nth-child(6) { flex-wrap: wrap !important; justify-content: flex-end !important; }
+
+      #customerSection .customer-row td:last-child, #petSection .pet-row td:last-child, .appointments-table tbody tr td:last-child {
+        border-top: 1px dashed #eaf3e0 !important; padding-top: 12px !important;
+        margin-top: 4px !important; flex-direction: column !important;
+        align-items: stretch !important; gap: 8px !important;
+      }
+      #customerSection .customer-row td:last-child::before, #petSection .pet-row td:last-child::before, .appointments-table tbody tr td:last-child::before {
+        margin-bottom: 6px !important;
+      }
+
+      #petSection .pet-row .action-buttons, .appointments-table .action-buttons {
+        width: 100% !important; justify-content: flex-end !important;
+        gap: 8px !important; flex-wrap: wrap !important;
+        flex-direction: row !important;
+      }
+      #petSection .pet-row .action-buttons button, .appointments-table .action-buttons button {
+        flex: 1 1 auto !important; min-width: 80px !important; max-width: none !important;
+        padding: 8px 12px !important; font-size: 12px !important;
+        white-space: nowrap !important;
+      }
+
+      .appointments-table tbody tr td .service-tag {
+        display: inline-flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        white-space: normal !important;
+        word-break: normal !important;
+        overflow-wrap: normal !important;
+        max-width: 100% !important;
+        width: auto !important;
+        min-width: 0 !important;
+        writing-mode: horizontal-tb !important;
+        text-orientation: mixed !important;
+      }
+
+      .appointments-table tbody tr td:nth-child(6) > .service-tag,
+      .appointments-table tbody tr td:nth-child(6) > span {
+        display: inline-flex !important;
+        flex-direction: row !important;
+        width: auto !important;
+      }
+
+      #customerSection .customer-row td[colspan], #petSection .pet-row td[colspan], .appointments-table tbody tr td[colspan] {
+        display: block !important; text-align: center !important;
+      }
+      #customerSection .customer-row td[colspan]::before, #petSection .pet-row td[colspan]::before, .appointments-table tbody tr td[colspan]::before {
+        content: '' !important; display: none !important;
+      }
+
+      #customerSection .customer-row td[data-label="Name"] {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        gap: 8px !important;
+      }
+      #customerSection .customer-row td[data-label="Name"]::before {
+        margin-bottom: 4px !important;
+      }
+      #customerSection .customer-row td[data-label="Name"] .customer-name-wrap {
+        justify-content: center !important;
+        width: 100% !important;
+      }
+      #customerSection .customer-row td[data-label="Name"] .customer-avatar,
+      #customerSection .customer-row td[data-label="Name"] .customer-avatar-circle {
+        width: 56px !important;
+        height: 56px !important;
+        min-width: 56px !important;
+        font-size: 22px !important;
+      }
+    }
+    @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+    }
+
+    @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
 
-<!-- Mobile Menu Button -->
 <button class="mobile-menu-btn" onclick="toggleMobileSidebar()"><i class="fas fa-bars"></i></button>
 
-<!-- ── SIDEBAR ──────────────────────────────────────────────────────── -->
 <div class="sidebar" id="sidebar">
   <div class="sidebar-header">
     <div class="sidebar-logo">
@@ -99,42 +924,31 @@
   <div class="sidebar-nav">
     <div class="nav-label">Navigation</div>
 
-    <!-- DASHBOARD TAB -->
     <a href="#" onclick="showDashboardTab(); return false;" class="active" id="navDashboard">
-      <span class="nav-icon"><i class="fas fa-chart-pie"></i></span>
-      <span>Dashboard</span>
+      <span class="nav-icon"><i class="fas fa-calendar-check"></i></span>
+      <span>Appointments</span>
+      <span style="margin-left: auto; display: flex; gap: 4px; align-items: center;">
+        <span class="badge badge-pending" id="pendingBadge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600;">0</span>
+        <span class="badge badge-confirmed" id="confirmedBadge" style="background: rgba(123, 160, 91, 0.15); color: #5a7a3f; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600;">0</span>
+      </span>
     </a>
 
-    <!-- CUSTOMERS TAB -->
     <a href="#" onclick="showCustomersTab(); return false;" id="navCustomers">
       <span class="nav-icon"><i class="fas fa-users"></i></span>
       <span>Customers</span>
     </a>
 
-    <!-- PETS TAB -->
     <a href="#" onclick="showPetsTab(); return false;" id="navPets">
       <span class="nav-icon"><i class="fas fa-dog"></i></span>
       <span>Pets</span>
     </a>
 
-    <!-- APPOINTMENTS TAB -->
-    <a href="#" onclick="showAppointmentsTab(); return false;" id="navAppointments">
-      <span class="nav-icon"><i class="fas fa-calendar-check"></i></span>
-      <span>Appointments</span>
-      <span style="margin-left: auto; display: flex; gap: 4px; align-items: center;">
-        <span class="badge badge-pending" id="pendingBadge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">0</span>
-        <span class="badge badge-confirmed" id="confirmedBadge" style="background: rgba(123, 160, 91, 0.15); color: #5a7a3f;">0</span>
-      </span>
-    </a>
-
-    <!-- STAFF AVAILABILITY -->
     <a href="/staff-availability">
         <span class="nav-icon"><i class="fas fa-calendar-alt"></i></span>
         <span>Availability</span>
         <span style="margin-left:auto; font-size:10px; background:rgba(123,160,91,0.15); padding:2px 10px; border-radius:10px; color:#5a7a3f;">MANAGE</span>
     </a>
 
-    <!-- MESSAGES TAB -->
     <a href="#" onclick="showMessagesTab(); return false;" id="navMessages">
       <span class="nav-icon"><i class="fas fa-envelope"></i></span>
       <span>Messages</span>
@@ -168,18 +982,15 @@
   </button>
 </div>
 
-<!-- ── MAIN CONTENT ────────────────────────────────────────────────── -->
 <div class="main">
   <div class="main-header">
     <h1><i class="fas fa-user-tie"></i> Staff Panel</h1>
     <p><i class="fas fa-tasks"></i> Manage customers, pets, appointments, and messages</p>
   </div>
 
-  <!-- ── DASHBOARD TAB CONTENT ────────────────────────────────────── -->
   <div id="dashboardSection">
-    <!-- STATISTICS CARDS -->
+    <!-- 6 MAIN STATS CARDS -->
     <div class="stats-grid">
-      <!-- Total Customers -->
       <div class="stat-card">
         <div class="stat-icon"><i class="fas fa-users"></i></div>
         <div class="stat-number" id="totalCustomers">{{ total_customers }}</div>
@@ -190,7 +1001,6 @@
         </div>
       </div>
 
-      <!-- Total Pets -->
       <div class="stat-card">
         <div class="stat-icon"><i class="fas fa-dog"></i></div>
         <div class="stat-number" id="totalPets">{{ total_pets }}</div>
@@ -201,7 +1011,6 @@
         </div>
       </div>
 
-      <!-- Total Appointments -->
       <div class="stat-card">
         <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
         <div class="stat-number" id="totalAppointments">{{ total_appointments }}</div>
@@ -212,7 +1021,6 @@
         </div>
       </div>
 
-      <!-- Pending Appointments -->
       <div class="stat-card pending">
         <div class="stat-icon"><i class="fas fa-hourglass-half"></i></div>
         <div class="stat-number" id="pendingAppointments">{{ pending_appointments }}</div>
@@ -222,7 +1030,6 @@
         </div>
       </div>
 
-      <!-- Confirmed Appointments -->
       <div class="stat-card confirmed">
         <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
         <div class="stat-number" id="confirmedAppointments">{{ confirmed_appointments }}</div>
@@ -232,7 +1039,6 @@
         </div>
       </div>
 
-      <!-- Cancelled Appointments -->
       <div class="stat-card cancelled">
         <div class="stat-icon"><i class="fas fa-times-circle"></i></div>
         <div class="stat-number" id="cancelledAppointments">0</div>
@@ -243,94 +1049,87 @@
       </div>
     </div>
 
-    <!-- ── DASHBOARD TOP NAV ────────────────────────────────────────── -->
-    <div style="background: #ffffff; border-radius: 16px; padding: 8px 20px; margin: 20px 0 25px; border: 1px solid #d4e5c4; display: flex; flex-wrap: wrap; gap: 5px; align-items: center;">
-      <button class="dash-nav-btn active" data-chart="trends" onclick="switchChart('trends')">
-        <i class="fas fa-chart-line"></i> Appointment Trends
-      </button>
-      <button class="dash-nav-btn" data-chart="pettypes" onclick="switchChart('pettypes')">
-        <i class="fas fa-paw"></i> Pet Types
-      </button>
-      <button class="dash-nav-btn" data-chart="status" onclick="switchChart('status')">
-        <i class="fas fa-chart-bar"></i> Appointment Status
-      </button>
-      <button class="dash-nav-btn" data-chart="growth" onclick="switchChart('growth')">
-        <i class="fas fa-chart-line"></i> Monthly Growth
-      </button>
-      <div style="flex: 1;"></div>
-      <span style="color: #94a387; font-size: 12px;" id="currentChartLabel"><i class="fas fa-chart-line"></i> Appointment Trends</span>
-    </div>
-
-    <!-- ── CHART CONTAINERS ──────────────────────────────────────────── -->
-    <!-- Chart 1: Appointment Trends -->
-    <div id="chart-trends" class="chart-container">
-      <div class="card" style="padding: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-          <div>
-            <h3 style="color: #5a7a3f; font-size: 18px; margin: 0;"><i class="fas fa-chart-line"></i> Appointment Trends</h3>
-            <span style="color: #94a387; font-size: 12px;" id="staffWeekLabel">Current Week</span>
-          </div>
-          <div style="display: flex; gap: 8px; align-items: center;">
-            <button onclick="changeStaffWeek(-1)" 
-                    style="background: #eaf3e0; border: 1px solid #d4e5c4; color: #4a5a3f; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.3s; font-family: 'Poppins', sans-serif;">
-              <i class="fas fa-chevron-left"></i> Previous
-            </button>
-            <button onclick="changeStaffWeek(0)" 
-                    style="background: #7ba05b; border: none; color: #ffffff; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.3s; font-family: 'Poppins', sans-serif;">
-              Today
-            </button>
-            <button onclick="changeStaffWeek(1)" 
-                    style="background: #eaf3e0; border: 1px solid #d4e5c4; color: #4a5a3f; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.3s; font-family: 'Poppins', sans-serif;">
-              Next <i class="fas fa-chevron-right"></i>
+    <!-- APPOINTMENT MANAGEMENT CARD — MAY MAX HEIGHT + SCROLL -->
+    <div class="card" id="appointmentManagementCard" style="padding: 25px; margin-top: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+        <div>
+          <h2 style="color: #5a7a3f; font-size: 24px; margin: 0;"><i class="fas fa-calendar-check"></i> Appointment Management</h2>
+          <p style="color: #4a5a3f; font-size: 14px; margin: 5px 0 0;">
+            Manage all customer appointments. Confirm, complete, or cancel appointments.
+          </p>
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px; background: #f7fbf3; border: 1px solid #d4e5c4; border-radius: 12px; padding: 4px 12px; min-width: 180px; transition: 0.3s;" 
+              id="appointmentSearchWrapper">
+            <span style="color: #94a387; font-size: 16px;"><i class="fas fa-search"></i></span>
+            <input type="text" id="appointmentSearchInput" placeholder="Search pet or customer..." 
+                  style="background: transparent; border: none; color: #2d3e1f; padding: 8px 4px; font-size: 13px; width: 100%; outline: none; font-family: 'Poppins', sans-serif;">
+            <button onclick="clearAppointmentSearch()" id="clearAppointmentSearchBtn" 
+                    style="background: transparent; border: none; color: #94a387; cursor: pointer; font-size: 16px; display: none; padding: 4px;">
+              <i class="fas fa-times"></i>
             </button>
           </div>
+          <button onclick="refreshAppointments()" style="background: #7ba05b; color: #ffffff; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 14px;">
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
         </div>
-        <div style="height: 280px; position: relative;">
-          <canvas id="appointmentTrendChart"></canvas>
-        </div>
+      </div>
+      
+      <div class="appointment-tabs">
+        <button class="appointment-tab active" data-tab="all" onclick="filterStaffAppointments('all')">
+          <i class="fas fa-list"></i> All
+          <span class="tab-count" id="staffAllCount">0</span>
+        </button>
+        <button class="appointment-tab" data-tab="pending" onclick="filterStaffAppointments('pending')">
+          <i class="fas fa-hourglass-half"></i> Pending
+          <span class="tab-count" id="staffPendingCount" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">0</span>
+        </button>
+        <button class="appointment-tab" data-tab="confirmed" onclick="filterStaffAppointments('confirmed')">
+          <i class="fas fa-check-circle"></i> Confirmed
+          <span class="tab-count" id="staffConfirmedCount" style="background: rgba(123, 160, 91, 0.15); color: #5a7a3f;">0</span>
+        </button>
+        <button class="appointment-tab" data-tab="completed" onclick="filterStaffAppointments('completed')">
+          <i class="fas fa-flag-checkered"></i> Completed
+          <span class="tab-count" id="staffCompletedCount" style="background: rgba(123, 160, 91, 0.15); color: #5a7a3f;">0</span>
+        </button>
+        <button class="appointment-tab" data-tab="cancelled" onclick="filterStaffAppointments('cancelled')">
+          <i class="fas fa-times-circle"></i> Cancelled
+          <span class="tab-count" id="staffCancelledCount" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">0</span>
+        </button>
+      </div>
+
+      <div class="appointments-table-wrapper">
+        <table class="appointments-table">
+          <thead>
+            <tr>
+              <th style="white-space: nowrap;">Date</th>
+              <th style="white-space: nowrap;">Time</th>
+              <th style="width: 50px;">ID</th>
+              <th>Pet</th>
+              <th>Customer</th>
+              <th>Services</th>
+              <th>Status</th>
+              <th>Payment</th>
+              <th style="min-width: 180px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="staffAppointmentsTableBody">
+            <tr>
+              <td colspan="9" style="text-align: center; color: #94a387; padding: 40px;">
+                <i class="fas fa-spinner fa-spin"></i> Loading appointments...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div id="appointmentEmptyState" style="display: none; text-align: center; padding: 30px; color: #94a387;">
+        <div style="font-size: 40px; margin-bottom: 10px;"><i class="fas fa-search"></i></div>
+        <p style="font-size: 15px;">No appointments found matching your search.</p>
       </div>
     </div>
 
-    <!-- Chart 2: Pet Type Distribution -->
-    <div id="chart-pettypes" class="chart-container" style="display: none;">
-      <div class="card" style="padding: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-          <h3 style="color: #5a7a3f; font-size: 18px; margin: 0;"><i class="fas fa-paw"></i> Pet Types</h3>
-          <span style="color: #94a387; font-size: 12px;">Distribution</span>
-        </div>
-        <div style="height: 280px; position: relative; display: flex; justify-content: center; align-items: center;">
-          <canvas id="petTypeChart" style="max-width: 350px; max-height: 280px;"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- Chart 3: Appointment Status -->
-    <div id="chart-status" class="chart-container" style="display: none;">
-      <div class="card" style="padding: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-          <h3 style="color: #5a7a3f; font-size: 18px; margin: 0;"><i class="fas fa-chart-bar"></i> Appointment Status</h3>
-          <span style="color: #94a387; font-size: 12px;">Overview</span>
-        </div>
-        <div style="height: 280px; position: relative;">
-          <canvas id="appointmentStatusChart"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- Chart 4: Monthly Growth -->
-    <div id="chart-growth" class="chart-container" style="display: none;">
-      <div class="card" style="padding: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-          <h3 style="color: #5a7a3f; font-size: 18px; margin: 0;"><i class="fas fa-chart-line"></i> Monthly Growth</h3>
-          <span style="color: #94a387; font-size: 12px;">This year</span>
-        </div>
-        <div style="height: 280px; position: relative;">
-          <canvas id="monthlyGrowthChart"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── QUICK STATS / SUMMARY CARDS ────────────────────────────── -->
+    <!-- ✅ 4 STAT CARDS SA IBABA — NASA LABAS NG CARD -->
     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 25px;">
       <div style="background: #ffffff; border-radius: 12px; padding: 16px; border: 1px solid #d4e5c4; text-align: center;">
         <div style="font-size: 22px; margin-bottom: 2px; color: #7ba05b;"><i class="fas fa-chart-bar"></i></div>
@@ -345,7 +1144,7 @@
       <div style="background: #ffffff; border-radius: 12px; padding: 16px; border: 1px solid #d4e5c4; text-align: center;">
         <div style="font-size: 22px; margin-bottom: 2px; color: #7ba05b;"><i class="fas fa-users"></i></div>
         <div style="color: #8b5cf6; font-size: 20px; font-weight: 700;" id="newCustomersThisMonth">0</div>
-        <div style="color: #94a387; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">New Customers</div>
+        <div style="color: #94a387; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">New Customers This Month</div>
       </div>
       <div style="background: #ffffff; border-radius: 12px; padding: 16px; border: 1px solid #d4e5c4; text-align: center;">
         <div style="font-size: 22px; margin-bottom: 2px; color: #7ba05b;"><i class="fas fa-check-circle"></i></div>
@@ -355,34 +1154,30 @@
     </div>
   </div>
 
-  <!-- ── CUSTOMERS TAB CONTENT ────────────────────────────────────── -->
   <div id="customerSection" style="display: none;">
     <div class="card">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+      <div class="customer-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
         <div>
           <h2><i class="fas fa-users"></i> Registered Customers</h2>
-          <p style="color: #4a5a3f; font-size: 14px; margin: 5px 0 0;">
+          <p style="color: #94a3b8; font-size: 14px; margin: 5px 0 0;">
             All registered customers (pet owners) with accounts in the system.
           </p>
         </div>
         
-        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-          <!-- Search Bar -->
-          <div style="display: flex; align-items: center; gap: 8px; background: #f7fbf3; border: 1px solid #d4e5c4; border-radius: 12px; padding: 4px 12px; min-width: 200px; transition: 0.3s;" 
-              id="customerSearchWrapper">
-            <span style="color: #94a387; font-size: 16px;"><i class="fas fa-search"></i></span>
-            <input type="text" id="customerSearchInput" placeholder="Search by name or email..." 
-                  style="background: transparent; border: none; color: #2d3e1f; padding: 8px 4px; font-size: 13px; width: 100%; outline: none; font-family: 'Poppins', sans-serif;">
-            <button onclick="clearCustomerSearch()" id="clearCustomerSearchBtn" 
-                    style="background: transparent; border: none; color: #94a387; cursor: pointer; font-size: 16px; display: none; padding: 4px;">
+        <div class="customer-search-wrap">
+          <div class="search-wrapper" id="customerSearchWrapper">
+            <span class="search-icon"><i class="fas fa-search"></i></span>
+            <input type="text" id="customerSearchInput" placeholder="Search by name or email..." class="search-input">
+            <button onclick="clearCustomerSearch()" id="clearCustomerSearchBtn" class="clear-search-btn">
               <i class="fas fa-times"></i>
             </button>
           </div>
+          <span id="customerSearchResultCount">0 customers</span>
         </div>
       </div>
       
-      <div style="overflow-x: auto;">
-        <table>
+      <div class="table-wrapper">
+        <table class="responsive-table">
           <thead>
             <tr>
               <th>ID</th>
@@ -394,45 +1189,23 @@
               <th>Created At</th>
             </tr>
           </thead>
-          <tbody id="registeredCustomersTable">
-            {% for user in customers %}
-            <tr class="customer-row" data-name="{{ user.fullname or '' }}" data-email="{{ user.email }}">
-              <td>{{ user.id }}</td>
-              <td><strong class="customer-name">{{ user.fullname or '—' }}</strong></td>
-              <td><span class="truncate" title="{{ user.email }}">{{ user.email }}</span></td>
-              <td>{{ user.phone or '—' }}</td>
-              <td><span class="truncate" title="{{ user.address }}">{{ user.address or '—' }}</span></td>
-              <td>
-                <span class="role-badge 
-                  {% if user.role == 'admin' %}role-admin
-                  {% elif user.role == 'staff' %}role-staff
-                  {% elif user.role == 'vet' %}role-vet
-                  {% else %}role-user{% endif %}">
-                  {{ user.role }}
-                </span>
-              </td>
-              <td>{{ user.created_at }}</td>
-            </tr>
-            {% else %}
+          <tbody id="staffCustomersTableBody">
             <tr>
               <td colspan="7" style="text-align: center; color: #94a387; padding: 30px;">
-                No registered customers yet.
+                <i class="fas fa-spinner fa-spin"></i> Loading customers...
               </td>
             </tr>
-            {% endfor %}
           </tbody>
         </table>
       </div>
       
-      <!-- Empty state for search -->
-      <div id="customerEmptyState" style="display: none; text-align: center; padding: 30px; color: #94a387;">
+      <div id="customerEmptyState" style="display: none; text-align: center; padding: 30px; color: #64748b;">
         <div style="font-size: 40px; margin-bottom: 10px;"><i class="fas fa-search"></i></div>
         <p style="font-size: 15px;">No customers found matching your search.</p>
       </div>
     </div>
   </div>
 
-  <!-- ── PETS TAB CONTENT ──────────────────────────────────────────── -->
   <div id="petSection" style="display: none;">
     <div class="card">
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
@@ -444,7 +1217,6 @@
           </p>
         </div>
         
-        <!-- Search Bar -->
         <div style="display: flex; align-items: center; gap: 8px; background: #f7fbf3; border: 1px solid #d4e5c4; border-radius: 12px; padding: 4px 12px; min-width: 200px; transition: 0.3s;" 
             id="petSearchWrapper">
           <span style="color: #94a387; font-size: 16px;"><i class="fas fa-search"></i></span>
@@ -482,7 +1254,6 @@
         </table>
       </div>
       
-      <!-- Empty state for search -->
       <div id="petEmptyState" style="display: none; text-align: center; padding: 30px; color: #94a387;">
         <div style="font-size: 40px; margin-bottom: 10px;"><i class="fas fa-search"></i></div>
         <p style="font-size: 15px;">No pets found matching your search.</p>
@@ -490,92 +1261,6 @@
     </div>
   </div>
 
-  <!-- ── APPOINTMENTS TAB CONTENT ──────────────────────────────────── -->
-  <div id="appointmentsSection" style="display: none;">
-    <div class="card" style="padding: 25px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
-        <div>
-          <h2 style="color: #5a7a3f; font-size: 24px; margin: 0;"><i class="fas fa-calendar-check"></i> Appointment Management</h2>
-          <p style="color: #4a5a3f; font-size: 14px; margin: 5px 0 0;">
-            Manage all customer appointments. Confirm, complete, or cancel appointments.
-          </p>
-        </div>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-          <!-- Search Bar -->
-          <div style="display: flex; align-items: center; gap: 8px; background: #f7fbf3; border: 1px solid #d4e5c4; border-radius: 12px; padding: 4px 12px; min-width: 180px; transition: 0.3s;" 
-              id="appointmentSearchWrapper">
-            <span style="color: #94a387; font-size: 16px;"><i class="fas fa-search"></i></span>
-            <input type="text" id="appointmentSearchInput" placeholder="Search pet or customer..." 
-                  style="background: transparent; border: none; color: #2d3e1f; padding: 8px 4px; font-size: 13px; width: 100%; outline: none; font-family: 'Poppins', sans-serif;">
-            <button onclick="clearAppointmentSearch()" id="clearAppointmentSearchBtn" 
-                    style="background: transparent; border: none; color: #94a387; cursor: pointer; font-size: 16px; display: none; padding: 4px;">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-          <button onclick="refreshAppointments()" style="background: #7ba05b; color: #ffffff; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 14px;">
-            <i class="fas fa-sync-alt"></i> Refresh
-          </button>
-        </div>
-      </div>
-      
-      <!-- ── APPOINTMENT TABS ────────────────────────────────────── -->
-      <div class="appointment-tabs">
-        <button class="appointment-tab active" data-tab="all" onclick="filterStaffAppointments('all')">
-          <i class="fas fa-list"></i> All
-          <span class="tab-count" id="staffAllCount">0</span>
-        </button>
-        <button class="appointment-tab" data-tab="pending" onclick="filterStaffAppointments('pending')">
-          <i class="fas fa-hourglass-half"></i> Pending
-          <span class="tab-count" id="staffPendingCount" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">0</span>
-        </button>
-        <button class="appointment-tab" data-tab="confirmed" onclick="filterStaffAppointments('confirmed')">
-          <i class="fas fa-check-circle"></i> Confirmed
-          <span class="tab-count" id="staffConfirmedCount" style="background: rgba(123, 160, 91, 0.15); color: #5a7a3f;">0</span>
-        </button>
-        <button class="appointment-tab" data-tab="completed" onclick="filterStaffAppointments('completed')">
-          <i class="fas fa-flag-checkered"></i> Completed
-          <span class="tab-count" id="staffCompletedCount" style="background: rgba(123, 160, 91, 0.15); color: #5a7a3f;">0</span>
-        </button>
-        <button class="appointment-tab" data-tab="cancelled" onclick="filterStaffAppointments('cancelled')">
-          <i class="fas fa-times-circle"></i> Cancelled
-          <span class="tab-count" id="staffCancelledCount" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">0</span>
-        </button>
-      </div>
-
-      <!-- ── APPOINTMENTS TABLE ──────────────────────────────────── -->
-      <div class="appointments-table-wrapper">
-        <table class="appointments-table">
-          <thead>
-            <tr>
-              <th style="white-space: nowrap;">Date</th>
-              <th style="white-space: nowrap;">Time</th>
-              <th style="width: 50px;">ID</th>
-              <th>Pet</th>
-              <th>Customer</th>
-              <th>Services</th>
-              <th>Status</th>
-              <th style="min-width: 180px;">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="staffAppointmentsTableBody">
-            <tr>
-              <td colspan="8" style="text-align: center; color: #94a387; padding: 40px;">
-                <i class="fas fa-spinner fa-spin"></i> Loading appointments...
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      
-      <!-- Empty state for search -->
-      <div id="appointmentEmptyState" style="display: none; text-align: center; padding: 30px; color: #94a387;">
-        <div style="font-size: 40px; margin-bottom: 10px;"><i class="fas fa-search"></i></div>
-        <p style="font-size: 15px;">No appointments found matching your search.</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── MESSAGES TAB CONTENT WITH SEARCH ───────────────────────────── -->
   <div id="messagesSection" style="display: none;">
     <div class="card" id="messagesCard">
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
@@ -584,11 +1269,9 @@
       </div>
       
       <div id="messagesGrid" style="display: grid; grid-template-columns: 300px 1fr; gap: 20px; min-height: 400px;">
-        <!-- Customer List -->
         <div id="customerListWrapper" style="background: #f7fbf3; border-radius: 12px; border: 1px solid #d4e5c4; overflow: hidden; display: flex; flex-direction: column;">
           <div style="padding: 15px; border-bottom: 1px solid #d4e5c4; background: #ffffff; flex-shrink: 0;">
             <h4 style="color: #4a5a3f; font-size: 13px; margin: 0;">Customers</h4>
-            <!-- ✅ SEARCH BAR -->
             <div style="display: flex; align-items: center; gap: 8px; background: #f7fbf3; border: 1px solid #d4e5c4; border-radius: 8px; padding: 4px 10px; margin-top: 8px; transition: 0.3s;" 
                  id="staffSearchWrapper">
               <span style="color: #94a387; font-size: 14px;"><i class="fas fa-search"></i></span>
@@ -599,7 +1282,6 @@
                 <i class="fas fa-times"></i>
               </button>
             </div>
-            <!-- ✅ RESULT COUNT -->
             <span id="staffSearchResultCount" style="color: #94a387; font-size: 11px; display: block; margin-top: 4px;">0 customers</span>
           </div>
           <div id="customerList" style="flex: 1; overflow-y: auto; max-height: 400px; min-height: 300px;">
@@ -609,7 +1291,6 @@
           </div>
         </div>
         
-        <!-- Conversation -->
         <div id="conversationWrapper" style="background: #f7fbf3; border-radius: 12px; border: 1px solid #d4e5c4; display: flex; flex-direction: column;">
           <div id="conversationHeader" style="padding: 15px; border-bottom: 1px solid #d4e5c4; background: #ffffff; flex-shrink: 0;">
             <span style="color: #94a387;">Select a customer to view messages</span>
@@ -635,10 +1316,8 @@
   </div>
 </div>
 
-<!-- ── MESSAGE ──────────────────────────────────────────────────────── -->
 <div id="message" class="message"></div>
 
-<!-- ── LOGOUT MODAL ────────────────────────────────────────────────── -->
 <div id="logoutModal" class="modal-overlay" style="display: none;">
   <div class="modal-popup" style="max-width: 400px;">
     <div style="text-align: center;">
@@ -652,8 +1331,142 @@
     </div>
   </div>
 </div>
-  
+
+<!-- ═══════════════════════════════════════════════════════════════
+     ✏️ EDIT PET MODAL — Katulad ng Customer UI (may Allergy Options)
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="editPetModal" class="modal-overlay" style="display: none;">
+  <div class="modal-popup" style="max-width: 580px; position: relative;">
+    <!-- ✅ X CLOSE BUTTON -->
+    <button type="button" class="modal-close-x" onclick="closeEditPetModal()" title="Close">✕</button>
+    
+    <div style="text-align: center; margin-bottom: 25px;">
+      <div style="font-size: 48px; margin-bottom: 8px;">
+        <i class="fas fa-pen-to-square" style="color: #7ba05b;"></i>
+      </div>
+      <h3>Edit Pet Details</h3>
+      <p class="modal-subtitle">
+        <i class="fas fa-paw"></i> Update your pet's information
+      </p>
+    </div>
+    <div class="divider-gradient"></div>
+    
+    <form id="editPetForm" onsubmit="updatePet(event)">
+      <input type="hidden" id="editPetId">
+      
+      <!-- ── Row 1: Name + Type ─────────────────────────────── -->
+      <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="form-group">
+          <label for="editPetName"><i class="fas fa-tag"></i> Pet Name <span style="color: #ef4444;">*</span></label>
+          <input type="text" id="editPetName" placeholder="Enter pet name" required>
+        </div>
+        <div class="form-group">
+          <label for="editPetType">
+            <i class="fas fa-paw"></i> Pet Type 
+            <span style="color: #ef4444;">*</span>
+            <span style="font-size: 10px; color: #94a3b8; font-weight: 400; margin-left: 6px;">(Cannot be changed)</span>
+          </label>
+          <select id="editPetType" disabled
+                  style="cursor: not-allowed; opacity: 0.7; background: #ececec;">
+            <option value="Dog">Dog</option>
+            <option value="Cat">Cat</option>
+          </select>
+          <small style="color: #94a3b8; font-size: 11px;">
+            <i class="fas fa-lock"></i> Pet type cannot be changed after registration
+          </small>
+        </div>
+      </div>
+
+      <!-- ── Row 2: Breed + Age ─────────────────────────────── -->
+      <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+        <div class="form-group">
+          <label for="editPetBreed"><i class="fas fa-dna"></i> Breed</label>
+          <input type="text" id="editPetBreed" placeholder="e.g., Labrador, Persian">
+        </div>
+        <div class="form-group">
+          <label for="editPetAge"><i class="fas fa-calendar-alt"></i> Age</label>
+          <div style="display: flex; gap: 8px; align-items: stretch;">
+            <input type="number" id="editPetAge" placeholder="e.g., 2" min="0" max="360" style="flex: 1; min-width: 0;">
+            <select id="editPetAgeUnit" style="width: 120px; flex-shrink: 0; padding: 12px 16px; background: #f7fbf3; border: 1px solid #d4e5c4; border-radius: 12px; color: #2d3e1f; font-size: 14px; font-family: 'Poppins', sans-serif; cursor: pointer;">
+              <option value="years" selected>Years</option>
+              <option value="months">Months</option>
+            </select>
+          </div>
+          <span style="font-size: 11px; color: #94a387; display: block; margin-top: 4px;">
+            <i class="fas fa-info-circle"></i> Pumili ng unit: Years o Months
+          </span>
+        </div>
+      </div>
+
+      <!-- ── Row 3: Gender + Weight ─────────────────────────── -->
+      <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+        <div class="form-group">
+          <label for="editPetGender"><i class="fas fa-venus-mars"></i> Gender</label>
+          <select id="editPetGender">
+            <option value="">Select...</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="editPetWeight"><i class="fas fa-weight"></i> Weight (kg)</label>
+          <input type="number" id="editPetWeight" placeholder="e.g., 15" min="0" step="0.5">
+        </div>
+      </div>
+
+      <!-- ── Row 4: Color ────────────────────────────────────── -->
+      <div class="form-group" style="margin-top: 15px;">
+        <label for="editPetColor"><i class="fas fa-palette"></i> Color</label>
+        <input type="text" id="editPetColor" placeholder="e.g., Brown, White, Black">
+      </div>
+
+      <!-- ── Allergies Section ──────────────────────────────── -->
+      <div class="form-group" style="margin-top: 15px;">
+        <label><i class="fas fa-exclamation-triangle"></i> Allergies</label>
+        <div id="editPetAllergiesContainer">
+          <div style="padding: 12px 16px; background: #f8fafc; border: 2px dashed #e2e8f0; border-radius: 10px; text-align: center; color: #94a3b8; font-size: 13px;">
+            <i class="fas fa-lock"></i> Please select a Pet Type first
+          </div>
+        </div>
+        <input type="hidden" id="editPetAllergies" value="">
+      </div>
+
+      <!-- ── Medical History ───────────────────────────────── -->
+      <div class="form-group" style="margin-top: 15px;">
+        <label for="editPetMedicalHistory"><i class="fas fa-notes-medical"></i> Medical History</label>
+        <textarea id="editPetMedicalHistory" placeholder="Any existing medical conditions..." rows="2"></textarea>
+        <span style="font-size: 11px; color: #94a387; display: block; margin-top: 4px;">
+          <i class="fas fa-info-circle"></i> Leave blank if none
+        </span>
+      </div>
+
+      <!-- ── Action Buttons ────────────────────────────────── -->
+      <div class="modal-buttons" style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
+        <button type="button" class="modal-btn modal-btn-cancel" onclick="closeEditPetModal()">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button type="submit" class="modal-btn modal-btn-submit" id="editPetSubmitBtn">
+          <i class="fas fa-save"></i> Update Pet
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     🖼️ STAFF IMAGE VIEWER MODAL — Para sa customer profile pictures
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="staffImageViewer" onclick="closeStaffImageViewer(event)" 
+     style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.85); z-index: 9999; align-items: center; 
+            justify-content: center; cursor: pointer;">
+  <span class="close-viewer" onclick="closeStaffImageViewer(event)" 
+        style="position: absolute; top: 20px; right: 30px; color: #fff; font-size: 40px; 
+               font-weight: bold; cursor: pointer; line-height: 1;">&times;</span>
+  <img id="staffViewerImage" src="" alt="Profile" 
+       style="max-width: 90%; max-height: 90%; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+</div>
 
 <script src="{{ url_for('static', filename='js/staff.js') }}"></script>
-</body>
+</body> 
 </html>

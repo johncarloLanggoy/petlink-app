@@ -675,9 +675,34 @@
                     localStorage.removeItem('pendingVerificationEmail');
                     sessionStorage.removeItem('pendingVerificationEmail');
 
-                    setTimeout(() => {
-                        window.location.href = '/staff?tab=customers';
-                    }, 1500);
+                    // ═══════════════════════════════════════════════════════
+                    // ✅ AUTO-LOGIN: I-save ang token at role, tapos redirect
+                    // ═══════════════════════════════════════════════════════
+                    if (data.auto_login) {
+                        // Save email
+                        localStorage.setItem('email', data.email);
+                        sessionStorage.setItem('email', data.email);
+                        
+                        // Save JWT token
+                        if (data.token) {
+                            localStorage.setItem('jwt_token', data.token);
+                            sessionStorage.setItem('jwt_token', data.token);
+                        }
+                        
+                        // Save role
+                        localStorage.setItem('role', data.role);
+                        sessionStorage.setItem('role', data.role);
+                        
+                        // Redirect to dashboard based on role
+                        setTimeout(() => {
+                            window.location.href = data.redirect_url || '/dashboard';
+                        }, 1500);
+                    } else {
+                        // Fallback — kung walang auto_login flag, pumunta sa login
+                        setTimeout(() => {
+                            window.location.href = '/login';
+                        }, 1500);
+                    }
                 } else {
                     showMessage('❌ ' + data.message, 'error');
                     btn.innerHTML = '<i class="fas fa-check"></i> Verify';

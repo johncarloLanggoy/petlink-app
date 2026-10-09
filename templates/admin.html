@@ -11,23 +11,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- ⭐ PRE-APPLY THEME BAGO MAG-RENDER para walang flash -->
-  <script>
-    (function() {
-      try {
-        const savedTheme = localStorage.getItem('adminTheme');
-        const html = document.documentElement;
-        if (savedTheme === 'light') {
-          html.classList.add('light-theme');
-          html.classList.remove('dark-theme');
-        } else {
-          html.classList.add('dark-theme');
-          html.classList.remove('light-theme');
-        }
-      } catch (e) {}
-    })();
-  </script>
-
   <style>
     .user-filter-btn {
       transition: all 0.3s ease !important;
@@ -120,16 +103,10 @@
       font-size: 32px !important;
       color: #7ba05b !important;
     }
-    body.dark-theme .stat-card .stat-icon i {
-      color: #38bdf8 !important;
-    }
 
     /* ── QUICK STAT ICONS ─────────────────────────────────────────── */
     .quick-stat-icon i {
       color: #7ba05b !important;
-    }
-    body.dark-theme .quick-stat-icon i {
-      color: #38bdf8 !important;
     }
 
     /* ── DASH NAV BUTTON ICONS ────────────────────────────────────── */
@@ -137,28 +114,80 @@
       margin-right: 6px !important;
     }
 
-    @media (max-width: 768px) {
-      .user-filter-btn {
-        font-size: 11px !important;
-        padding: 6px 14px !important;
-      }
-      #searchWrapper {
-        min-width: 140px !important;
-        width: 100% !important;
-      }
-      .user-filter-tabs {
-        flex-wrap: wrap !important;
-      }
-      #adminSearchWrapper {
-        width: 100% !important;
-      }
+    /* ═══════════════════════════════════════════════════════════════
+       🎨 USER MANAGEMENT TABLE — SCROLLABLE (LIGHT THEME)
+       ═══════════════════════════════════════════════════════════════ */
+    .user-table-wrapper {
+      max-height: 600px;
+      overflow-y: auto;
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid #d4e5c4;
+      position: relative;
     }
-    @media (max-width: 480px) {
-      .user-filter-btn {
-        font-size: 10px !important;
-        padding: 4px 10px !important;
-      }
+
+    .user-table-wrapper::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
     }
+
+    .user-table-wrapper::-webkit-scrollbar-track {
+      background: #f7fbf3;
+      border-radius: 10px;
+    }
+
+    .user-table-wrapper::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #7ba05b, #5a7a3f);
+      border-radius: 10px;
+      border: 1px solid #f7fbf3;
+    }
+
+    .user-table-wrapper::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, #5a7a3f, #4a6b32);
+    }
+
+    .user-table-wrapper table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+    }
+
+    .user-table-wrapper thead {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: #f7fbf3;
+    }
+
+    .user-table-wrapper thead th {
+      background: #f7fbf3;
+      padding: 14px 16px;
+      text-align: left;
+      color: #5a7a3f;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid #d4e5c4;
+      white-space: nowrap;
+    }
+
+    .user-table-wrapper tbody td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #eaf3e0;
+      color: #2d3e1f;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+
+    .user-table-wrapper tbody tr {
+      transition: background 0.2s ease;
+    }
+
+    .user-table-wrapper tbody tr:hover {
+      background: rgba(123, 160, 91, 0.04);
+    }
+
     /* ── Customer Avatar (clickable) ─────────────────────────── */
     .customer-item .avatar {
         position: relative;
@@ -183,15 +212,20 @@
     #adminConversationHeader .header-avatar {
         width: 40px;
         height: 40px;
+        min-width: 40px;
+        max-width: 40px;
+        flex: 0 0 40px;
         border-radius: 50%;
         overflow: hidden;
         cursor: pointer;
         flex-shrink: 0;
+        flex-grow: 0;
         transition: transform 0.2s ease;
         display: flex;
         align-items: center;
         justify-content: center;
         background: rgba(56, 189, 248, 0.15);
+        box-sizing: border-box;
     }
 
     #adminConversationHeader .header-avatar img {
@@ -215,7 +249,7 @@
         width: 100vw !important;
         height: 100vh !important;
         background: rgba(0, 0, 0, 0.85);
-        z-index: 2147483647 !important;  /* Maximum possible z-index */
+        z-index: 2147483647 !important;
         align-items: center;
         justify-content: center;
         cursor: pointer;
@@ -254,9 +288,1127 @@
         from { opacity: 0; }
         to { opacity: 1; }
     }
+
+    /* ═══════════════════════════════════════════════════════════════
+       📱 MOBILE RESPONSIVE — USER MANAGEMENT TABLE
+       ═══════════════════════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+
+        /* ── Main padding ────────────────────────────────────────── */
+        .main {
+            padding: 70px 14px 24px !important;
+        }
+
+        /* ── Main Header ─────────────────────────────────────────── */
+        .main-header {
+            margin-bottom: 20px !important;
+        }
+
+        .main-header h1 {
+            font-size: 22px !important;
+            line-height: 1.3 !important;
+        }
+
+        .main-header p {
+            font-size: 13px !important;
+            line-height: 1.5 !important;
+        }
+
+        /* ── Section Users Card ──────────────────────────────────── */
+        #section-users .card {
+            padding: 16px 14px !important;
+            border-radius: 16px !important;
+        }
+
+        /* ── User Management Bar ─────────────────────────────────── */
+        .user-management-bar {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 12px !important;
+            padding: 12px 10px !important;
+            margin-bottom: 16px !important;
+        }
+
+        .user-filter-tabs {
+            width: 100% !important;
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 6px !important;
+        }
+
+        .user-filter-btn {
+            font-size: 11px !important;
+            padding: 8px 6px !important;
+            width: 100% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            white-space: nowrap !important;
+            border-radius: 8px !important;
+            gap: 4px !important;
+        }
+
+        .user-filter-btn i {
+            font-size: 11px !important;
+            margin-right: 0 !important;
+        }
+
+        #searchWrapper {
+            width: 100% !important;
+            min-width: 0 !important;
+            padding: 10px 14px !important;
+            border-radius: 10px !important;
+        }
+
+        #userSearchInput {
+            font-size: 13px !important;
+        }
+
+        #userResultCount {
+            text-align: right !important;
+            font-size: 11px !important;
+            padding-right: 4px !important;
+        }
+
+        /* ── User Table Wrapper ──────────────────────────────────── */
+        .user-table-wrapper {
+            max-height: none !important;
+            overflow: visible !important;
+            border: none !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+        }
+
+        .user-table-wrapper::-webkit-scrollbar {
+            display: none !important;
+        }
+
+        /* ── Table → Card Layout ─────────────────────────────────── */
+        .user-table-wrapper table {
+            display: block !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            border-collapse: separate !important;
+            border-spacing: 0 !important;
+        }
+
+        .user-table-wrapper thead {
+            display: none !important;
+            position: static !important;
+        }
+
+        .user-table-wrapper tbody {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 12px !important;
+            width: 100% !important;
+        }
+
+        /* ── Each User Row → Card ────────────────────────────────── */
+        .user-table-wrapper tbody tr {
+            display: flex !important;
+            flex-direction: column !important;
+            background: #ffffff !important;
+            border: 1px solid #d4e5c4 !important;
+            border-left: 4px solid #7ba05b !important;
+            border-radius: 14px !important;
+            padding: 16px !important;
+            gap: 8px !important;
+            box-shadow: 0 2px 8px rgba(123, 160, 91, 0.06) !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            transition: all 0.3s ease !important;
+            margin: 0 !important;
+        }
+
+        .user-table-wrapper tbody tr:hover {
+            border-color: #7ba05b !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(123, 160, 91, 0.12) !important;
+            background: #f7fbf3 !important;
+        }
+
+        /* ── Each Cell → Row with Label ──────────────────────────── */
+        .user-table-wrapper tbody td {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: flex-start !important;
+            border: none !important;
+            padding: 6px 0 !important;
+            font-size: 13px !important;
+            color: #2d3e1f !important;
+            text-align: right !important;
+            gap: 12px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            min-width: 0 !important;
+            word-break: break-word !important;
+            overflow-wrap: anywhere !important;
+            border-bottom: 1px dashed #eaf3e0 !important;
+            vertical-align: middle !important;
+        }
+
+        .user-table-wrapper tbody td:last-child {
+            border-bottom: none !important;
+            padding-bottom: 0 !important;
+        }
+
+        /* ── Data Labels (left side) ─────────────────────────────── */
+        .user-table-wrapper tbody td::before {
+            content: attr(data-label) !important;
+            font-weight: 700 !important;
+            color: #5a7a3f !important;
+            font-size: 10px !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+            text-align: left !important;
+            flex-shrink: 0 !important;
+            white-space: nowrap !important;
+            min-width: 80px !important;
+        }
+
+        /* ── Cell Content (right side) ───────────────────────────── */
+        .user-table-wrapper tbody td > * {
+            min-width: 0 !important;
+            max-width: 100% !important;
+            word-break: break-word !important;
+            overflow-wrap: anywhere !important;
+            text-align: right !important;
+        }
+
+        /* ── Truncate override para sa mobile ────────────────────── */
+        .user-table-wrapper tbody td .truncate {
+            max-width: 100% !important;
+            width: auto !important;
+            display: inline !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+            overflow-wrap: anywhere !important;
+            text-align: right !important;
+        }
+
+        /* ── Name Cell (highlighted) ─────────────────────────────── */
+        .user-table-wrapper tbody td:nth-child(2) {
+            flex-direction: column !important;
+            align-items: center !important;
+            text-align: center !important;
+            gap: 8px !important;
+            padding: 8px 0 14px !important;
+            border-bottom: 2px solid #eaf3e0 !important;
+            order: -1 !important;
+        }
+
+        .user-table-wrapper tbody td:nth-child(2)::before {
+            content: '' !important;
+            display: none !important;
+        }
+
+        .user-table-wrapper tbody td:nth-child(2) .user-name-clickable {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            gap: 10px !important;
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .user-table-wrapper tbody td:nth-child(2) .user-name-clickable img,
+        .user-table-wrapper tbody td:nth-child(2) .user-name-clickable > div:first-child {
+            width: 60px !important;
+            height: 60px !important;
+            min-width: 60px !important;
+            max-width: 60px !important;
+            flex: 0 0 60px !important;
+            font-size: 24px !important;
+            border-width: 3px !important;
+            border-color: #7ba05b !important;
+            box-shadow: 0 4px 12px rgba(123, 160, 91, 0.2) !important;
+        }
+
+        .user-table-wrapper tbody td:nth-child(2) .user-name-clickable strong {
+            font-size: 16px !important;
+            font-weight: 700 !important;
+            color: #2d3e1f !important;
+            text-align: center !important;
+            line-height: 1.3 !important;
+            word-break: break-word !important;
+        }
+
+        /* ── Role Badge ──────────────────────────────────────────── */
+        .user-table-wrapper tbody .role-badge {
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
+            font-size: 11px !important;
+            padding: 4px 12px !important;
+            border-radius: 12px !important;
+        }
+
+        /* ── ID Cell ─────────────────────────────────────────────── */
+        .user-table-wrapper tbody td:first-child {
+            justify-content: center !important;
+            text-align: center !important;
+            background: #f7fbf3 !important;
+            border-radius: 8px !important;
+            padding: 6px 12px !important;
+            font-size: 11px !important;
+            color: #7ba05b !important;
+            font-weight: 700 !important;
+            border-bottom: none !important;
+            margin-bottom: 4px !important;
+            gap: 6px !important;
+        }
+
+        .user-table-wrapper tbody td:first-child::before {
+            content: 'ID: ' !important;
+            color: #7ba05b !important;
+            font-size: 10px !important;
+            font-weight: 700 !important;
+            min-width: auto !important;
+        }
+
+        /* ── Email/Address cells ─────────────────────────────────── */
+        .user-table-wrapper tbody td:nth-child(3),
+        .user-table-wrapper tbody td:nth-child(5) {
+            align-items: flex-start !important;
+        }
+
+        .user-table-wrapper tbody td:nth-child(3) .truncate,
+        .user-table-wrapper tbody td:nth-child(5) .truncate {
+            text-align: right !important;
+            font-size: 12px !important;
+            color: #4a5a3f !important;
+        }
+
+        /* ── Empty State ─────────────────────────────────────────── */
+        #userEmptyState {
+            padding: 30px 16px !important;
+        }
+
+        #userEmptyState > div {
+            font-size: 40px !important;
+        }
+
+        #userEmptyState p {
+            font-size: 14px !important;
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           📱 MOBILE — MESSAGES SLIDE-IN CONVERSATION
+           ═══════════════════════════════════════════════════════════ */
+
+        /* ── Main Header (Messages Section) ──────────────────────── */
+        #section-messages .main-header {
+            margin-bottom: 16px !important;
+        }
+
+        #section-messages .main-header h1 {
+            font-size: 22px !important;
+        }
+
+        #section-messages .main-header p {
+            font-size: 13px !important;
+        }
+
+        /* ── Messages Card ───────────────────────────────────────── */
+        #section-messages .card {
+            padding: 0 !important;
+            border-radius: 16px !important;
+            overflow: hidden !important;
+            margin-bottom: 0 !important;
+        }
+
+        #section-messages .card-header {
+            padding: 14px 16px !important;
+            margin-bottom: 0 !important;
+            border-bottom: 1px solid #d4e5c4 !important;
+        }
+
+        #section-messages .card-header h2 {
+            font-size: 18px !important;
+        }
+
+        /* ── Messages Grid — Position Relative Container ─────────── */
+        #section-messages .messages-grid {
+            position: relative !important;
+            display: block !important;
+            overflow: hidden !important;
+            height: calc(100vh - 240px) !important;
+            min-height: 480px !important;
+            max-height: 700px !important;
+            padding: 0 !important;
+            gap: 0 !important;
+            border-radius: 0 0 16px 16px !important;
+            background: #ffffff !important;
+        }
+
+        /* ── Customer List Wrapper (Default View) ────────────────── */
+        #section-messages .customer-list-wrapper {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            max-height: none !important;
+            z-index: 10 !important;
+            border-radius: 0 !important;
+            border: none !important;
+            background: #ffffff !important;
+            display: flex !important;
+            flex-direction: column !important;
+            transition: transform 0.3s ease, opacity 0.3s ease !important;
+            overflow: hidden !important;
+        }
+
+        #section-messages .customer-list-wrapper .customer-list-header {
+            padding: 16px 18px !important;
+            background: #ffffff !important;
+            border-bottom: 1px solid #eaf3e0 !important;
+            flex-shrink: 0 !important;
+            border-radius: 0 !important;
+        }
+
+        #section-messages .customer-list-wrapper .customer-list-header h4 {
+            color: #2d3e1f !important;
+            font-size: 17px !important;
+            font-weight: 700 !important;
+            margin: 0 0 10px 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+        }
+
+        #section-messages .customer-list-wrapper .customer-list-header h4::before {
+            content: '\f0e6' !important;
+            font-family: 'Font Awesome 6 Free' !important;
+            font-weight: 900 !important;
+            color: #7ba05b !important;
+            font-size: 15px !important;
+        }
+
+        #section-messages .customer-list-wrapper .search-wrapper {
+            background: #f7fbf3 !important;
+            border: 1px solid #d4e5c4 !important;
+            border-radius: 10px !important;
+            padding: 4px 12px !important;
+            margin-top: 6px !important;
+            min-width: 0 !important;
+            width: 100% !important;
+            border-radius: 999px !important;
+        }
+
+        #section-messages .customer-list-wrapper .search-wrapper:focus-within {
+            border-color: #7ba05b !important;
+            box-shadow: 0 0 0 3px rgba(123, 160, 91, 0.15) !important;
+        }
+
+        #section-messages .customer-list-wrapper .search-wrapper .search-icon {
+            color: #7ba05b !important;
+            opacity: 0.8 !important;
+        }
+
+        #section-messages .customer-list-wrapper .search-input {
+            color: #2d3e1f !important;
+            font-size: 13px !important;
+            padding: 8px 4px !important;
+        }
+
+        #section-messages .customer-list-wrapper .search-input::placeholder {
+            color: #94a387 !important;
+        }
+
+        #section-messages #adminSearchResultCount {
+            color: #94a387 !important;
+            font-size: 11px !important;
+            padding: 4px 4px 0 !important;
+        }
+
+        /* ── Customer List Items ─────────────────────────────────── */
+        #section-messages .customer-list {
+            flex: 1 1 auto !important;
+            overflow-y: auto !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            background: #ffffff !important;
+            padding: 0 !important;
+        }
+
+        #section-messages .customer-list::-webkit-scrollbar {
+            width: 6px !important;
+        }
+        #section-messages .customer-list::-webkit-scrollbar-track {
+            background: transparent !important;
+        }
+        #section-messages .customer-list::-webkit-scrollbar-thumb {
+            background: #cbd5c0 !important;
+            border-radius: 10px !important;
+        }
+
+        #section-messages .customer-item {
+            padding: 14px 18px !important;
+            border-bottom: 1px solid #eaf3e0 !important;
+            cursor: pointer !important;
+            transition: background 0.2s ease !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 14px !important;
+            border-left: 3px solid transparent !important;
+            background: #ffffff !important;
+        }
+
+        #section-messages .customer-item:last-child {
+            border-bottom: none !important;
+        }
+
+        #section-messages .customer-item:hover {
+            background: #f7fbf3 !important;
+        }
+
+        #section-messages .customer-item.active {
+            background: rgba(123, 160, 91, 0.08) !important;
+            border-left-color: #7ba05b !important;
+        }
+
+        #section-messages .customer-item .avatar {
+            width: 48px !important;
+            height: 48px !important;
+            min-width: 48px !important;
+            max-width: 48px !important;
+            flex: 0 0 48px !important;
+            border-radius: 50% !important;
+            background: linear-gradient(135deg, rgba(123, 160, 91, 0.15), rgba(90, 122, 63, 0.15)) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 20px !important;
+            flex-shrink: 0 !important;
+            color: #5a7a3f !important;
+            overflow: hidden !important;
+            box-sizing: border-box !important;
+        }
+
+        #section-messages .customer-item .avatar img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            border-radius: 50% !important;
+        }
+
+        #section-messages .customer-item .info {
+            flex: 1 !important;
+            min-width: 0 !important;
+        }
+
+        #section-messages .customer-item .info .name {
+            color: #2d3e1f !important;
+            font-size: 15px !important;
+            font-weight: 600 !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            margin-bottom: 3px !important;
+        }
+
+        #section-messages .customer-item .info .email {
+            color: #94a387 !important;
+            font-size: 11px !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+
+        #section-messages .customer-item .unread-badge {
+            background: #ef4444 !important;
+            color: #ffffff !important;
+            padding: 3px 9px !important;
+            border-radius: 12px !important;
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            margin-left: auto !important;
+            flex-shrink: 0 !important;
+        }
+
+        /* ── Conversation Wrapper (Slide-in View) ────────────────── */
+        #section-messages .conversation-wrapper {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            z-index: 20 !important;
+            background: #f7fbf3 !important;
+            border-radius: 0 !important;
+            border: none !important;
+            display: flex !important;
+            flex-direction: column !important;
+            transition: transform 0.3s ease !important;
+            overflow: hidden !important;
+            transform: translateX(100%) !important;
+        }
+
+        /* Show conversation when has-active class is added */
+        #section-messages .messages-grid.has-active-conversation .conversation-wrapper {
+            transform: translateX(0) !important;
+        }
+
+        #section-messages .messages-grid.has-active-conversation .customer-list-wrapper {
+            transform: translateX(-100%) !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        /* ── Conversation Header (Messenger Style with Back) ─────── */
+        #section-messages #adminConversationHeader {
+            padding: 10px 14px 10px 54px !important;
+            background: #ffffff !important;
+            border-bottom: 1px solid #eaf3e0 !important;
+            flex-shrink: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            position: relative !important;
+            box-shadow: 0 2px 8px rgba(123, 160, 91, 0.04) !important;
+            min-height: 60px !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Back button (pseudo-element) */
+        #section-messages #adminConversationHeader::before {
+            content: '←' !important;
+            position: absolute !important;
+            left: 10px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            font-size: 20px !important;
+            color: #7ba05b !important;
+            cursor: pointer !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 36px !important;
+            height: 36px !important;
+            border-radius: 50% !important;
+            background: rgba(123, 160, 91, 0.1) !important;
+            font-weight: bold !important;
+            line-height: 1 !important;
+            z-index: 1 !important;
+            transition: background 0.2s ease !important;
+        }
+
+        #section-messages #adminConversationHeader > div {
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            min-width: 0 !important;
+            flex: 1 !important;
+            width: 100% !important;
+        }
+
+        /* ── FIXED: Header Avatar — Perfect Circle (Hindi na oval) ── */
+        #section-messages #adminConversationHeader .header-avatar {
+            width: 42px !important;
+            height: 42px !important;
+            min-width: 42px !important;
+            max-width: 42px !important;
+            flex: 0 0 42px !important;
+            flex-shrink: 0 !important;
+            flex-grow: 0 !important;
+            border-radius: 50% !important;
+            background: linear-gradient(135deg, rgba(123, 160, 91, 0.15), rgba(90, 122, 63, 0.15)) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 18px !important;
+            color: #5a7a3f !important;
+            overflow: hidden !important;
+            cursor: pointer !important;
+            box-sizing: border-box !important;
+            aspect-ratio: 1 / 1 !important;
+        }
+
+        #section-messages #adminConversationHeader .header-avatar img {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100% !important;
+            max-height: 100% !important;
+            object-fit: cover !important;
+            border-radius: 50% !important;
+            display: block !important;
+        }
+
+        #section-messages #adminConversationHeader .header-avatar i {
+            font-size: 18px !important;
+            color: #7ba05b !important;
+            line-height: 1 !important;
+        }
+
+        #section-messages #adminConversationHeader > div > div {
+            min-width: 0 !important;
+            flex: 1 !important;
+        }
+
+        #section-messages #adminConversationHeader > div > div > div:first-child {
+            font-size: 15px !important;
+            font-weight: 600 !important;
+            color: #2d3e1f !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            line-height: 1.2 !important;
+        }
+
+        #section-messages #adminConversationHeader > div > div > div:last-child {
+            font-size: 12px !important;
+            color: #94a387 !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            line-height: 1.2 !important;
+            margin-top: 2px !important;
+        }
+
+        /* ── Conversation Messages ───────────────────────────────── */
+        #section-messages #adminConversationMessages {
+            flex: 1 1 auto !important;
+            padding: 16px 14px !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            background: #eaf3e0 !important;
+            display: block !important;
+            -webkit-overflow-scrolling: touch !important;
+        }
+
+        #section-messages #adminConversationMessages::-webkit-scrollbar {
+            width: 6px !important;
+        }
+        #section-messages #adminConversationMessages::-webkit-scrollbar-track {
+            background: transparent !important;
+        }
+        #section-messages #adminConversationMessages::-webkit-scrollbar-thumb {
+            background: #cbd5c0 !important;
+            border-radius: 10px !important;
+        }
+
+        /* Message wrapper */
+        #section-messages #adminConversationMessages > div {
+            display: block !important;
+            width: 100% !important;
+            clear: both !important;
+            margin-bottom: 12px !important;
+            padding: 0 !important;
+            float: none !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
+        }
+
+        /* Bubble container */
+        #section-messages #adminConversationMessages > div > div {
+            display: inline-block !important;
+            max-width: 80% !important;
+            box-sizing: border-box !important;
+            vertical-align: top !important;
+            clear: both !important;
+            width: auto !important;
+        }
+
+        /* Admin (right-aligned) */
+        #section-messages #adminConversationMessages > div[style*="flex-end"] > div {
+            float: right !important;
+            text-align: right !important;
+        }
+
+        /* Customer (left-aligned) */
+        #section-messages #adminConversationMessages > div[style*="flex-start"] > div {
+            float: left !important;
+            text-align: left !important;
+        }
+
+        /* Sender name */
+        #section-messages #adminConversationMessages > div > div > div:first-child {
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            color: #5a7a3f !important;
+            margin-bottom: 4px !important;
+            padding: 0 4px !important;
+            line-height: 1.2 !important;
+            display: block !important;
+        }
+
+        /* Message bubble */
+        #section-messages #adminConversationMessages > div > div > div:nth-child(2) {
+            display: inline-block !important;
+            padding: 10px 14px !important;
+            border-radius: 16px !important;
+            font-size: 13.5px !important;
+            line-height: 1.45 !important;
+            word-wrap: break-word !important;
+            overflow-wrap: anywhere !important;
+            box-sizing: border-box !important;
+            text-align: left !important;
+            max-width: 100% !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+        }
+
+        /* Admin (sent) bubble */
+        #section-messages #adminConversationMessages > div[style*="flex-end"] > div > div:nth-child(2) {
+            background: #7ba05b !important;
+            color: #ffffff !important;
+            border-bottom-right-radius: 4px !important;
+        }
+
+        /* Customer (received) bubble */
+        #section-messages #adminConversationMessages > div[style*="flex-start"] > div > div:nth-child(2) {
+            background: #ffffff !important;
+            color: #2d3e1f !important;
+            border: 1px solid #eaf3e0 !important;
+            border-bottom-left-radius: 4px !important;
+        }
+
+        /* Timestamp */
+        #section-messages #adminConversationMessages > div > div > div:last-child {
+            font-size: 10px !important;
+            color: #94a387 !important;
+            margin-top: 4px !important;
+            padding: 0 4px !important;
+            line-height: 1.2 !important;
+            display: block !important;
+        }
+
+        /* Image sa bubble */
+        #section-messages #adminConversationMessages img {
+            max-width: 200px !important;
+            max-height: 200px !important;
+            border-radius: 10px !important;
+            margin-top: 6px !important;
+            display: block !important;
+        }
+
+        /* ── Conversation Footer (Reply Form) ────────────────────── */
+        #section-messages .conversation-footer {
+            padding: 10px 12px !important;
+            background: #ffffff !important;
+            border-top: 1px solid #eaf3e0 !important;
+            flex-shrink: 0 !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            box-shadow: 0 -2px 10px rgba(123, 160, 91, 0.04) !important;
+        }
+
+        #section-messages #adminReplyForm {
+            display: flex !important;
+            gap: 6px !important;
+            align-items: center !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            flex-wrap: nowrap !important;
+        }
+
+        #section-messages #adminReplyForm > div {
+            display: flex !important;
+            gap: 6px !important;
+            align-items: center !important;
+            flex: 1 !important;
+            min-width: 0 !important;
+        }
+
+        #section-messages #adminReplyMessage {
+            flex: 1 1 auto !important;
+            min-width: 0 !important;
+            width: auto !important;
+            height: 42px !important;
+            padding: 0 16px !important;
+            font-size: 14px !important;
+            border-radius: 21px !important;
+            background: #f7fbf3 !important;
+            border: 1px solid #d4e5c4 !important;
+            color: #2d3e1f !important;
+            box-sizing: border-box !important;
+            line-height: 42px !important;
+            outline: none !important;
+            font-family: 'Poppins', sans-serif !important;
+        }
+
+        #section-messages #adminReplyMessage:focus {
+            border-color: #7ba05b !important;
+            background: #ffffff !important;
+            box-shadow: 0 0 0 3px rgba(123, 160, 91, 0.15) !important;
+        }
+
+        /* Emoji & Image buttons */
+        #section-messages #adminEmojiBtn,
+        #section-messages #adminImageBtn {
+            flex: 0 0 auto !important;
+            width: 42px !important;
+            height: 42px !important;
+            min-width: 42px !important;
+            max-width: 42px !important;
+            padding: 0 !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-sizing: border-box !important;
+            font-size: 17px !important;
+            background: #eaf3e0 !important;
+            color: #5a7a3f !important;
+            border: none !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+        }
+
+        #section-messages #adminEmojiBtn:hover,
+        #section-messages #adminImageBtn:hover {
+            background: #d4e5c4 !important;
+            transform: scale(1.05) !important;
+        }
+
+        /* Send button */
+        #section-messages #adminReplyForm button[type="submit"] {
+            flex: 0 0 auto !important;
+            width: 42px !important;
+            height: 42px !important;
+            min-width: 42px !important;
+            max-width: 42px !important;
+            padding: 0 !important;
+            border-radius: 50% !important;
+            background: #7ba05b !important;
+            color: #ffffff !important;
+            border: none !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-sizing: border-box !important;
+            font-size: 0 !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            box-shadow: 0 4px 12px rgba(123, 160, 91, 0.3) !important;
+        }
+
+        #section-messages #adminReplyForm button[type="submit"] i {
+            font-size: 15px !important;
+        }
+
+        #section-messages #adminReplyForm button[type="submit"]:hover {
+            background: #5a7a3f !important;
+            transform: scale(1.05) !important;
+        }
+
+        /* Hide "Send" text on submit button mobile */
+        #section-messages #adminReplyForm button[type="submit"] span {
+            display: none !important;
+        }
+
+        /* ── Trends Layout: stack sa mobile ─────────────────────── */
+        #trendsLayout,
+        #petTypesLayout,
+        #statusLayout,
+        #growthLayout,
+        #userGrowthLayout {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+        }
+
+        #trendsLayout > .card:first-child > div:last-child,
+        #petTypesLayout > .card:first-child > div:last-child,
+        #statusLayout > .card:first-child > div:last-child,
+        #growthLayout > .card:first-child > div:last-child,
+        #userGrowthLayout > .card:first-child > div:last-child {
+            height: 260px !important;
+        }
+    }
+
+    /* ── Small Mobile (max-width: 480px) ─────────────────────────── */
+    @media (max-width: 480px) {
+        .main {
+            padding: 66px 10px 20px !important;
+        }
+
+        .main-header h1 {
+            font-size: 20px !important;
+        }
+
+        .user-filter-tabs {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+
+        .user-filter-btn {
+            font-size: 10px !important;
+            padding: 7px 4px !important;
+        }
+
+        #section-users .card {
+            padding: 14px 12px !important;
+        }
+
+        .user-table-wrapper tbody tr {
+            padding: 14px !important;
+        }
+
+        .user-table-wrapper tbody td {
+            font-size: 12px !important;
+        }
+
+        .user-table-wrapper tbody td::before {
+            font-size: 9px !important;
+            min-width: 70px !important;
+        }
+
+        .user-table-wrapper tbody td:nth-child(2) .user-name-clickable img,
+        .user-table-wrapper tbody td:nth-child(2) .user-name-clickable > div:first-child {
+            width: 54px !important;
+            height: 54px !important;
+            min-width: 54px !important;
+            max-width: 54px !important;
+            flex: 0 0 54px !important;
+            font-size: 22px !important;
+        }
+
+        .user-table-wrapper tbody td:nth-child(2) .user-name-clickable strong {
+            font-size: 15px !important;
+        }
+
+        .user-table-wrapper tbody .role-badge {
+            font-size: 10px !important;
+            padding: 3px 10px !important;
+        }
+
+        /* Messages small mobile */
+        #section-messages .messages-grid {
+            height: calc(100vh - 220px) !important;
+            min-height: 420px !important;
+        }
+
+        #section-messages .customer-item {
+            padding: 12px 14px !important;
+            gap: 12px !important;
+        }
+
+        #section-messages .customer-item .avatar {
+            width: 42px !important;
+            height: 42px !important;
+            min-width: 42px !important;
+            max-width: 42px !important;
+            flex: 0 0 42px !important;
+            font-size: 18px !important;
+        }
+
+        #section-messages .customer-item .info .name {
+            font-size: 14px !important;
+        }
+
+        #section-messages #adminConversationHeader {
+            padding: 8px 12px 8px 50px !important;
+            min-height: 56px !important;
+        }
+
+        #section-messages #adminConversationHeader::before {
+            left: 8px !important;
+            width: 32px !important;
+            height: 32px !important;
+            font-size: 18px !important;
+        }
+
+        /* ── FIXED: Header Avatar — Perfect Circle (Small Mobile) ── */
+        #section-messages #adminConversationHeader .header-avatar {
+            width: 38px !important;
+            height: 38px !important;
+            min-width: 38px !important;
+            max-width: 38px !important;
+            flex: 0 0 38px !important;
+            flex-shrink: 0 !important;
+            flex-grow: 0 !important;
+            font-size: 16px !important;
+            box-sizing: border-box !important;
+            aspect-ratio: 1 / 1 !important;
+        }
+
+        #section-messages #adminConversationHeader .header-avatar i {
+            font-size: 16px !important;
+        }
+
+        #section-messages #adminConversationHeader > div > div > div:first-child {
+            font-size: 14px !important;
+        }
+
+        #section-messages #adminConversationHeader > div > div > div:last-child {
+            font-size: 11px !important;
+        }
+
+        #section-messages #adminConversationMessages > div > div {
+            max-width: 85% !important;
+        }
+
+        #section-messages #adminConversationMessages > div > div > div:nth-child(2) {
+            font-size: 13px !important;
+            padding: 9px 12px !important;
+        }
+
+        #section-messages #adminReplyMessage {
+            height: 38px !important;
+            line-height: 38px !important;
+            font-size: 13px !important;
+            padding: 0 14px !important;
+        }
+
+        #section-messages #adminEmojiBtn,
+        #section-messages #adminImageBtn,
+        #section-messages #adminReplyForm button[type="submit"] {
+            width: 38px !important;
+            height: 38px !important;
+            min-width: 38px !important;
+            max-width: 38px !important;
+        }
+
+        /* Trends Layout small mobile */
+        #trendsLayout > .card:first-child > div:last-child,
+        #petTypesLayout > .card:first-child > div:last-child,
+        #statusLayout > .card:first-child > div:last-child,
+        #growthLayout > .card:first-child > div:last-child,
+        #userGrowthLayout > .card:first-child > div:last-child {
+            height: 220px !important;
+        }
+    }
+
+    /* ── Light Theme Overrides para sa Mobile Cards ──────────────── */
+    body.light-theme .user-table-wrapper tbody tr {
+        background: #ffffff !important;
+        border-color: #d4e5c4 !important;
+        border-left-color: #7ba05b !important;
+    }
+
+    body.light-theme .user-table-wrapper tbody tr:hover {
+        background: #f7fbf3 !important;
+        border-color: #7ba05b !important;
+    }
+
+    body.light-theme .user-table-wrapper tbody td {
+        color: #2d3e1f !important;
+        border-bottom-color: #eaf3e0 !important;
+    }
+
+    body.light-theme .user-table-wrapper tbody td::before {
+        color: #5a7a3f !important;
+    }
+
+    body.light-theme .user-table-wrapper tbody td:first-child {
+        background: #f7fbf3 !important;
+        color: #7ba05b !important;
+    }
+
+    body.light-theme .user-table-wrapper tbody td:nth-child(2) .user-name-clickable strong {
+        color: #2d3e1f !important;
+    }
   </style>
 </head>
-<body class="dark-theme">
+<body class="light-theme">
 
 <button class="mobile-menu-btn" onclick="toggleMobileSidebar()"><i class="fas fa-bars"></i></button>
 
@@ -303,17 +1455,6 @@
     <p class="role"><i class="fas fa-tag"></i> ADMIN</p>
   </div>
 
-  <!-- ── THEME TOGGLE ──────────────────────────────────────────────── -->
-  <div style="margin-top: 15px; display: flex; justify-content: center;">
-    <div class="theme-toggle-wrapper">
-      <span class="theme-label"><i class="fas fa-moon"></i> Theme</span>
-      <label class="theme-toggle">
-        <input type="checkbox" id="themeToggle" onchange="toggleAdminTheme()">
-        <span class="slider"></span>
-      </label>
-    </div>
-  </div>
-
   <button class="logout-btn" onclick="showLogoutModal()">
     <span><i class="fas fa-sign-out-alt"></i></span>
     <span>Logout</span>
@@ -327,19 +1468,6 @@
     <div class="main-header">
       <h1><i class="fas fa-chart-pie"></i> Admin Dashboard</h1>
       <p>Overview of system analytics, users, and performance</p>
-    </div>
-
-    <!-- ML Actions -->
-    <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 25px;">
-        <button onclick="trainMLModel()" class="ml-action-btn train-btn">
-            <i class="fas fa-robot"></i> Train AI Model
-        </button>
-        <button onclick="checkMLStatus()" class="ml-action-btn status-btn">
-            <i class="fas fa-chart-bar"></i> Model Status
-        </button>
-        <button onclick="refreshStats()" class="ml-action-btn refresh-btn">
-            <i class="fas fa-sync-alt"></i> Refresh Stats
-        </button>
     </div>
 
     <!-- STATISTICS CARDS -->
@@ -378,80 +1506,213 @@
       <button class="dash-nav-btn" data-chart="status" onclick="switchChart('status')"><i class="fas fa-chart-bar"></i> Appointment Status</button>
       <button class="dash-nav-btn" data-chart="growth" onclick="switchChart('growth')"><i class="fas fa-chart-line"></i> Monthly Growth</button>
       <button class="dash-nav-btn" data-chart="users" onclick="switchChart('users')"><i class="fas fa-users"></i> User Growth</button>
-      <div style="flex: 1;"></div>
-      <span style="color: #64748b; font-size: 12px;" id="currentChartLabel"><i class="fas fa-chart-line"></i> Appointment Trends</span>
     </div>
 
     <!-- CHART CONTAINERS -->
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         1️⃣ APPOINTMENT TRENDS (Chart + This Week Table)
+         ═══════════════════════════════════════════════════════════════ -->
     <div id="chart-trends" class="chart-container">
-      <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-          <div>
-            <h3 style="color: #38bdf8; font-size: 18px; margin: 0;"><i class="fas fa-chart-line"></i> Appointment Trends</h3>
-            <span style="color: #94a3b8; font-size: 12px;" id="adminWeekLabel">Current Week</span>
+      <div id="trendsLayout" style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: stretch;">
+        <!-- LEFT CARD: Chart -->
+        <div class="card" style="margin-bottom: 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <h3 style="color: #38bdf8; font-size: 18px; margin: 0;"><i class="fas fa-chart-line"></i> Appointment Trends</h3>
+              <span style="color: #94a3b8; font-size: 12px;" id="adminWeekLabel">Current Week</span>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <button onclick="changeAdminWeek(-1)" class="chart-nav-btn"><i class="fas fa-chevron-left"></i> Previous</button>
+              <button onclick="changeAdminWeek(0)" class="chart-nav-btn today">Today</button>
+              <button onclick="changeAdminWeek(1)" class="chart-nav-btn">Next <i class="fas fa-chevron-right"></i></button>
+            </div>
           </div>
-          <div style="display: flex; gap: 8px; align-items: center;">
-            <button onclick="changeAdminWeek(-1)" class="chart-nav-btn">
-              <i class="fas fa-chevron-left"></i> Previous
-            </button>
-            <button onclick="changeAdminWeek(0)" class="chart-nav-btn today">
-              Today
-            </button>
-            <button onclick="changeAdminWeek(1)" class="chart-nav-btn">
-              Next <i class="fas fa-chevron-right"></i>
-            </button>
+          <div style="height: 300px; position: relative; min-width: 0;">
+            <canvas id="appointmentTrendChart"></canvas>
           </div>
         </div>
-        <div style="height: 300px; position: relative;">
-          <canvas id="appointmentTrendChart"></canvas>
+        <!-- RIGHT CARD: This Week Table -->
+        <div class="card" id="weeklyBreakdownCard" style="margin-bottom: 0; display: flex; flex-direction: column;">
+          <div style="margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #eaf3e0;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <i class="fas fa-list-ul" style="color: #7ba05b; font-size: 16px;"></i>
+              <span style="color: #5a7a3f; font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">This Week</span>
+            </div>
+            <!-- ✅ PINALAKI ANG FONT SIZE NG DESCRIPTION -->
+            <div style="color: #64748b; font-size: 13px; line-height: 1.5; padding-left: 24px; font-weight: 500;">
+              Per-day appointment count and share of weekly total
+            </div>
+          </div>
+          <div id="weeklyBreakdownBody" style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; min-height: 0;">
+            <div style="text-align: center; color: #94a387; font-size: 12px; padding: 20px 0;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+          </div>
+          <div id="weeklyBreakdownFooter" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #eaf3e0; display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="color: #64748b; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Weekly Total</span>
+              <span id="weeklyBreakdownTotal" style="color: #5a7a3f; font-size: 18px; font-weight: 700;">0</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════════════
+         2️⃣ PET TYPES (Chart + Breakdown Table)
+         ═══════════════════════════════════════════════════════════════ -->
     <div id="chart-pettypes" class="chart-container" style="display: none;">
-      <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-          <h3 style="color: #38bdf8; font-size: 18px; margin: 0;"><i class="fas fa-paw"></i> Pet Types</h3>
-          <span style="color: #94a3b8; font-size: 12px;">Distribution</span>
+      <div id="petTypesLayout" style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: stretch;">
+        <!-- LEFT CARD: Chart -->
+        <div class="card" style="margin-bottom: 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="color: #38bdf8; font-size: 18px; margin: 0;"><i class="fas fa-paw"></i> Pet Types</h3>
+            <span style="color: #94a3b8; font-size: 12px;">Distribution</span>
+          </div>
+          <div style="height: 300px; position: relative; display: flex; justify-content: center; align-items: center; min-width: 0;">
+            <canvas id="petTypeChart" style="max-width: 400px; max-height: 300px;"></canvas>
+          </div>
         </div>
-        <div style="height: 300px; position: relative; display: flex; justify-content: center; align-items: center;">
-          <canvas id="petTypeChart" style="max-width: 400px; max-height: 300px;"></canvas>
+        <!-- RIGHT CARD: Breakdown Table -->
+        <div class="card" id="petTypesBreakdownCard" style="margin-bottom: 0; display: flex; flex-direction: column;">
+          <div style="margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #eaf3e0;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <i class="fas fa-list-ul" style="color: #7ba05b; font-size: 16px;"></i>
+              <span style="color: #5a7a3f; font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Breakdown</span>
+            </div>
+            <!-- ✅ PINALAKI ANG FONT SIZE NG DESCRIPTION -->
+            <div style="color: #64748b; font-size: 13px; line-height: 1.5; padding-left: 24px; font-weight: 500;">
+              Pet count per type and % of total population
+            </div>
+          </div>
+          <div id="petTypesBreakdownBody" style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; min-height: 0;">
+            <div style="text-align: center; color: #94a387; font-size: 12px; padding: 20px 0;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+          </div>
+          <div id="petTypesBreakdownFooter" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #eaf3e0; display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="color: #64748b; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Total Pets</span>
+              <span id="petTypesBreakdownTotal" style="color: #5a7a3f; font-size: 18px; font-weight: 700;">0</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════════════
+         3️⃣ APPOINTMENT STATUS (Chart + Breakdown Table)
+         ═══════════════════════════════════════════════════════════════ -->
     <div id="chart-status" class="chart-container" style="display: none;">
-      <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-          <h3 style="color: #38bdf8; font-size: 18px; margin: 0;"><i class="fas fa-chart-bar"></i> Appointment Status</h3>
-          <span style="color: #94a3b8; font-size: 12px;">Overview</span>
+      <div id="statusLayout" style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: stretch;">
+        <!-- LEFT CARD: Chart -->
+        <div class="card" style="margin-bottom: 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="color: #38bdf8; font-size: 18px; margin: 0;"><i class="fas fa-chart-bar"></i> Appointment Status</h3>
+            <span style="color: #94a3b8; font-size: 12px;">Overview</span>
+          </div>
+          <div style="height: 300px; position: relative; min-width: 0;">
+            <canvas id="appointmentStatusChart"></canvas>
+          </div>
         </div>
-        <div style="height: 300px; position: relative;">
-          <canvas id="appointmentStatusChart"></canvas>
+        <!-- RIGHT CARD: Breakdown Table -->
+        <div class="card" id="statusBreakdownCard" style="margin-bottom: 0; display: flex; flex-direction: column;">
+          <div style="margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #eaf3e0;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <i class="fas fa-list-ul" style="color: #7ba05b; font-size: 16px;"></i>
+              <span style="color: #5a7a3f; font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Breakdown</span>
+            </div>
+            <!-- ✅ PINALAKI ANG FONT SIZE NG DESCRIPTION -->
+            <div style="color: #64748b; font-size: 13px; line-height: 1.5; padding-left: 24px; font-weight: 500;">
+              Count per status and % of all appointments
+            </div>
+          </div>
+          <div id="statusBreakdownBody" style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; min-height: 0;">
+            <div style="text-align: center; color: #94a387; font-size: 12px; padding: 20px 0;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+          </div>
+          <div id="statusBreakdownFooter" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #eaf3e0; display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="color: #64748b; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Total Appointments</span>
+              <span id="statusBreakdownTotal" style="color: #5a7a3f; font-size: 18px; font-weight: 700;">0</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════════════
+         4️⃣ MONTHLY GROWTH (Chart + Breakdown Table)
+         ═══════════════════════════════════════════════════════════════ -->
     <div id="chart-growth" class="chart-container" style="display: none;">
-      <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-          <h3 style="color: #38bdf8; font-size: 18px; margin: 0;"><i class="fas fa-chart-line"></i> Monthly Growth</h3>
-          <span style="color: #94a3b8; font-size: 12px;">This year</span>
+      <div id="growthLayout" style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: stretch;">
+        <!-- LEFT CARD: Chart -->
+        <div class="card" style="margin-bottom: 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="color: #38bdf8; font-size: 18px; margin: 0;"><i class="fas fa-chart-line"></i> Monthly Growth</h3>
+            <span style="color: #94a3b8; font-size: 12px;">This year</span>
+          </div>
+          <div style="height: 300px; position: relative; min-width: 0;">
+            <canvas id="monthlyGrowthChart"></canvas>
+          </div>
         </div>
-        <div style="height: 300px; position: relative;">
-          <canvas id="monthlyGrowthChart"></canvas>
+        <!-- RIGHT CARD: Breakdown Table -->
+        <div class="card" id="growthBreakdownCard" style="margin-bottom: 0; display: flex; flex-direction: column;">
+          <div style="margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #eaf3e0;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <i class="fas fa-list-ul" style="color: #7ba05b; font-size: 16px;"></i>
+              <span style="color: #5a7a3f; font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">By Month</span>
+            </div>
+            <!-- ✅ PINALAKI ANG FONT SIZE NG DESCRIPTION -->
+            <div style="color: #64748b; font-size: 13px; line-height: 1.5; padding-left: 24px; font-weight: 500;">
+              Appointments per month and % of yearly total
+            </div>
+          </div>
+          <div id="growthBreakdownBody" style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; min-height: 0;">
+            <div style="text-align: center; color: #94a387; font-size: 12px; padding: 20px 0;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+          </div>
+          <div id="growthBreakdownFooter" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #eaf3e0; display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="color: #64748b; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Yearly Total</span>
+              <span id="growthBreakdownTotal" style="color: #5a7a3f; font-size: 18px; font-weight: 700;">0</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════════════
+         5️⃣ USER GROWTH (Chart + Breakdown Table)
+         ═══════════════════════════════════════════════════════════════ -->
     <div id="chart-users" class="chart-container" style="display: none;">
-      <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-          <h3 style="color: #38bdf8; font-size: 18px; margin: 0;"><i class="fas fa-users"></i> User Growth</h3>
-          <span style="color: #94a3b8; font-size: 12px;">This year</span>
+      <div id="userGrowthLayout" style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: stretch;">
+        <!-- LEFT CARD: Chart -->
+        <div class="card" style="margin-bottom: 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="color: #38bdf8; font-size: 18px; margin: 0;"><i class="fas fa-users"></i> User Growth</h3>
+            <span style="color: #94a3b8; font-size: 12px;">This year</span>
+          </div>
+          <div style="height: 300px; position: relative; min-width: 0;">
+            <canvas id="userGrowthChart"></canvas>
+          </div>
         </div>
-        <div style="height: 300px; position: relative;">
-          <canvas id="userGrowthChart"></canvas>
+        <!-- RIGHT CARD: Breakdown Table -->
+        <div class="card" id="userGrowthBreakdownCard" style="margin-bottom: 0; display: flex; flex-direction: column;">
+          <div style="margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #eaf3e0;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <i class="fas fa-list-ul" style="color: #7ba05b; font-size: 16px;"></i>
+              <span style="color: #5a7a3f; font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">By Month</span>
+            </div>
+            <!-- ✅ PINALAKI ANG FONT SIZE NG DESCRIPTION -->
+            <div style="color: #64748b; font-size: 13px; line-height: 1.5; padding-left: 24px; font-weight: 500;">
+              New users per month and % of yearly total
+            </div>
+          </div>
+          <div id="userGrowthBreakdownBody" style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; min-height: 0;">
+            <div style="text-align: center; color: #94a387; font-size: 12px; padding: 20px 0;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+          </div>
+          <div id="userGrowthBreakdownFooter" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #eaf3e0; display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="color: #64748b; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Yearly Total</span>
+              <span id="userGrowthBreakdownTotal" style="color: #5a7a3f; font-size: 18px; font-weight: 700;">0</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -509,7 +1770,7 @@
         <span id="userResultCount" class="result-count">0 users</span>
       </div>
 
-      <div style="overflow-x: auto;">
+      <div class="user-table-wrapper">
         <table>
           <thead>
             <tr>
@@ -599,52 +1860,8 @@
 
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 <script>
-    // ── THEME TOGGLE FUNCTION PARA SA ADMIN ──────────────────────────
-    function toggleAdminTheme() {
-        const body = document.body;
-        const html = document.documentElement;
-        const toggle = document.getElementById('themeToggle');
-
-        if (toggle.checked) {
-            body.classList.remove('light-theme');
-            body.classList.add('dark-theme');
-            html.classList.remove('light-theme');
-            html.classList.add('dark-theme');
-            localStorage.setItem('adminTheme', 'dark');
-        } else {
-            body.classList.remove('dark-theme');
-            body.classList.add('light-theme');
-            html.classList.remove('dark-theme');
-            html.classList.add('light-theme');
-            localStorage.setItem('adminTheme', 'light');
-        }
-    }
-
-    // ── RESTORE THEME PREFERENCE ──────────────────────────────────────
-    function restoreAdminTheme() {
-        const savedTheme = localStorage.getItem('adminTheme');
-        const toggle = document.getElementById('themeToggle');
-        const html = document.documentElement;
-
-        if (savedTheme === 'light') {
-            if (toggle) toggle.checked = false;
-            document.body.classList.add('light-theme');
-            document.body.classList.remove('dark-theme');
-            html.classList.add('light-theme');
-            html.classList.remove('dark-theme');
-        } else {
-            if (toggle) toggle.checked = true;
-            document.body.classList.add('dark-theme');
-            document.body.classList.remove('light-theme');
-            html.classList.add('dark-theme');
-            html.classList.remove('light-theme');
-        }
-    }
-
     // ── INITIALIZE ────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', function() {
-        restoreAdminTheme();
-
         if (typeof connectAdminSocket === 'function') {
             connectAdminSocket();
         }
@@ -676,79 +1893,7 @@
         }
     });
 
-    // ── ML FUNCTIONS ──────────────────────────────────────────────────
-    async function trainMLModel() {
-        if (!confirm('Train the AI recommendation model? This will analyze all pet data.')) return;
-
-        const btn = document.querySelector('button[onclick="trainMLModel()"]');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Training...';
-        btn.disabled = true;
-
-        try {
-            const res = await fetch('/api/ml/train');
-            const data = await res.json();
-
-            if (data.success) {
-                showToast('✅ ' + data.message + ' Accuracy: ' + data.accuracy, 'success');
-                loadAdminStats();
-            } else {
-                showToast('❌ ' + data.message, 'error');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            showToast('Error training model. Please try again.', 'error');
-        }
-
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    }
-
-    async function checkMLStatus() {
-        try {
-            const res = await fetch('/api/ml/status');
-            const data = await res.json();
-
-            if (data.success) {
-                let statusMsg = '';
-                if (data.model_exists) {
-                    statusMsg = `✅ Model is ready!\nFeatures: ${data.features?.join(', ') || 'N/A'}`;
-                    if (data.classes) {
-                        statusMsg += `\nCare Levels: ${data.classes.join(', ')}`;
-                    }
-                } else {
-                    statusMsg = `ℹ️ Model not trained yet.\n${data.pet_count || 0} pets available for training.\n\nClick "Train AI Model" to get started.`;
-                }
-                alert(`🤖 AI Model Status\n\n${statusMsg}`);
-            } else {
-                showToast('Error checking model status.', 'error');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            showToast('Error checking model status.', 'error');
-        }
-    }
-
-    async function refreshStats() {
-        await loadAdminStats();
-        showToast('✅ Stats refreshed!', 'success');
-    }
-
-    function showToast(message, type) {
-        const msgEl = document.getElementById('message');
-        msgEl.textContent = message;
-        msgEl.className = 'message ' + type;
-        msgEl.style.display = 'block';
-        setTimeout(() => {
-            msgEl.style.display = 'none';
-        }, 4000);
-    }
-
     // ── GLOBAL FUNCTIONS ──────────────────────────────────────────────
-    window.toggleAdminTheme = toggleAdminTheme;
-    window.restoreAdminTheme = restoreAdminTheme;
-    window.trainMLModel = trainMLModel;
-    window.checkMLStatus = checkMLStatus;
     window.refreshStats = refreshStats;
     window.showToast = showToast;
 </script>

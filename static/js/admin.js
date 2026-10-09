@@ -27,7 +27,7 @@ async function loadRegisteredUsers() {
     tbody.innerHTML = `
         <tr>
             <td colspan="7" style="text-align: center; color: #64748b; padding: 30px;">
-                ⏳ Loading users...
+                <i class="fas fa-spinner fa-spin"></i> Loading users...
             </td>
         </tr>
     `;
@@ -56,7 +56,7 @@ async function loadRegisteredUsers() {
         tbody.innerHTML = `
             <tr>
                 <td colspan="7" style="text-align: center; color: #ef4444; padding: 30px;">
-                    ❌ Error loading users. Please refresh the page.
+                    <i class="fas fa-times-circle"></i> Error loading users. Please refresh the page.
                 </td>
             </tr>
         `;
@@ -107,7 +107,6 @@ function applyUserFilters() {
         const roleDisplay = user.role.charAt(0).toUpperCase() + user.role.slice(1);
         const nameDisplay = user.fullname || '—';
         
-        // ── Generate profile avatar HTML ──────────────────────────
         const initial = nameDisplay !== '—' ? nameDisplay.trim()[0].toUpperCase() : 'U';
         let avatarHTML;
         
@@ -118,12 +117,11 @@ function applyUserFilters() {
                      style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid #334155; flex-shrink: 0;">
             `;
         } else {
-            // Color-code by role
-            let bgColor = '#7ba05b';  // default green
-            if (user.role === 'admin') bgColor = '#8b5cf6';       // purple
-            else if (user.role === 'staff') bgColor = '#f59e0b';  // amber
-            else if (user.role === 'vet') bgColor = '#3b82f6';    // blue
-            else if (user.role === 'user') bgColor = '#10b981';   // green
+            let bgColor = '#7ba05b';
+            if (user.role === 'admin') bgColor = '#8b5cf6';
+            else if (user.role === 'staff') bgColor = '#f59e0b';
+            else if (user.role === 'vet') bgColor = '#3b82f6';
+            else if (user.role === 'user') bgColor = '#10b981';
             
             avatarHTML = `
                 <div style="width: 36px; height: 36px; border-radius: 50%; background: ${bgColor}; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; border: 2px solid #334155; flex-shrink: 0;">
@@ -134,8 +132,8 @@ function applyUserFilters() {
         
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${user.id}</td>
-            <td>
+            <td data-label="ID">${user.id}</td>
+            <td data-label="Name">
                 <div class="user-name-clickable" 
                      onclick="showUserDetailsModal(${user.id})"
                      title="Click to view details">
@@ -143,15 +141,15 @@ function applyUserFilters() {
                     <strong style="color: #e2e8f0;">${nameDisplay}</strong>
                 </div>
             </td>
-            <td><span class="truncate" title="${user.email}">${user.email}</span></td>
-            <td>${user.phone || '—'}</td>
-            <td><span class="truncate" title="${user.address || ''}">${user.address || '—'}</span></td>
-            <td>
+            <td data-label="Email"><span class="truncate" title="${user.email}">${user.email}</span></td>
+            <td data-label="Phone">${user.phone || '—'}</td>
+            <td data-label="Address"><span class="truncate" title="${user.address || ''}">${user.address || '—'}</span></td>
+            <td data-label="Role">
                 <span class="role-badge ${roleClass}">
                     ${roleDisplay}
                 </span>
             </td>
-            <td>${user.created_at || '—'}</td>
+            <td data-label="Created">${user.created_at || '—'}</td>
         `;
         tbody.appendChild(row);
     });
@@ -215,7 +213,7 @@ function showLogoutModal() {
     
     overlay.innerHTML = `
         <div class="modal-popup">
-            <div class="modal-icon">🚪</div>
+            <div class="modal-icon"><i class="fas fa-sign-out-alt"></i></div>
             <h3>Logout Confirmation</h3>
             <p>Are you sure you want to logout? You'll need to sign in again to access your admin panel.</p>
             <div class="modal-buttons">
@@ -314,12 +312,24 @@ function switchSection(section) {
     } else if (section === 'dashboard') {
         loadAdminStats();
     } else if (section === 'messages') {
-        loadAdminCustomers();
-        if (adminCurrentCustomer) {
-            loadAdminConversation(adminCurrentCustomer);
-        } else {
-            loadFirstUnreadAdminConversation();
+        // 📱 Reset mobile slide-in state
+        const messagesGrid = document.querySelector('#section-messages .messages-grid');
+        if (messagesGrid) {
+            messagesGrid.classList.remove('has-active-conversation');
         }
+        
+        loadAdminCustomers();
+        
+        // 📱 MOBILE: Huwag auto-load ng conversation — customer list muna
+        // 🖥️ DESKTOP: Auto-load ang conversation (existing behavior)
+        if (window.innerWidth > 768) {
+            if (adminCurrentCustomer) {
+                loadAdminConversation(adminCurrentCustomer);
+            } else {
+                loadFirstUnreadAdminConversation();
+            }
+        }
+        
         loadUnreadCount();
         connectAdminSocket();
     }
@@ -369,15 +379,6 @@ function switchChart(chartName) {
             btn.classList.add('active');
         }
     });
-    
-    const labels = {
-        'trends': '📈 Appointment Trends',
-        'pettypes': '🐾 Pet Types',
-        'status': '📊 Appointment Status',
-        'growth': '📈 Monthly Growth',
-        'users': '👥 User Growth'
-    };
-    document.getElementById('currentChartLabel').textContent = labels[chartName] || chartName;
 }
 
 // ── Load Admin Stats ──────────────────────────────────────────────────
@@ -405,40 +406,200 @@ async function loadAdminStats() {
     }
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// 🎨 GREEN THEME COLORS — Chart Palette
+// ═══════════════════════════════════════════════════════════════════
+const CHART_COLORS = {
+    primary: '#7ba05b',
+    primaryDark: '#5a7a3f',
+    primaryLight: '#a8c48c',
+    green1: '#7ba05b',
+    green2: '#5a7a3f',
+    green3: '#a8c48c',
+    green4: '#4a6b32',
+    green5: '#c5d9b4',
+    pending: '#f59e0b',
+    confirmed: '#7ba05b',
+    completed: '#5a7a3f',
+    cancelled: '#ef4444',
+    greenTransparent: 'rgba(123, 160, 91, 0.15)',
+    greenTransparentDark: 'rgba(90, 122, 63, 0.15)',
+    gridColor: 'rgba(123, 160, 91, 0.15)',
+    tickColor: '#5a7a3f',
+    labelColor: '#5a7a3f',
+    pointBorder: '#ffffff'
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// 📊 BREAKDOWN TABLES — Chart side tables (with % share)
+// ═══════════════════════════════════════════════════════════════════
+function renderBreakdown(targetPrefix, labels, values, options = {}) {
+    const body = document.getElementById(targetPrefix + 'Body');
+    const footer = document.getElementById(targetPrefix + 'Footer');
+    const totalEl = document.getElementById(targetPrefix + 'Total');
+    
+    if (!body) {
+        console.warn('⚠️ Breakdown body not found:', targetPrefix + 'Body');
+        return;
+    }
+    
+    const total = values.reduce((sum, v) => sum + (Number(v) || 0), 0);
+    const maxValue = Math.max(...values, 1);
+    const colorFn = options.colorFn || null;
+    const highlightLabel = options.highlightLabel || null;
+    
+    let html = '';
+    
+    labels.forEach((label, index) => {
+        const count = Number(values[index]) || 0;
+        const percentage = maxValue > 0 ? (count / maxValue) * 100 : 0;
+        const isHighlighted = (highlightLabel && highlightLabel === label);
+        
+        let barColor;
+        if (colorFn) {
+            barColor = colorFn(label, count);
+        } else {
+            barColor = count > 0 
+                ? 'linear-gradient(90deg, #7ba05b, #5a7a3f)' 
+                : 'transparent';
+        }
+        
+        const countColor = count > 0 ? '#5a7a3f' : '#cbd5c0';
+        
+        html += `
+            <div style="display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 8px; background: ${isHighlighted ? 'rgba(123, 160, 91, 0.08)' : 'transparent'};">
+                <div style="width: 60px; min-width: 60px; color: ${isHighlighted ? '#5a7a3f' : '#94a387'}; font-size: 11px; font-weight: ${isHighlighted ? '700' : '600'}; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    ${label}
+                </div>
+                <div style="flex: 1; height: 8px; background: #eaf3e0; border-radius: 4px; overflow: hidden; min-width: 0;">
+                    <div style="width: ${percentage}%; height: 100%; background: ${barColor}; border-radius: 4px; transition: width 0.4s ease;"></div>
+                </div>
+                <div style="display: flex; align-items: center; justify-content: flex-end; min-width: 40px; text-align: right;">
+                    <span style="color: ${countColor}; font-size: 13px; font-weight: 700;">${count}</span>
+                </div>
+            </div>
+        `;
+    });
+    
+    body.innerHTML = html;
+    
+    if (footer && totalEl) {
+        totalEl.textContent = total;
+        footer.style.display = 'block';
+    }
+}
+
+function renderWeeklyBreakdown(trendsData) {
+    const values = trendsData?.values || [];
+    const labels = trendsData?.labels || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const todayName = new Date().toLocaleDateString('en-US', { weekday: 'short' });
+    renderBreakdown('weeklyBreakdown', labels, values, { highlightLabel: todayName });
+}
+
+function renderPetTypesBreakdown(petTypesData) {
+    const labels = petTypesData?.labels || [];
+    const values = petTypesData?.values || [];
+    const colorFn = (label, count) => {
+        if (count === 0) return 'transparent';
+        const lower = label.toLowerCase();
+        if (lower.includes('dog')) return 'linear-gradient(90deg, #7ba05b, #5a7a3f)';
+        if (lower.includes('cat')) return 'linear-gradient(90deg, #a8c48c, #7ba05b)';
+        return 'linear-gradient(90deg, #7ba05b, #5a7a3f)';
+    };
+    renderBreakdown('petTypesBreakdown', labels, values, { colorFn });
+}
+
+function renderStatusBreakdown(statusData) {
+    const labels = statusData?.labels || [];
+    const values = statusData?.values || [];
+    const colorFn = (label, count) => {
+        if (count === 0) return 'transparent';
+        const lower = label.toLowerCase();
+        if (lower === 'pending') return 'linear-gradient(90deg, #f59e0b, #d97706)';
+        if (lower === 'confirmed') return 'linear-gradient(90deg, #7ba05b, #5a7a3f)';
+        if (lower === 'completed') return 'linear-gradient(90deg, #4a6b32, #3d5429)';
+        if (lower === 'cancelled') return 'linear-gradient(90deg, #ef4444, #dc2626)';
+        return 'linear-gradient(90deg, #7ba05b, #5a7a3f)';
+    };
+    renderBreakdown('statusBreakdown', labels, values, { colorFn });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 📅 CUSTOM SORT FOR MONTHS (Para mailipat ang NOV at DEC sa dulo)
+// ═══════════════════════════════════════════════════════════════════
+function sortMonthsChronologically(labels, values) {
+    const monthOrder = {
+        'JAN': 1, 'FEB': 2, 'MAR': 3, 'APR': 4, 'MAY': 5, 'JUN': 6,
+        'JUL': 7, 'AUG': 8, 'SEP': 9, 'OCT': 10, 'NOV': 11, 'DEC': 12,
+        'JANUARY': 1, 'FEBRUARY': 2, 'MARCH': 3, 'APRIL': 4, 'JUNE': 6,
+        'JULY': 7, 'AUGUST': 8, 'SEPTEMBER': 9, 'OCTOBER': 10, 'NOVEMBER': 11, 'DECEMBER': 12
+    };
+
+    // Gumawa ng array ng objects para ma-sort
+    const combined = labels.map((label, index) => ({
+        label: label,
+        value: values[index],
+        order: monthOrder[label.toUpperCase()] || 99 // Default sa dulo kung hindi mahanap
+    }));
+
+    // I-sort base sa order
+    combined.sort((a, b) => a.order - b.order);
+
+    // I-return ang sorted labels at values
+    return {
+        labels: combined.map(item => item.label),
+        values: combined.map(item => item.value)
+    };
+}
+
+function renderGrowthBreakdown(growthData) {
+    const rawLabels = growthData?.labels || [];
+    const rawValues = growthData?.values || [];
+    
+    // I-sort ang data bago i-render
+    const sorted = sortMonthsChronologically(rawLabels, rawValues);
+    
+    renderBreakdown('growthBreakdown', sorted.labels, sorted.values);
+}
+
+function renderUserGrowthBreakdown(userGrowthData) {
+    const rawLabels = userGrowthData?.labels || [];
+    const rawValues = userGrowthData?.values || [];
+    
+    // I-sort ang data bago i-render
+    const sorted = sortMonthsChronologically(rawLabels, rawValues);
+    
+    renderBreakdown('userGrowthBreakdown', sorted.labels, sorted.values);
+}
+
 // ── ADMIN CHART WEEK NAVIGATION ──────────────────────────────────
 let adminWeekOffset = 0;
 let adminChartInstance = null;
 
-// ⭐ UPDATED: loadAdminChartData with forced refresh
 async function loadAdminChartData(weekOffset = 0) {
     try {
-        // Store the new offset
         adminWeekOffset = weekOffset;
         
-        // Show loading state
         const weekLabel = document.getElementById('adminWeekLabel');
         if (weekLabel) {
-            weekLabel.textContent = '⏳ Loading...';
+            weekLabel.textContent = 'Loading...';
             weekLabel.style.color = '#f59e0b';
         }
-        
-        console.log(`📊 Fetching admin chart data for week offset: ${weekOffset}`);
         
         const res = await fetch(`/api/admin/chart-data?week_offset=${weekOffset}`);
         const data = await res.json();
         
-        console.log(`📊 Admin API Response:`, data);
-        
         if (data.success) {
             const chartData = data.data;
             
-            // Update week label
             if (weekLabel && chartData.trends.week_label) {
                 weekLabel.textContent = chartData.trends.week_label;
-                weekLabel.style.color = '#94a3b8';
+                weekLabel.style.color = '#5a7a3f';
             }
             
-            // Get the canvas
+            // ✅ RENDER WEEKLY BREAKDOWN TABLE
+            renderWeeklyBreakdown(chartData.trends);
+            
             const canvas = document.getElementById('appointmentTrendChart');
             if (!canvas) {
                 console.error('Canvas element not found');
@@ -447,16 +608,29 @@ async function loadAdminChartData(weekOffset = 0) {
             
             const ctx = canvas.getContext('2d');
             
-            // Destroy existing chart if it exists
             if (adminChartInstance) {
                 adminChartInstance.destroy();
                 adminChartInstance = null;
             }
             
-            // Clear the canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Create new chart
+            const dataValues = chartData.trends.values || [];
+            const maxValue = Math.max(...dataValues, 0);
+            
+            let suggestedMax;
+            if (maxValue === 0) {
+                suggestedMax = 4;
+            } else if (maxValue <= 2) {
+                suggestedMax = 3;
+            } else if (maxValue <= 5) {
+                suggestedMax = 5;
+            } else if (maxValue <= 10) {
+                suggestedMax = 10;
+            } else {
+                suggestedMax = Math.ceil(maxValue / 5) * 5;
+            }
+            
             adminChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -464,13 +638,17 @@ async function loadAdminChartData(weekOffset = 0) {
                     datasets: [{
                         label: 'Appointments',
                         data: chartData.trends.values,
-                        borderColor: '#38bdf8',
-                        backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                        borderColor: CHART_COLORS.primary,
+                        backgroundColor: 'rgba(123, 160, 91, 0.15)',
                         fill: true,
                         tension: 0.4,
-                        pointBackgroundColor: '#38bdf8',
-                        pointBorderColor: '#0f172a',
-                        pointBorderWidth: 2
+                        pointBackgroundColor: CHART_COLORS.primary,
+                        pointBorderColor: CHART_COLORS.pointBorder,
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        pointHoverBackgroundColor: CHART_COLORS.primaryDark,
+                        borderWidth: 3
                     }]
                 },
                 options: {
@@ -479,40 +657,94 @@ async function loadAdminChartData(weekOffset = 0) {
                     plugins: { 
                         legend: { 
                             labels: { 
-                                color: '#94a3b8' 
+                                color: CHART_COLORS.labelColor,
+                                font: {
+                                    family: 'Poppins',
+                                    size: 12,
+                                    weight: '500'
+                                },
+                                usePointStyle: true,
+                                pointStyle: 'rectRounded'
                             } 
-                        } 
+                        },
+                        tooltip: {
+                            backgroundColor: '#ffffff',
+                            titleColor: '#2d3e1f',
+                            bodyColor: '#5a7a3f',
+                            borderColor: CHART_COLORS.primary,
+                            borderWidth: 1,
+                            titleFont: {
+                                family: 'Poppins',
+                                size: 13,
+                                weight: '600'
+                            },
+                            bodyFont: {
+                                family: 'Poppins',
+                                size: 12
+                            },
+                            padding: 12,
+                            cornerRadius: 8,
+                            displayColors: false
+                        }
                     },
                     scales: {
                         x: { 
-                            grid: { color: 'rgba(51, 65, 85, 0.3)' }, 
-                            ticks: { color: '#94a3b8' } 
+                            grid: { 
+                                color: CHART_COLORS.gridColor,
+                                drawBorder: false
+                            }, 
+                            ticks: { 
+                                color: CHART_COLORS.tickColor,
+                                font: {
+                                    family: 'Poppins',
+                                    size: 11,
+                                    weight: '500'
+                                }
+                            } 
                         },
                         y: { 
-                            grid: { color: 'rgba(51, 65, 85, 0.3)' }, 
-                            ticks: { color: '#94a3b8', stepSize: 1 }, 
-                            beginAtZero: true 
+                            beginAtZero: true,
+                            min: 0,
+                            suggestedMax: suggestedMax,
+                            grid: { 
+                                color: CHART_COLORS.gridColor,
+                                drawBorder: false
+                            }, 
+                            ticks: { 
+                                color: CHART_COLORS.tickColor,
+                                stepSize: 1,
+                                beginAtZero: true,
+                                min: 0,
+                                precision: 0,
+                                callback: function(value) {
+                                    if (Number.isInteger(value)) {
+                                        return value;
+                                    }
+                                    return '';
+                                },
+                                font: {
+                                    family: 'Poppins',
+                                    size: 11,
+                                    weight: '500'
+                                }
+                            } 
                         }
                     },
                     animation: {
-                        duration: 500
+                        duration: 600,
+                        easing: 'easeOutQuart'
                     }
                 }
             });
             
-            // Force render
             adminChartInstance.update();
-            
-            // Update button states
             updateAdminButtons(weekOffset);
             
-            console.log(`✅ Admin chart loaded for week offset: ${weekOffset}`);
-            console.log(`📊 Data:`, chartData.trends.values);
         } else {
             console.error('API returned error:', data);
             const weekLabel = document.getElementById('adminWeekLabel');
             if (weekLabel) {
-                weekLabel.textContent = '❌ Error loading data';
+                weekLabel.textContent = 'Error loading data';
                 weekLabel.style.color = '#ef4444';
             }
         }
@@ -520,14 +752,13 @@ async function loadAdminChartData(weekOffset = 0) {
         console.error('Error loading admin chart data:', error);
         const weekLabel = document.getElementById('adminWeekLabel');
         if (weekLabel) {
-            weekLabel.textContent = '❌ Error loading data';
+            weekLabel.textContent = 'Error loading data';
             weekLabel.style.color = '#ef4444';
         }
     }
 }
 
 function updateAdminButtons(weekOffset) {
-    // Find buttons by their onclick attributes
     const allButtons = document.querySelectorAll('#chart-trends button');
     let prevBtn = null;
     let nextBtn = null;
@@ -548,26 +779,18 @@ function updateAdminButtons(weekOffset) {
         prevBtn.style.opacity = '1';
         prevBtn.style.cursor = 'pointer';
         prevBtn.disabled = false;
-        prevBtn.style.background = '#334155';
-        prevBtn.style.color = '#fff';
     }
     if (nextBtn) {
         nextBtn.style.opacity = '1';
         nextBtn.style.cursor = 'pointer';
         nextBtn.disabled = false;
-        nextBtn.style.background = '#334155';
-        nextBtn.style.color = '#fff';
     }
     if (todayBtn) {
         if (weekOffset === 0) {
-            todayBtn.style.background = '#38bdf8';
-            todayBtn.style.color = '#0f172a';
             todayBtn.style.opacity = '0.6';
             todayBtn.style.cursor = 'default';
             todayBtn.disabled = true;
         } else {
-            todayBtn.style.background = '#38bdf8';
-            todayBtn.style.color = '#0f172a';
             todayBtn.style.opacity = '1';
             todayBtn.style.cursor = 'pointer';
             todayBtn.disabled = false;
@@ -577,16 +800,13 @@ function updateAdminButtons(weekOffset) {
 
 function changeAdminWeek(delta) {
     const newOffset = adminWeekOffset + delta;
-    console.log(`🔄 Changing admin week from ${adminWeekOffset} to ${newOffset}`);
     loadAdminChartData(newOffset);
 }
 
 // ── LOAD REAL CHART DATA FROM DATABASE ──────────────────────────────
 async function loadChartData() {
-    // Load appointment trends with current week offset
     await loadAdminChartData(0);
     
-    // Load other charts (pet types, status, etc.) - same as before
     try {
         const res = await fetch('/api/admin/chart-data');
         const data = await res.json();
@@ -594,7 +814,13 @@ async function loadChartData() {
         if (data.success) {
             const chartData = data.data;
             
-            // Pet Type Chart
+            // ✅ RENDER ALL BREAKDOWN TABLES
+            renderWeeklyBreakdown(chartData.trends);
+            renderPetTypesBreakdown(chartData.pet_types);
+            renderStatusBreakdown(chartData.status);
+            renderGrowthBreakdown(chartData.monthly_growth);
+            renderUserGrowthBreakdown(chartData.user_growth);
+            
             const ctx2 = document.getElementById('petTypeChart').getContext('2d');
             new Chart(ctx2, {
                 type: 'doughnut',
@@ -602,24 +828,60 @@ async function loadChartData() {
                     labels: chartData.pet_types.labels,
                     datasets: [{
                         data: chartData.pet_types.values,
-                        backgroundColor: ['#38bdf8', '#f59e0b'],
-                        borderColor: ['#0f172a', '#0f172a'],
-                        borderWidth: 2
+                        backgroundColor: [
+                            CHART_COLORS.primary,
+                            CHART_COLORS.primaryLight
+                        ],
+                        borderColor: [
+                            '#ffffff',
+                            '#ffffff'
+                        ],
+                        borderWidth: 3,
+                        hoverOffset: 8
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    cutout: '60%',
                     plugins: {
                         legend: {
                             position: 'bottom',
-                            labels: { color: '#94a3b8', padding: 15, usePointStyle: true }
+                            labels: { 
+                                color: CHART_COLORS.labelColor, 
+                                padding: 15, 
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                font: {
+                                    family: 'Poppins',
+                                    size: 12,
+                                    weight: '500'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#ffffff',
+                            titleColor: '#2d3e1f',
+                            bodyColor: '#5a7a3f',
+                            borderColor: CHART_COLORS.primary,
+                            borderWidth: 1,
+                            titleFont: {
+                                family: 'Poppins',
+                                size: 13,
+                                weight: '600'
+                            },
+                            bodyFont: {
+                                family: 'Poppins',
+                                size: 12
+                            },
+                            padding: 12,
+                            cornerRadius: 8,
+                            displayColors: false
                         }
                     }
                 }
             });
             
-            // Appointment Status Chart
             const ctx3 = document.getElementById('appointmentStatusChart').getContext('2d');
             new Chart(ctx3, {
                 type: 'bar',
@@ -628,23 +890,91 @@ async function loadChartData() {
                     datasets: [{
                         label: 'Appointments',
                         data: chartData.status.values,
-                        backgroundColor: ['#f59e0b', '#10b981', '#38bdf8', '#ef4444'],
-                        borderRadius: 6,
-                        borderSkipped: false
+                        backgroundColor: [
+                            CHART_COLORS.pending,
+                            CHART_COLORS.confirmed,
+                            CHART_COLORS.completed,
+                            CHART_COLORS.cancelled
+                        ],
+                        borderRadius: 8,
+                        borderSkipped: false,
+                        hoverBackgroundColor: [
+                            '#d97706',
+                            '#5a7a3f',
+                            '#4a6b32',
+                            '#dc2626'
+                        ]
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
+                    plugins: { 
+                        legend: { 
+                            display: false 
+                        },
+                        tooltip: {
+                            backgroundColor: '#ffffff',
+                            titleColor: '#2d3e1f',
+                            bodyColor: '#5a7a3f',
+                            borderColor: CHART_COLORS.primary,
+                            borderWidth: 1,
+                            titleFont: {
+                                family: 'Poppins',
+                                size: 13,
+                                weight: '600'
+                            },
+                            bodyFont: {
+                                family: 'Poppins',
+                                size: 12
+                            },
+                            padding: 12,
+                            cornerRadius: 8,
+                            displayColors: false
+                        }
+                    },
                     scales: {
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
-                        y: { grid: { color: 'rgba(51, 65, 85, 0.3)' }, ticks: { color: '#94a3b8', stepSize: 1 }, beginAtZero: true }
+                        x: { 
+                            grid: { 
+                                display: false 
+                            }, 
+                            ticks: { 
+                                color: CHART_COLORS.tickColor,
+                                font: {
+                                    family: 'Poppins',
+                                    size: 11,
+                                    weight: '500'
+                                }
+                            } 
+                        },
+                        y: { 
+                            grid: { 
+                                color: CHART_COLORS.gridColor,
+                                drawBorder: false
+                            }, 
+                            ticks: { 
+                                color: CHART_COLORS.tickColor, 
+                                stepSize: 1, 
+                                beginAtZero: true,
+                                min: 0,
+                                precision: 0,
+                                callback: function(value) {
+                                    if (Number.isInteger(value)) {
+                                        return value;
+                                    }
+                                    return '';
+                                },
+                                font: {
+                                    family: 'Poppins',
+                                    size: 11,
+                                    weight: '500'
+                                }
+                            } 
+                        }
                     }
                 }
             });
             
-            // Monthly Growth Chart
             const ctx4 = document.getElementById('monthlyGrowthChart').getContext('2d');
             new Chart(ctx4, {
                 type: 'bar',
@@ -653,24 +983,85 @@ async function loadChartData() {
                     datasets: [{
                         label: 'Appointments',
                         data: chartData.monthly_growth.values,
-                        backgroundColor: 'rgba(56, 189, 248, 0.6)',
-                        borderColor: '#38bdf8',
-                        borderWidth: 1,
-                        borderRadius: 4
+                        backgroundColor: 'rgba(123, 160, 91, 0.7)',
+                        borderColor: CHART_COLORS.primary,
+                        borderWidth: 2,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                        hoverBackgroundColor: CHART_COLORS.primary,
+                        hoverBorderColor: CHART_COLORS.primaryDark
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
+                    plugins: { 
+                        legend: { 
+                            display: false 
+                        },
+                        tooltip: {
+                            backgroundColor: '#ffffff',
+                            titleColor: '#2d3e1f',
+                            bodyColor: '#5a7a3f',
+                            borderColor: CHART_COLORS.primary,
+                            borderWidth: 1,
+                            titleFont: {
+                                family: 'Poppins',
+                                size: 13,
+                                weight: '600'
+                            },
+                            bodyFont: {
+                                family: 'Poppins',
+                                size: 12
+                            },
+                            padding: 12,
+                            cornerRadius: 8,
+                            displayColors: false
+                        }
+                    },
                     scales: {
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8', maxTicksLimit: 6 } },
-                        y: { grid: { color: 'rgba(51, 65, 85, 0.3)' }, ticks: { color: '#94a3b8', stepSize: 5 }, beginAtZero: true }
+                        x: { 
+                            grid: { 
+                                display: false 
+                            }, 
+                            ticks: { 
+                                color: CHART_COLORS.tickColor, 
+                                maxTicksLimit: 6,
+                                font: {
+                                    family: 'Poppins',
+                                    size: 11,
+                                    weight: '500'
+                                }
+                            } 
+                        },
+                        y: { 
+                            grid: { 
+                                color: CHART_COLORS.gridColor,
+                                drawBorder: false
+                            }, 
+                            ticks: { 
+                                color: CHART_COLORS.tickColor, 
+                                stepSize: 5, 
+                                beginAtZero: true,
+                                min: 0,
+                                precision: 0,
+                                callback: function(value) {
+                                    if (Number.isInteger(value)) {
+                                        return value;
+                                    }
+                                    return '';
+                                },
+                                font: {
+                                    family: 'Poppins',
+                                    size: 11,
+                                    weight: '500'
+                                }
+                            } 
+                        }
                     }
                 }
             });
             
-            // User Growth Chart
             const ctx5 = document.getElementById('userGrowthChart').getContext('2d');
             new Chart(ctx5, {
                 type: 'line',
@@ -679,22 +1070,95 @@ async function loadChartData() {
                     datasets: [{
                         label: 'Users',
                         data: chartData.user_growth.values,
-                        borderColor: '#8b5cf6',
-                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        borderColor: CHART_COLORS.primary,
+                        backgroundColor: 'rgba(123, 160, 91, 0.15)',
                         fill: true,
                         tension: 0.4,
-                        pointBackgroundColor: '#8b5cf6',
-                        pointBorderColor: '#0f172a',
-                        pointBorderWidth: 2
+                        pointBackgroundColor: CHART_COLORS.primary,
+                        pointBorderColor: CHART_COLORS.pointBorder,
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        pointHoverBackgroundColor: CHART_COLORS.primaryDark,
+                        borderWidth: 3
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { labels: { color: '#94a3b8' } } },
+                    plugins: { 
+                        legend: { 
+                            labels: { 
+                                color: CHART_COLORS.labelColor,
+                                font: {
+                                    family: 'Poppins',
+                                    size: 12,
+                                    weight: '500'
+                                },
+                                usePointStyle: true,
+                                pointStyle: 'rectRounded'
+                            } 
+                        },
+                        tooltip: {
+                            backgroundColor: '#ffffff',
+                            titleColor: '#2d3e1f',
+                            bodyColor: '#5a7a3f',
+                            borderColor: CHART_COLORS.primary,
+                            borderWidth: 1,
+                            titleFont: {
+                                family: 'Poppins',
+                                size: 13,
+                                weight: '600'
+                            },
+                            bodyFont: {
+                                family: 'Poppins',
+                                size: 12
+                            },
+                            padding: 12,
+                            cornerRadius: 8,
+                            displayColors: false
+                        }
+                    },
                     scales: {
-                        x: { grid: { color: 'rgba(51, 65, 85, 0.3)' }, ticks: { color: '#94a3b8', maxTicksLimit: 6 } },
-                        y: { grid: { color: 'rgba(51, 65, 85, 0.3)' }, ticks: { color: '#94a3b8', stepSize: 5 }, beginAtZero: true }
+                        x: { 
+                            grid: { 
+                                color: CHART_COLORS.gridColor,
+                                drawBorder: false
+                            }, 
+                            ticks: { 
+                                color: CHART_COLORS.tickColor, 
+                                maxTicksLimit: 6,
+                                font: {
+                                    family: 'Poppins',
+                                    size: 11,
+                                    weight: '500'
+                                }
+                            } 
+                        },
+                        y: { 
+                            grid: { 
+                                color: CHART_COLORS.gridColor,
+                                drawBorder: false
+                            }, 
+                            ticks: { 
+                                color: CHART_COLORS.tickColor, 
+                                stepSize: 5, 
+                                beginAtZero: true,
+                                min: 0,
+                                precision: 0,
+                                callback: function(value) {
+                                    if (Number.isInteger(value)) {
+                                        return value;
+                                    }
+                                    return '';
+                                },
+                                font: {
+                                    family: 'Poppins',
+                                    size: 11,
+                                    weight: '500'
+                                }
+                            } 
+                        }
                     }
                 }
             });
@@ -728,7 +1192,6 @@ function connectAdminSocket() {
                     loadAdminConversation(adminCurrentCustomer);
                 }
             }
-            console.log(`📩 New message from ${data.sender || 'Customer'} - Unread count updated.`);
         }
     });
     
@@ -755,23 +1218,18 @@ async function loadUnreadCount() {
         const badge = document.getElementById('unreadBadge');
         const display = document.getElementById('unreadCountDisplay');
         
-        console.log(`📊 Unread count: ${data.count}`);
-        
         if (badge) {
             if (data.count > 0) {
                 badge.textContent = data.count;
                 badge.style.display = 'inline-block';
                 badge.style.animation = 'pulse 1.5s ease-in-out infinite';
-                if (display) display.textContent = `${data.count} unread`;
-                console.log(`✅ Badge updated: ${data.count} unread messages`);
+                if (display) display.textContent = data.count + ' unread';
             } else {
                 badge.textContent = '0';
                 badge.style.display = 'none';
                 badge.style.animation = 'none';
                 if (display) display.textContent = '0 unread';
             }
-        } else {
-            console.warn('⚠️ Badge element not found!');
         }
     } catch (error) {
         console.error('Error loading unread count:', error);
@@ -794,7 +1252,6 @@ async function markAdminMessagesAsRead(customerEmail) {
         const data = await res.json();
         
         if (data.success) {
-            console.log(`✅ Messages from ${customerEmail} marked as read`);
             await loadAdminCustomers();
             loadUnreadCount();
             const activeItem = document.querySelector('.customer-item.active');
@@ -821,7 +1278,7 @@ async function loadAdminCustomers() {
     
     container.innerHTML = `
         <div style="padding: 20px; text-align: center; color: #64748b;">
-            ⏳ Loading customers...
+            <i class="fas fa-spinner fa-spin"></i> Loading customers...
         </div>
     `;
     
@@ -843,7 +1300,7 @@ async function loadAdminCustomers() {
             adminAllCustomers = [];
             container.innerHTML = `
                 <div style="padding: 30px; text-align: center; color: #64748b;">
-                    <div style="font-size: 40px; margin-bottom: 10px;">💬</div>
+                    <div style="font-size: 40px; margin-bottom: 10px;"><i class="fas fa-comment"></i></div>
                     <p>No messages from customers yet.</p>
                     <p style="font-size: 12px; margin-top: 5px;">Messages sent to you will appear here.</p>
                 </div>
@@ -854,7 +1311,7 @@ async function loadAdminCustomers() {
         console.error('Error loading customers:', error);
         container.innerHTML = `
             <div style="padding: 20px; text-align: center; color: #ef4444;">
-                ❌ Error loading customers
+                <i class="fas fa-times-circle"></i> Error loading customers
             </div>
         `;
     }
@@ -890,7 +1347,7 @@ function renderAdminCustomerList(customers) {
     if (filtered.length === 0) {
         container.innerHTML = `
             <div style="padding: 30px; text-align: center; color: #64748b;">
-                <div style="font-size: 32px; margin-bottom: 10px;">🔍</div>
+                <div style="font-size: 32px; margin-bottom: 10px;"><i class="fas fa-search"></i></div>
                 <p>No customers found matching your search.</p>
                 <p style="font-size: 12px; margin-top: 5px;">Try a different search term.</p>
             </div>
@@ -911,11 +1368,10 @@ function renderAdminCustomerList(customers) {
         div.className = 'customer-item';
         if (isActive) div.classList.add('active');
         
-        // ✅ Avatar HTML — may profile image o default icon
         const avatarHTML = sender.profile_image
             ? `<img src="${sender.profile_image}" alt="${sender.fullname || sender.email}" 
                     onclick="event.stopPropagation(); window.openAdminImageViewer('${sender.profile_image}')">`
-            : `<span style="font-size: 16px;">👤</span>`;
+            : `<span style="font-size: 16px;"><i class="fas fa-user"></i></span>`;
         
         div.innerHTML = `
             <div class="avatar">${avatarHTML}</div>
@@ -926,7 +1382,16 @@ function renderAdminCustomerList(customers) {
             </div>
             ${unreadBadge}
         `;
-        div.onclick = () => loadAdminConversation(sender.email);
+        div.onclick = () => {
+            // 📱 MOBILE: I-activate ang slide-in conversation
+            if (window.innerWidth <= 768) {
+                const messagesGrid = document.querySelector('#section-messages .messages-grid');
+                if (messagesGrid) {
+                    messagesGrid.classList.add('has-active-conversation');
+                }
+            }
+            loadAdminConversation(sender.email);
+        };
         container.appendChild(div);
     });
 }
@@ -988,7 +1453,9 @@ function initAdminMessageSearch() {
     }
 }
 
-// ── LOAD ADMIN CONVERSATION ──────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+// ⭐ LOAD ADMIN CONVERSATION — Same layout as Staff Panel
+// ═══════════════════════════════════════════════════════════════════
 async function loadAdminConversation(customerEmail) {
     adminCurrentCustomer = customerEmail;
     
@@ -1014,11 +1481,10 @@ async function loadAdminConversation(customerEmail) {
         customerName = customerEmail;
     }
     
-    // ✅ Header avatar HTML (may profile image o default icon)
     const headerAvatarHTML = customerProfileImage
         ? `<img src="${customerProfileImage}" alt="${customerName}" 
                 onclick="event.stopPropagation(); window.openAdminImageViewer('${customerProfileImage}')">`
-        : `<span style="font-size: 20px;">👤</span>`;
+        : `<span style="font-size: 20px;"><i class="fas fa-user"></i></span>`;
     
     document.getElementById('adminConversationHeader').innerHTML = `
         <div style="display: flex; align-items: center; gap: 10px;">
@@ -1046,15 +1512,9 @@ async function loadAdminConversation(customerEmail) {
         
         if (data.success && data.messages && data.messages.length > 0) {
             container.innerHTML = '';
+            
             data.messages.forEach(msg => {
-                const isStaff = msg.sender_email === customerEmail ? false : true;
-                
-                const div = document.createElement('div');
-                div.style.cssText = `
-                    display: flex;
-                    justify-content: ${isStaff ? 'flex-end' : 'flex-start'};
-                    margin-bottom: 15px;
-                `;
+                const isAdmin = msg.sender_email === customerEmail ? false : true;
                 
                 let imageData = null;
                 let messageText = msg.message || '';
@@ -1084,22 +1544,68 @@ async function loadAdminConversation(customerEmail) {
                     messageText = '';
                 }
                 
-                let senderName = isStaff ? 'Admin' : customerName;
-                let senderColor = isStaff ? '#0f172a' : '#38bdf8';
+                const senderName = isAdmin ? 'Admin' : customerName;
                 
-                const msgDate = new Date(msg.created_at);
-                const formattedDate = msgDate.toLocaleString();
-                
-                let messageHTML = `
-                    <div style="max-width: 70%;">
-                        <div style="background: ${isStaff ? '#38bdf8' : '#1e293b'}; padding: 10px 15px; border-radius: 12px; ${isStaff ? 'border-bottom-right-radius: 4px;' : 'border-bottom-left-radius: 4px;'}">
-                            <div style="font-size: 11px; color: ${senderColor}; font-weight: 600; margin-bottom: 3px;">${senderName}</div>
-                            ${messageText ? `<div style="color: ${isStaff ? '#0f172a' : '#e2e8f0'}; word-wrap: break-word;">${messageText}</div>` : ''}
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = `
+                    display: flex;
+                    flex-direction: column;
+                    width: 100%;
+                    margin-bottom: 15px;
+                    padding: 0;
+                    box-sizing: border-box;
+                    align-items: ${isAdmin ? 'flex-end' : 'flex-start'};
                 `;
                 
+                const bubbleContainer = document.createElement('div');
+                bubbleContainer.style.cssText = `
+                    display: flex;
+                    flex-direction: column;
+                    max-width: 78%;
+                    box-sizing: border-box;
+                    align-items: ${isAdmin ? 'flex-end' : 'flex-start'};
+                    text-align: ${isAdmin ? 'right' : 'left'};
+                `;
+                
+                const nameEl = document.createElement('div');
+                nameEl.style.cssText = `
+                    font-size: 11px;
+                    font-weight: 600;
+                    color: #38bdf8;
+                    margin-bottom: 4px;
+                    padding: 0 4px;
+                    line-height: 1.2;
+                    text-align: ${isAdmin ? 'right' : 'left'};
+                    width: 100%;
+                `;
+                nameEl.textContent = senderName;
+                
+                const bubble = document.createElement('div');
+                bubble.style.cssText = `
+                    display: inline-block;
+                    padding: 10px 14px;
+                    border-radius: 14px;
+                    background: ${isAdmin ? '#38bdf8' : '#1e293b'};
+                    color: ${isAdmin ? '#0f172a' : '#e2e8f0'};
+                    ${isAdmin ? 'border-bottom-right-radius: 4px;' : 'border-bottom-left-radius: 4px; border: 1px solid #334155;'}
+                    font-size: 13.5px;
+                    line-height: 1.4;
+                    word-wrap: break-word;
+                    overflow-wrap: anywhere;
+                    box-sizing: border-box;
+                    text-align: left;
+                    max-width: 100%;
+                `;
+                
+                let bubbleContent = '';
+                
+                if (messageText) {
+                    bubbleContent += `<div style="font-size: 13.5px; line-height: 1.4; word-wrap: break-word; overflow-wrap: anywhere;">${messageText}</div>`;
+                }
+                
                 if (imageData && imageData.startsWith('data:image')) {
-                    messageHTML += `
-                        <div style="margin-top: 10px;">
+                    bubbleContent += `
+                        <div style="margin-top: 6px;">
                             <img src="${imageData}" 
                                  style="max-width: 250px; max-height: 250px; border-radius: 8px; cursor: pointer; border: 1px solid #334155; display: block;" 
                                  onclick="window.openImageFullscreenAdmin('${imageData}')"
@@ -1108,17 +1614,28 @@ async function loadAdminConversation(customerEmail) {
                     `;
                 }
                 
-                messageHTML += `
-                        </div>
-                        <div style="font-size: 10px; color: #64748b; margin-top: 3px; ${isStaff ? 'text-align: right;' : 'text-align: left;'}">
-                            ${formattedDate}
-                        </div>
-                    </div>
-                `;
+                bubble.innerHTML = bubbleContent;
                 
-                div.innerHTML = messageHTML;
-                container.appendChild(div);
+                const timeEl = document.createElement('div');
+                timeEl.style.cssText = `
+                    font-size: 10px;
+                    color: #64748b;
+                    margin-top: 4px;
+                    padding: 0 4px;
+                    line-height: 1.2;
+                    text-align: ${isAdmin ? 'right' : 'left'};
+                    width: 100%;
+                `;
+                timeEl.textContent = new Date(msg.created_at).toLocaleString();
+                
+                bubbleContainer.appendChild(nameEl);
+                bubbleContainer.appendChild(bubble);
+                bubbleContainer.appendChild(timeEl);
+                
+                wrapper.appendChild(bubbleContainer);
+                container.appendChild(wrapper);
             });
+            
             container.scrollTop = container.scrollHeight;
             
             await markAdminMessagesAsRead(customerEmail);
@@ -1136,7 +1653,7 @@ async function loadAdminConversation(customerEmail) {
         console.error('Error loading conversation:', error);
         document.getElementById('adminConversationMessages').innerHTML = `
             <div style="text-align: center; color: #ef4444; padding: 40px;">
-                ❌ Error loading messages
+                <i class="fas fa-times-circle"></i> Error loading messages
             </div>
         `;
     }
@@ -1205,7 +1722,6 @@ function closeAdminImageViewer(event) {
     }
 }
 
-// Close viewer on Escape key
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         const viewer = document.getElementById('adminImageViewer');
@@ -1226,7 +1742,7 @@ async function sendAdminReply(e) {
     if (!message) {
         const input = document.getElementById('adminReplyMessage');
         input.style.borderColor = '#ef4444';
-        input.placeholder = '⚠️ Please enter a message';
+        input.placeholder = 'Please enter a message';
         setTimeout(() => {
             input.style.borderColor = '#334155';
             input.placeholder = 'Type your reply...';
@@ -1240,8 +1756,8 @@ async function sendAdminReply(e) {
     }
     
     const btn = document.querySelector('#adminReplyForm button[type="submit"]');
-    const originalText = btn.textContent;
-    btn.textContent = '⏳ Sending...';
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
     btn.disabled = true;
     
     try {
@@ -1271,14 +1787,13 @@ async function sendAdminReply(e) {
         if (data.success) {
             document.getElementById('adminReplyMessage').value = '';
             const input = document.getElementById('adminReplyMessage');
-            input.placeholder = '✅ Message sent!';
+            input.placeholder = 'Message sent!';
             input.style.borderColor = '#10b981';
             setTimeout(() => {
                 input.placeholder = 'Type your reply...';
                 input.style.borderColor = '#334155';
             }, 2000);
             loadAdminConversation(customerEmail);
-            console.log('✅ Reply sent successfully!');
         } else {
             alert('❌ ' + data.message);
         }
@@ -1287,7 +1802,7 @@ async function sendAdminReply(e) {
         alert('Something went wrong. Please try again.');
     }
     
-    btn.textContent = originalText;
+    btn.innerHTML = originalText;
     btn.disabled = false;
 }
 
@@ -1332,7 +1847,7 @@ function showAdminImageUploadModal() {
         modal.innerHTML = `
             <div class="modal-popup" style="max-width: 450px;">
                 <div style="text-align: center; margin-bottom: 20px;">
-                    <div style="font-size: 48px; margin-bottom: 10px;">🖼️</div>
+                    <div style="font-size: 48px; margin-bottom: 10px;"><i class="fas fa-image"></i></div>
                     <h3 style="color: #38bdf8; font-size: 24px; margin: 0;">Upload Image</h3>
                     <p style="color: #94a3b8; font-size: 14px; margin-top: 5px;">Share a photo with your message</p>
                 </div>
@@ -1340,7 +1855,7 @@ function showAdminImageUploadModal() {
                 <div style="background: #0f172a; border-radius: 12px; padding: 30px; border: 2px dashed #334155; text-align: center; cursor: pointer; transition: 0.3s;" 
                      id="adminImageUploadDropzone"
                      onclick="document.getElementById('adminImageUploadInput').click()">
-                    <div style="font-size: 48px; margin-bottom: 10px;">📷</div>
+                    <div style="font-size: 48px; margin-bottom: 10px;"><i class="fas fa-camera"></i></div>
                     <p style="color: #94a3b8; font-size: 14px;">Click or drag to upload image</p>
                     <p style="color: #64748b; font-size: 12px;">JPG, PNG, GIF • Max 5MB</p>
                 </div>
@@ -1351,7 +1866,7 @@ function showAdminImageUploadModal() {
                     <img id="adminImagePreview" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 10px;">
                     <div style="display: flex; gap: 10px; margin-top: 10px;">
                         <button class="modal-btn modal-btn-cancel" onclick="closeAdminImageUploadModal()" style="flex: 1;">Cancel</button>
-                        <button class="modal-btn modal-btn-submit" onclick="sendAdminImageMessage()" id="adminSendImageBtn" style="flex: 1; background: #38bdf8; color: #0f172a;">📤 Send Image</button>
+                        <button class="modal-btn modal-btn-submit" onclick="sendAdminImageMessage()" id="adminSendImageBtn" style="flex: 1; background: #38bdf8; color: #0f172a;"><i class="fas fa-paper-plane"></i> Send Image</button>
                     </div>
                 </div>
             </div>
@@ -1397,7 +1912,7 @@ function showAdminImageUploadModal() {
     document.getElementById('adminImageUploadDropzone').style.borderColor = '#334155';
     document.getElementById('adminImageUploadDropzone').style.background = 'transparent';
     document.getElementById('adminSendImageBtn').disabled = false;
-    document.getElementById('adminSendImageBtn').textContent = '📤 Send Image';
+    document.getElementById('adminSendImageBtn').innerHTML = '<i class="fas fa-paper-plane"></i> Send Image';
     adminPendingImage = null;
     
     modal.style.display = 'flex';
@@ -1458,7 +1973,7 @@ async function sendAdminImageMessage() {
     }
     
     const btn = document.getElementById('adminSendImageBtn');
-    btn.textContent = '⏳ Uploading...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
     btn.disabled = true;
     
     try {
@@ -1468,8 +1983,8 @@ async function sendAdminImageMessage() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                subject: '📷 Image',
-                message: '📷 Image',
+                subject: 'Image',
+                message: 'Image',
                 receiver: customerEmail,
                 image_data: imageData.data,
                 image_name: imageData.name,
@@ -1479,7 +1994,7 @@ async function sendAdminImageMessage() {
         const data = await res.json();
         
         if (data.success) {
-            alert('✅ Image sent successfully!');
+            alert('Image sent successfully!');
             closeAdminImageUploadModal();
             await loadAdminConversation(customerEmail);
             await loadAdminCustomers();
@@ -1489,8 +2004,8 @@ async function sendAdminImageMessage() {
                 adminSocket.emit('send_message', {
                     sender: currentUser,
                     receiver: customerEmail,
-                    message: '📷 Image',
-                    subject: '📷 Image',
+                    message: 'Image',
+                    subject: 'Image',
                     timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
                     image_data: imageData.data,
                     image_name: imageData.name,
@@ -1499,13 +2014,13 @@ async function sendAdminImageMessage() {
             }
         } else {
             alert('❌ ' + (data.message || 'Error sending image.'));
-            btn.textContent = '📤 Send Image';
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Image';
             btn.disabled = false;
         }
     } catch (error) {
         console.error('Error sending image:', error);
         alert('Something went wrong. Please try again.');
-        btn.textContent = '📤 Send Image';
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Image';
         btn.disabled = false;
     }
 }
@@ -1573,7 +2088,7 @@ function initAdminEmojiPicker() {
     });
     
     const closeBtn = document.createElement('button');
-    closeBtn.textContent = '✕';
+    closeBtn.innerHTML = '<i class="fas fa-times"></i>';
     closeBtn.style.cssText = `
         width: 36px;
         height: 36px;
@@ -1615,7 +2130,7 @@ function addAdminMessageButtons() {
     const emojiBtn = document.createElement('button');
     emojiBtn.id = 'adminEmojiBtn';
     emojiBtn.type = 'button';
-    emojiBtn.innerHTML = '😊';
+    emojiBtn.innerHTML = '<i class="fas fa-smile"></i>';
     emojiBtn.title = 'Insert Emoji';
     emojiBtn.style.cssText = `
         padding: 8px 14px;
@@ -1634,7 +2149,7 @@ function addAdminMessageButtons() {
     const imageBtn = document.createElement('button');
     imageBtn.id = 'adminImageBtn';
     imageBtn.type = 'button';
-    imageBtn.innerHTML = '🖼️';
+    imageBtn.innerHTML = '<i class="fas fa-image"></i>';
     imageBtn.title = 'Upload Image';
     imageBtn.style.cssText = `
         padding: 8px 14px;
@@ -1710,6 +2225,14 @@ window.changeAdminWeek = changeAdminWeek;
 window.showUserDetailsModal = showUserDetailsModal;
 window.closeUserDetailsModal = closeUserDetailsModal;
 
+// ✅ Breakdown functions exposure
+window.renderBreakdown = renderBreakdown;
+window.renderWeeklyBreakdown = renderWeeklyBreakdown;
+window.renderPetTypesBreakdown = renderPetTypesBreakdown;
+window.renderStatusBreakdown = renderStatusBreakdown;
+window.renderGrowthBreakdown = renderGrowthBreakdown;
+window.renderUserGrowthBreakdown = renderUserGrowthBreakdown;
+
 (function initAdminSocket() {
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
@@ -1722,11 +2245,37 @@ window.closeUserDetailsModal = closeUserDetailsModal;
     }
 })();
 
+// ═══════════════════════════════════════════════════════════════════
+// 📱 MOBILE BACK BUTTON — Admin Messages Slide-in
+// ═══════════════════════════════════════════════════════════════════
+function adminBackToCustomerList() {
+    const messagesGrid = document.querySelector('#section-messages .messages-grid');
+    if (messagesGrid) {
+        messagesGrid.classList.remove('has-active-conversation');
+    }
+}
+
+// Back button click handler — mobile only
+document.addEventListener('click', function(e) {
+    if (window.innerWidth > 768) return;
+    
+    const header = document.getElementById('adminConversationHeader');
+    if (!header) return;
+    
+    // Check kung clinick ang back button area (unang 50px ng header)
+    const rect = header.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    
+    if (clickX <= 50 && clickX >= 0) {
+        adminBackToCustomerList();
+    }
+});
+
+// Expose globally
+window.adminBackToCustomerList = adminBackToCustomerList;
+
 // ── SHOW USER DETAILS MODAL (ADMIN) ────────────────────────────────
 async function showUserDetailsModal(userId) {
-    console.log(`👤 Opening user details modal for user ID: ${userId}`);
-    
-    // Create loading modal
     let modal = document.getElementById('userDetailsModal');
     if (modal) modal.remove();
     
@@ -1758,14 +2307,13 @@ async function showUserDetailsModal(userId) {
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
             text-align: center;
         ">
-            <div style="font-size: 40px; margin-bottom: 15px;">⏳</div>
+            <div style="font-size: 40px; margin-bottom: 15px;"><i class="fas fa-spinner fa-spin"></i></div>
             <p style="color: #94a3b8;">Loading user details...</p>
         </div>
     `;
     
     document.body.appendChild(modal);
     
-    // Close on overlay click
     modal.addEventListener('click', function(e) {
         if (e.target === modal) {
             closeUserDetailsModal();
@@ -1786,7 +2334,6 @@ async function showUserDetailsModal(userId) {
         const pets = data.pets || [];
         const appointmentCount = data.appointment_count || 0;
         
-        // ── Avatar HTML ─────────────────────────────────────────
         const initial = (user.fullname || 'U').trim()[0].toUpperCase();
         let avatarHTML;
         const hasProfileImage = !!user.profile_image;
@@ -1803,7 +2350,6 @@ async function showUserDetailsModal(userId) {
             avatarHTML = `<div style="width: 100%; height: 100%; border-radius: 50%; background: ${bgColor}; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 32px;">${initial}</div>`;
         }
         
-        // ── Role badge color ────────────────────────────────────
         const roleColors = {
             admin: '#8b5cf6',
             staff: '#f59e0b',
@@ -1812,18 +2358,17 @@ async function showUserDetailsModal(userId) {
         };
         const roleColor = roleColors[user.role] || '#7ba05b';
         
-        // ── Pets HTML ────────────────────────────────────────────
         let petsHTML = '';
         if (pets.length === 0) {
             petsHTML = `
                 <div style="text-align: center; padding: 30px; color: #64748b; background: #0f172a; border-radius: 12px; border: 1px dashed #334155;">
-                    <div style="font-size: 36px; margin-bottom: 8px;">🐾</div>
+                    <div style="font-size: 36px; margin-bottom: 8px;"><i class="fas fa-paw"></i></div>
                     <p style="margin: 0; font-size: 13px;">No pets registered yet.</p>
                 </div>
             `;
         } else {
             petsHTML = pets.map(pet => {
-                const petIcon = pet.pet_type === 'Cat' ? '🐈' : '🐕';
+                const petIcon = pet.pet_type === 'Cat' ? '<i class="fas fa-cat"></i>' : '<i class="fas fa-dog"></i>';
                 
                 let petAvatarHTML;
                 if (pet.pet_image) {
@@ -1859,7 +2404,7 @@ async function showUserDetailsModal(userId) {
                             </div>
                             ${pet.allergies && pet.allergies !== 'None' ? `
                                 <div style="color: #ef4444; font-size: 11px; margin-top: 4px;">
-                                    ⚠️ Allergies: ${pet.allergies}
+                                    <i class="fas fa-exclamation-triangle"></i> Allergies: ${pet.allergies}
                                 </div>
                             ` : ''}
                         </div>
@@ -1868,7 +2413,6 @@ async function showUserDetailsModal(userId) {
             }).join('');
         }
         
-        // ── Full Modal HTML ──────────────────────────────────────
         modal.innerHTML = `
             <div style="
                 background: #1e293b;
@@ -1882,7 +2426,6 @@ async function showUserDetailsModal(userId) {
                 position: relative;
                 animation: slideUp 0.3s ease;
             ">
-                <!-- Close X Button -->
                 <button onclick="closeUserDetailsModal()" style="
                     position: absolute;
                     top: 12px;
@@ -1900,7 +2443,6 @@ async function showUserDetailsModal(userId) {
                 " onmouseover="this.style.color='#ef4444'; this.style.background='rgba(239,68,68,0.1)'" 
                    onmouseout="this.style.color='#94a3b8'; this.style.background='transparent'">✕</button>
                 
-                <!-- Header Section -->
                 <div style="
                     padding: 30px 30px 20px;
                     border-bottom: 1px solid #334155;
@@ -1960,13 +2502,12 @@ async function showUserDetailsModal(userId) {
                                 font-size: 11px;
                                 font-weight: 700;
                             ">
-                                ${user.is_verified ? '✓ Verified' : '✕ Unverified'}
+                                ${user.is_verified ? '<i class="fas fa-check"></i> Verified' : '<i class="fas fa-times"></i> Unverified'}
                             </span>
                         </div>
                     </div>
                 </div>
                 
-                <!-- User Info Section -->
                 <div style="padding: 20px 30px; border-bottom: 1px solid #334155;">
                     <h3 style="
                         color: #38bdf8;
@@ -1976,7 +2517,7 @@ async function showUserDetailsModal(userId) {
                         letter-spacing: 0.8px;
                         margin: 0 0 14px;
                     ">
-                        👤 Personal Information
+                        <i class="fas fa-user"></i> Personal Information
                     </h3>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                         <div>
@@ -2002,7 +2543,6 @@ async function showUserDetailsModal(userId) {
                     </div>
                 </div>
                 
-                <!-- Pets Section -->
                 <div style="padding: 20px 30px 30px;">
                     <h3 style="
                         color: #38bdf8;
@@ -2015,7 +2555,7 @@ async function showUserDetailsModal(userId) {
                         align-items: center;
                         justify-content: space-between;
                     ">
-                        <span>🐾 Pets (${pets.length})</span>
+                        <span><i class="fas fa-paw"></i> Pets (${pets.length})</span>
                     </h3>
                     <div>
                         ${petsHTML}
@@ -2024,7 +2564,6 @@ async function showUserDetailsModal(userId) {
             </div>
         `;
         
-        // Re-attach close on overlay click
         modal.addEventListener('click', function(e) {
             if (e.target === modal) {
                 closeUserDetailsModal();
@@ -2046,7 +2585,6 @@ function closeUserDetailsModal() {
     }
 }
 
-// Close modal on Escape key
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeUserDetailsModal();

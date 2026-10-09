@@ -4,112 +4,311 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staff Availability Management - PetLink</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='images/logo.jpg') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/staff.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/staff_availability.css') }}">
 
-    <!-- ── LIGHT GREEN THEME OVERRIDES ───────────────────────────────── -->
+    <!-- ═══════════════════════════════════════════════════════════════
+         🎨 LIGHT GREEN THEME + ENHANCED UI/UX
+         ═══════════════════════════════════════════════════════════════ -->
     <style>
         /* ── BODY & CONTAINER ──────────────────────────────────────── */
         body {
             background: #f0f7eb !important;
             color: #2d3e1f !important;
         }
-        .container { max-width: 1400px; margin: 0 auto; padding: 30px 20px; }
+        .container { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            padding: 30px 20px; 
+        }
 
-        /* ── HEADER ────────────────────────────────────────────────── */
-        .page-header h1 { color: #5a7a3f !important; font-size: 32px; font-weight: 700; }
-        .page-header h1 i { color: #7ba05b; margin-right: 10px; }
-        .page-header p { color: #4a5a3f !important; font-size: 14px; margin-top: 4px; }
+        /* ═══════════════════════════════════════════════════════════════
+           🎨 PAGE HEADER — May Logo at Enhanced Design
+           ═══════════════════════════════════════════════════════════════ */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+            background: #ffffff;
+            padding: 20px 24px;
+            border-radius: 16px;
+            border: 1px solid #d4e5c4;
+            box-shadow: 0 2px 8px rgba(123, 160, 91, 0.06);
+        }
+
+        .page-header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .header-logo {
+            width: 56px;
+            height: 56px;
+            object-fit: contain;
+            border-radius: 50%;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(123, 160, 91, 0.2);
+            transition: transform 0.3s ease;
+            border: 2px solid #eaf3e0;
+        }
+
+        .header-logo:hover {
+            transform: scale(1.05) rotate(3deg);
+        }
+
+        .header-text h1 {
+            color: #5a7a3f !important;
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0 0 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            line-height: 1.2;
+        }
+
+        .header-text h1 i {
+            color: #7ba05b;
+            font-size: 22px;
+        }
+
+        .header-text p {
+            color: #4a5a3f !important;
+            font-size: 13px;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
 
         .btn-back {
             color: #5a7a3f !important;
-            border: 1px solid #d4e5c4 !important;
+            border: 1.5px solid #d4e5c4 !important;
             background: #ffffff;
             text-decoration: none;
             font-weight: 600;
-            padding: 8px 16px;
+            padding: 10px 18px;
             border-radius: 10px;
-            transition: 0.3s;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-family: 'Poppins', sans-serif;
         }
+
         .btn-back:hover {
             border-color: #7ba05b !important;
             background: rgba(123, 160, 91, 0.08) !important;
             color: #5a7a3f !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(123, 160, 91, 0.15);
         }
 
         .btn-save {
             background: linear-gradient(135deg, #7ba05b, #5a7a3f) !important;
             color: #fff !important;
             border: none;
-            padding: 12px 32px;
-            border-radius: 12px;
+            padding: 10px 22px;
+            border-radius: 10px;
             cursor: pointer;
             font-weight: 600;
-            font-size: 16px;
-            transition: 0.3s;
-            display: flex;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            display: inline-flex;
             align-items: center;
             gap: 8px;
-        }
-        .btn-save:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(123, 160, 91, 0.35) !important;
+            font-family: 'Poppins', sans-serif;
+            box-shadow: 0 4px 12px rgba(123, 160, 91, 0.25);
         }
 
-        /* ── LEGEND ────────────────────────────────────────────────── */
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(123, 160, 91, 0.35) !important;
+        }
+
+        .btn-save:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           🎨 LEGEND — Enhanced Design
+           ═══════════════════════════════════════════════════════════════ */
         .legend {
             background: #ffffff !important;
             border: 1px solid #d4e5c4 !important;
-            border-radius: 12px;
-            padding: 15px 20px;
+            border-radius: 14px;
+            padding: 16px 20px;
             display: flex;
             flex-wrap: wrap;
-            gap: 20px;
+            gap: 18px;
             align-items: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(123, 160, 91, 0.04);
         }
-        .legend-title { color: #5a7a3f !important; font-size: 13px; font-weight: 600; margin-right: 5px; }
-        .legend-item { color: #4a5a3f !important; }
+
+        .legend-title {
+            color: #5a7a3f !important;
+            font-size: 13px;
+            font-weight: 700;
+            margin-right: 5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-item {
+            color: #4a5a3f !important;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12.5px;
+            font-weight: 500;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 5px;
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
         .legend-color.open { background: #7ba05b !important; }
         .legend-color.closed { background: #ef4444 !important; }
         .legend-color.active { background: rgba(123, 160, 91, 0.3) !important; border: 1px solid #7ba05b !important; }
         .legend-color.inactive { background: rgba(239, 68, 68, 0.3) !important; border: 1px solid #ef4444 !important; }
         .legend-color.date-closed { background: rgba(239, 68, 68, 0.15) !important; border: 1px dashed #ef4444 !important; }
-        .legend-item:last-child { margin-left: auto; color: #94a387 !important; font-size: 12px; }
 
-        /* ── AVAILABILITY TABLE ────────────────────────────────────── */
+        .legend-hint {
+            margin-left: auto;
+            color: #94a387 !important;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: #f7fbf3;
+            border-radius: 20px;
+            border: 1px solid #eaf3e0;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           🎨 AVAILABILITY TABLE — Enhanced
+           ═══════════════════════════════════════════════════════════════ */
         .availability-table-wrapper {
             background: #ffffff !important;
             border: 1px solid #d4e5c4 !important;
             border-radius: 16px;
             overflow: hidden;
             overflow-x: auto;
+            box-shadow: 0 2px 12px rgba(123, 160, 91, 0.06);
         }
-        .availability-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+
+        .availability-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+
         .availability-table thead { background: #f7fbf3 !important; }
+
         .availability-table th {
             background: #f7fbf3 !important;
             color: #5a7a3f !important;
             border-bottom: 2px solid #d4e5c4 !important;
+            padding: 16px 14px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
+
         .availability-table td {
             border-bottom: 1px solid #eaf3e0 !important;
             color: #2d3e1f !important;
+            padding: 14px;
+            vertical-align: middle;
         }
-        .availability-table tbody tr:hover { background: rgba(123, 160, 91, 0.05) !important; }
-        .availability-table tbody tr.closed-row { opacity: 0.6; }
+
+        .availability-table tbody tr {
+            transition: background 0.2s ease;
+        }
+
+        .availability-table tbody tr:hover {
+            background: rgba(123, 160, 91, 0.04) !important;
+        }
+
+        .availability-table tbody tr.closed-row {
+            opacity: 0.65;
+            background: rgba(239, 68, 68, 0.02);
+        }
 
         /* ── DAY CELL ──────────────────────────────────────────────── */
-        .day-cell { color: #2d3e1f !important; }
-        .day-cell .day-icon { color: #7ba05b; font-size: 18px; }
-        .day-cell .day-status-badge.open { background: rgba(123, 160, 91, 0.18) !important; color: #5a7a3f !important; }
-        .day-cell .day-status-badge.closed { background: rgba(239, 68, 68, 0.15) !important; color: #ef4444 !important; }
+        .day-cell {
+            color: #2d3e1f !important;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 14.5px;
+            flex-wrap: wrap;
+        }
+
+        .day-cell .day-icon {
+            color: #7ba05b;
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .day-cell .day-status-badge {
+            font-size: 10px;
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .day-cell .day-status-badge.open {
+            background: rgba(123, 160, 91, 0.18) !important;
+            color: #5a7a3f !important;
+        }
+
+        .day-cell .day-status-badge.closed {
+            background: rgba(239, 68, 68, 0.15) !important;
+            color: #ef4444 !important;
+        }
+
         .day-cell .closure-indicator {
             background: rgba(239, 68, 68, 0.12) !important;
             color: #ef4444 !important;
             border: 1px dashed #ef4444 !important;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 9px;
+            font-weight: 700;
         }
 
         /* ── TOGGLE ────────────────────────────────────────────────── */
@@ -117,176 +316,720 @@
         .toggle-switch input:checked + .toggle-slider { background: #7ba05b !important; }
 
         /* ── DAILY SLOTS INPUT ─────────────────────────────────────── */
-        .slots-input label { color: #94a387 !important; }
+        .slots-input {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .slots-input label {
+            color: #94a387 !important;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
         .slots-input input[type="number"] {
             background: #f7fbf3 !important;
-            border: 1px solid #d4e5c4 !important;
+            border: 1.5px solid #d4e5c4 !important;
             color: #2d3e1f !important;
+            width: 56px;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 14px;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            font-family: 'Poppins', sans-serif;
         }
+
         .slots-input input[type="number"]:focus {
             border-color: #7ba05b !important;
             box-shadow: 0 0 0 3px rgba(123, 160, 91, 0.15) !important;
+            outline: none;
         }
 
         /* ── TIME SLOTS ────────────────────────────────────────────── */
         .time-slot-btn {
             background: #f7fbf3 !important;
-            border: 1px solid #d4e5c4 !important;
+            border: 1.5px solid #d4e5c4 !important;
             color: #5a7a3f !important;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+            font-family: 'Poppins', sans-serif;
         }
+
         .time-slot-btn:hover {
             border-color: #7ba05b !important;
             color: #5a7a3f !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(123, 160, 91, 0.15);
         }
+
         .time-slot-btn.active {
             border-color: #7ba05b !important;
             background: rgba(123, 160, 91, 0.12) !important;
             color: #5a7a3f !important;
         }
+
         .time-slot-btn.inactive {
             border-color: #ef4444 !important;
             background: rgba(239, 68, 68, 0.05) !important;
             color: #94a387 !important;
             opacity: 0.6;
         }
+
         .time-slot-btn .slot-max {
             background: rgba(123, 160, 91, 0.2) !important;
             color: #5a7a3f !important;
+            padding: 1px 6px;
+            border-radius: 5px;
+            font-size: 10px;
+            font-weight: 700;
         }
+
         .time-slot-btn.inactive .slot-max {
             background: rgba(239, 68, 68, 0.2) !important;
             color: #ef4444 !important;
         }
 
-        /* ── MODAL ─────────────────────────────────────────────────── */
+        /* ═══════════════════════════════════════════════════════════════
+           🎨 MODAL — Enhanced
+           ═══════════════════════════════════════════════════════════════ */
         .modal-overlay {
             background: rgba(45, 62, 31, 0.4) !important;
+            backdrop-filter: blur(6px);
         }
+
         .modal-popup {
             background: #ffffff !important;
             border: 1px solid #7ba05b !important;
-            box-shadow: 0 20px 40px rgba(123, 160, 91, 0.15) !important;
+            box-shadow: 0 20px 50px rgba(123, 160, 91, 0.2) !important;
+            border-radius: 20px !important;
         }
-        .modal-popup h3 { color: #5a7a3f !important; }
-        .modal-popup .modal-subtitle { color: #4a5a3f !important; }
-        .modal-popup .modal-subtitle strong { color: #5a7a3f; }
+
+        .modal-popup h3 {
+            color: #5a7a3f !important;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .modal-popup .modal-subtitle {
+            color: #4a5a3f !important;
+            font-size: 13px;
+        }
+
+        .modal-popup .modal-subtitle strong {
+            color: #5a7a3f;
+            font-weight: 700;
+        }
 
         /* ── MODAL FORM FIELDS ─────────────────────────────────────── */
         .modal-popup input[type="number"],
         .modal-popup select {
             background: #f7fbf3 !important;
-            border: 1px solid #d4e5c4 !important;
+            border: 1.5px solid #d4e5c4 !important;
             color: #2d3e1f !important;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.2s ease;
         }
+
         .modal-popup input[type="number"]:focus,
         .modal-popup select:focus {
             border-color: #7ba05b !important;
             box-shadow: 0 0 0 3px rgba(123, 160, 91, 0.15) !important;
+            outline: none;
         }
-        .modal-popup label { color: #3d5429 !important; }
-        .modal-popup .form-group span[style*="color"] { color: #94a387 !important; }
 
-        /* ── MODAL SLOT STATUS TEXT ────────────────────────────────── */
-        .modal-popup span[style*="#94a3b8"] { color: #4a5a3f !important; }
+        .modal-popup label {
+            color: #3d5429 !important;
+            font-weight: 600;
+            font-size: 13px;
+        }
 
         /* ── CALENDAR ──────────────────────────────────────────────── */
         .cal-wrapper {
             background: #f7fbf3 !important;
             border: 1px solid #d4e5c4 !important;
+            border-radius: 14px;
         }
+
         .cal-nav-btn {
             background: #ffffff !important;
-            border: 1px solid #d4e5c4 !important;
+            border: 1.5px solid #d4e5c4 !important;
             color: #5a7a3f !important;
+            transition: all 0.2s ease;
         }
+
         .cal-nav-btn:hover {
             border-color: #7ba05b !important;
             color: #7ba05b !important;
+            background: #eaf3e0 !important;
+            transform: scale(1.08);
         }
-        .cal-month-year { color: #2d3e1f !important; }
-        .cal-day-name { color: #94a387 !important; }
-        .cal-day { color: #2d3e1f !important; }
+
+        .cal-month-year {
+            color: #2d3e1f !important;
+            font-weight: 700;
+        }
+
+        .cal-day-name { color: #94a387 !important; font-weight: 700; }
+
+        .cal-day {
+            color: #2d3e1f !important;
+            transition: all 0.2s ease;
+        }
+
         .cal-day.other-month { color: #b8ccaa !important; }
-        .cal-day.selectable:hover { background: rgba(123, 160, 91, 0.12) !important; }
+
+        .cal-day.selectable:hover {
+            background: rgba(123, 160, 91, 0.12) !important;
+            transform: scale(1.1);
+        }
+
         .cal-day.selectable { color: #2d3e1f !important; }
         .cal-day.disabled { color: #94a387 !important; }
+
         .cal-day.selected {
             background: #7ba05b !important;
             color: #ffffff !important;
             box-shadow: 0 4px 15px rgba(123, 160, 91, 0.35) !important;
+            font-weight: 700;
         }
+
         .cal-day .dot { background: #7ba05b !important; }
-        .cal-day .dot.closure-dot { background: #ef4444 !important; box-shadow: 0 0 8px rgba(239, 68, 68, 0.5) !important; }
+        .cal-day .dot.closure-dot {
+            background: #ef4444 !important;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.5) !important;
+        }
+
         .cal-footer { border-top: 1px solid #d4e5c4 !important; }
         .cal-selected-label { color: #94a387 !important; }
 
         /* ── MODAL BUTTONS ─────────────────────────────────────────── */
+        .modal-btn {
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+        }
+
         .modal-btn-cancel {
             background: #e2e8f0 !important;
             color: #475569 !important;
         }
-        .modal-btn-cancel:hover { background: #cbd5e1 !important; }
+        .modal-btn-cancel:hover {
+            background: #cbd5e1 !important;
+            transform: translateY(-2px);
+        }
 
         .modal-btn-submit {
             background: linear-gradient(135deg, #7ba05b, #5a7a3f) !important;
             color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(123, 160, 91, 0.25);
         }
         .modal-btn-submit:hover {
             background: linear-gradient(135deg, #5a7a3f, #4a6b32) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(123, 160, 91, 0.35);
         }
 
-        /* ── SAVE STATUS ───────────────────────────────────────────── */
-        #saveStatus { color: #5a7a3f !important; }
-
         /* ── SCROLLBAR ─────────────────────────────────────────────── */
+        .availability-table-wrapper::-webkit-scrollbar { 
+            width: 8px; 
+            height: 8px; 
+        }
         .availability-table-wrapper::-webkit-scrollbar-track,
         .modal-popup::-webkit-scrollbar-track {
             background: #eaf3e0 !important;
+            border-radius: 10px;
         }
         .availability-table-wrapper::-webkit-scrollbar-thumb,
         .modal-popup::-webkit-scrollbar-thumb {
             background: linear-gradient(180deg, #7ba05b, #5a7a3f) !important;
+            border-radius: 10px;
         }
 
-        /* ── TOAST (kept as is but greenified) ─────────────────────── */
-        .toast.info { background: #7ba05b !important; border-color: #5a7a3f !important; color: #ffffff !important; }
+        /* ── TOAST ─────────────────────────────────────────────────── */
+        .toast.info { 
+            background: #7ba05b !important; 
+            border-color: #5a7a3f !important; 
+            color: #ffffff !important; 
+        }
 
-        /* ── LOADING / EMPTY STATES ────────────────────────────────── */
-        .availability-table tbody td[colspan] { color: #94a387 !important; }
+        /* ═══════════════════════════════════════════════════════════════
+           📱 MOBILE RESPONSIVE — TABLE → CARD LAYOUT
+           ═══════════════════════════════════════════════════════════════ */
+        @media (max-width: 768px) {
+            /* ── GLOBAL: Prevent horizontal overflow ────────────────── */
+            html, body {
+                overflow-x: hidden !important;
+                max-width: 100% !important;
+            }
+
+            .container {
+                padding: 16px 14px 30px !important;
+                max-width: 100% !important;
+                overflow-x: hidden !important;
+            }
+
+            /* ── PAGE HEADER — Mobile ───────────────────────────────── */
+            .page-header {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 16px !important;
+                margin-bottom: 16px !important;
+                padding: 18px 16px !important;
+                border-radius: 14px !important;
+            }
+
+            .page-header-left {
+                flex-direction: row !important;
+                align-items: center !important;
+                gap: 14px !important;
+            }
+
+            .header-logo {
+                width: 48px !important;
+                height: 48px !important;
+            }
+
+            .header-text h1 {
+                font-size: 18px !important;
+                gap: 6px !important;
+            }
+
+            .header-text h1 i {
+                font-size: 16px !important;
+            }
+
+            .header-text p {
+                font-size: 11.5px !important;
+                line-height: 1.4 !important;
+            }
+
+            .header-actions {
+                width: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 8px !important;
+            }
+
+            .btn-back,
+            .btn-save {
+                width: 100% !important;
+                justify-content: center !important;
+                padding: 12px 16px !important;
+                font-size: 13px !important;
+                box-sizing: border-box !important;
+            }
+
+            /* ── LEGEND — Mobile ─────────────────────────────────────── */
+            .legend {
+                padding: 14px 16px !important;
+                gap: 10px !important;
+                margin-bottom: 14px !important;
+                flex-wrap: wrap !important;
+                border-radius: 12px !important;
+            }
+
+            .legend-title {
+                font-size: 12px !important;
+                width: 100% !important;
+                margin-bottom: 6px !important;
+                padding-bottom: 8px !important;
+                border-bottom: 1px dashed #eaf3e0;
+            }
+
+            .legend-item {
+                font-size: 11px !important;
+                gap: 6px !important;
+            }
+
+            .legend-color {
+                width: 14px !important;
+                height: 14px !important;
+            }
+
+            .legend-hint {
+                margin-left: 0 !important;
+                width: 100% !important;
+                font-size: 10.5px !important;
+                text-align: center !important;
+                justify-content: center !important;
+                margin-top: 4px !important;
+            }
+
+            /* ═══════════════════════════════════════════════════════════
+               🎨 TABLE → CARD LAYOUT
+               ═══════════════════════════════════════════════════════════ */
+
+            .availability-table-wrapper {
+                background: transparent !important;
+                border: none !important;
+                border-radius: 0 !important;
+                overflow: visible !important;
+                overflow-x: visible !important;
+                box-shadow: none !important;
+            }
+
+            .availability-table {
+                display: block !important;
+                width: 100% !important;
+                min-width: 0 !important;
+                max-width: 100% !important;
+            }
+
+            .availability-table thead { display: none !important; }
+
+            .availability-table tbody {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 12px !important;
+                width: 100% !important;
+            }
+
+            /* Bawat row → isang card */
+            .availability-table tbody tr {
+                display: flex !important;
+                flex-direction: column !important;
+                background: #ffffff !important;
+                border: 1px solid #d4e5c4 !important;
+                border-left: 4px solid #7ba05b !important;
+                border-radius: 14px !important;
+                padding: 16px !important;
+                gap: 14px !important;
+                box-shadow: 0 2px 8px rgba(123, 160, 91, 0.06) !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+                overflow: hidden !important;
+            }
+
+            .availability-table tbody tr.closed-row {
+                border-left-color: #ef4444 !important;
+                background: #fffaf9 !important;
+                opacity: 1 !important;
+            }
+
+            /* Bawat cell — stack vertically */
+            .availability-table tbody tr td {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                border: none !important;
+                padding: 0 !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+                gap: 8px !important;
+            }
+
+            /* ── LABELS via pseudo-element ──────────────────────────── */
+            .availability-table tbody tr td:nth-child(1)::before { content: '📅 Day'; }
+            .availability-table tbody tr td:nth-child(2)::before { content: '🔘 Status'; }
+            .availability-table tbody tr td:nth-child(3)::before { content: '🔢 Daily Slots'; }
+            .availability-table tbody tr td:nth-child(4)::before { content: '⏰ Time Slots'; }
+
+            .availability-table tbody tr td::before {
+                display: block !important;
+                font-weight: 700 !important;
+                color: #5a7a3f !important;
+                font-size: 11px !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.5px !important;
+                margin-bottom: 4px !important;
+                padding-bottom: 8px !important;
+                border-bottom: 1px dashed #eaf3e0 !important;
+            }
+
+            /* ── DAY CELL (td 1) ────────────────────────────────────── */
+            .availability-table tbody tr td:nth-child(1) .day-cell {
+                display: flex !important;
+                align-items: center !important;
+                gap: 10px !important;
+                flex-wrap: wrap !important;
+                font-size: 16px !important;
+                font-weight: 700 !important;
+                color: #2d3e1f !important;
+            }
+
+            .availability-table tbody tr td:nth-child(1) .day-cell .day-icon {
+                font-size: 20px !important;
+            }
+
+            .availability-table tbody tr td:nth-child(1) .day-cell .day-status-badge {
+                font-size: 10px !important;
+                padding: 4px 10px !important;
+            }
+
+            .availability-table tbody tr td:nth-child(1) .day-cell .closure-indicator {
+                font-size: 10px !important;
+                padding: 4px 8px !important;
+                margin-left: 0 !important;
+            }
+
+            /* ── STATUS CELL (td 2) — toggle + edit button ──────────── */
+            .availability-table tbody tr td:nth-child(2) {
+                padding-top: 10px !important;
+                border-top: 1px dashed #eaf3e0 !important;
+            }
+
+            .availability-table tbody tr td:nth-child(2) > div {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                gap: 12px !important;
+                flex-wrap: wrap !important;
+                width: 100% !important;
+            }
+
+            .availability-table tbody tr td:nth-child(2) .toggle-switch {
+                width: 56px !important;
+                height: 30px !important;
+            }
+
+            .availability-table tbody tr td:nth-child(2) .toggle-slider:before {
+                height: 24px !important;
+                width: 24px !important;
+            }
+
+            .availability-table tbody tr td:nth-child(2) .toggle-switch input:checked + .toggle-slider:before {
+                transform: translateX(26px) !important;
+            }
+
+            .availability-table tbody tr td:nth-child(2) button {
+                flex: 1 1 auto !important;
+                min-width: 160px !important;
+                padding: 11px 14px !important;
+                font-size: 12px !important;
+                border-radius: 10px !important;
+                background: rgba(123, 160, 91, 0.1) !important;
+                border: 1.5px solid #d4e5c4 !important;
+                color: #5a7a3f !important;
+                font-weight: 600 !important;
+                cursor: pointer !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 6px !important;
+                transition: all 0.2s ease !important;
+                font-family: 'Poppins', sans-serif !important;
+            }
+
+            .availability-table tbody tr td:nth-child(2) button:active {
+                background: #7ba05b !important;
+                color: #ffffff !important;
+                transform: scale(0.97) !important;
+            }
+
+            /* ── DAILY SLOTS CELL (td 3) ────────────────────────────── */
+            .availability-table tbody tr td:nth-child(3) {
+                padding-top: 10px !important;
+                border-top: 1px dashed #eaf3e0 !important;
+            }
+
+            .availability-table tbody tr td:nth-child(3) .slots-input {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                gap: 10px !important;
+                background: #f7fbf3 !important;
+                border: 1px solid #d4e5c4 !important;
+                border-radius: 10px !important;
+                padding: 10px 14px !important;
+            }
+
+            .availability-table tbody tr td:nth-child(3) .slots-input label {
+                font-size: 13px !important;
+                font-weight: 600 !important;
+            }
+
+            .availability-table tbody tr td:nth-child(3) .slots-input input[type="number"] {
+                width: 80px !important;
+                padding: 10px 12px !important;
+                font-size: 16px !important;
+                font-weight: 700 !important;
+                text-align: center !important;
+                border-radius: 8px !important;
+            }
+
+            /* ── TIME SLOTS CELL (td 4) ─────────────────────────────── */
+            .availability-table tbody tr td:nth-child(4) {
+                padding-top: 10px !important;
+                border-top: 1px dashed #eaf3e0 !important;
+            }
+
+            .availability-table tbody tr td:nth-child(4) .time-slots-container {
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 8px !important;
+                width: 100% !important;
+            }
+
+            .availability-table tbody tr td:nth-child(4) .time-slot-btn {
+                width: 100% !important;
+                padding: 10px 6px !important;
+                font-size: 11.5px !important;
+                border-radius: 10px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 3px !important;
+                text-align: center !important;
+                box-sizing: border-box !important;
+                min-height: 44px !important;
+            }
+
+            .availability-table tbody tr td:nth-child(4) .time-slot-btn .slot-max {
+                font-size: 10px !important;
+                padding: 2px 7px !important;
+            }
+
+            /* ── MODAL — Mobile ─────────────────────────────────────── */
+            .modal-popup {
+                padding: 22px 18px !important;
+                border-radius: 18px !important;
+                max-width: 95% !important;
+                max-height: 90vh !important;
+                overflow-y: auto !important;
+            }
+
+            .modal-popup h3 {
+                font-size: 18px !important;
+            }
+
+            .modal-popup .modal-subtitle {
+                font-size: 12.5px !important;
+            }
+
+            .modal-buttons {
+                flex-direction: column !important;
+                gap: 10px !important;
+            }
+
+            .modal-btn {
+                width: 100% !important;
+                padding: 13px 16px !important;
+                font-size: 14px !important;
+            }
+
+            /* Calendar adjustments */
+            .cal-wrapper { padding: 16px !important; }
+            .cal-day { padding: 10px 0 !important; font-size: 13px !important; }
+            .cal-nav-btn { width: 36px !important; height: 36px !important; }
+            .cal-month-year { font-size: 15px !important; }
+        }
+
+        @media (max-width: 480px) {
+            .container { padding: 12px 10px 24px !important; }
+
+            .page-header { padding: 16px 14px !important; }
+
+            .header-logo {
+                width: 42px !important;
+                height: 42px !important;
+            }
+
+            .header-text h1 {
+                font-size: 16px !important;
+            }
+
+            .header-text p {
+                font-size: 10.5px !important;
+            }
+
+            .availability-table tbody tr td:nth-child(4) .time-slots-container {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+
+            .availability-table tbody tr {
+                padding: 14px !important;
+            }
+
+            .availability-table tbody tr td:nth-child(1) .day-cell {
+                font-size: 15px !important;
+            }
+
+            .modal-popup {
+                padding: 18px 14px !important;
+            }
+
+            .cal-day { padding: 8px 0 !important; font-size: 12px !important; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- ── HEADER ────────────────────────────────────────────────── -->
+        <!-- ═══════════════════════════════════════════════════════════
+             🎨 PAGE HEADER — May Logo
+             ═══════════════════════════════════════════════════════════ -->
         <div class="page-header">
-            <div>
-                <h1><i class="fas fa-calendar-alt"></i> Staff Availability</h1>
-                <p>Manage which days and time slots are available for bookings</p>
+            <div class="page-header-left">
+                <a href="/staff" title="Back to Staff Panel">
+                    <img src="{{ url_for('static', filename='images/logo.jpg') }}" 
+                         alt="PetLink Logo" 
+                         class="header-logo">
+                </a>
+                <div class="header-text">
+                    <h1><i class="fas fa-calendar-alt"></i> Staff Availability</h1>
+                    <p><i class="fas fa-info-circle"></i> Manage which days and time slots are available for bookings</p>
+                </div>
             </div>
             <div class="header-actions">
-                <a href="/staff" class="btn-back"><i class="fas fa-arrow-left"></i> Back to Staff Panel</a>
-                <button class="btn-save" onclick="saveAllSettings()"><i class="fas fa-save"></i> Save All Settings</button>
+                <a href="/staff" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Staff Panel
+                </a>
+                <button class="btn-save" onclick="saveAllSettings()">
+                    <i class="fas fa-save"></i> Save All Settings
+                </button>
             </div>
         </div>
 
-        <!-- ── LEGEND ──────────────────────────────────────────────────── -->
+        <!-- ═══════════════════════════════════════════════════════════
+             🎨 LEGEND
+             ═══════════════════════════════════════════════════════════ -->
         <div class="legend">
-            <span class="legend-title"><i class="fas fa-info-circle"></i> Legend:</span>
-            <div class="legend-item"><span class="legend-color open"></span> Day Open</div>
-            <div class="legend-item"><span class="legend-color closed"></span> Day Closed</div>
-            <div class="legend-item"><span class="legend-color active"></span> Time Slot Active</div>
-            <div class="legend-item"><span class="legend-color inactive"></span> Time Slot Inactive</div>
-            <div class="legend-item"><span class="legend-color date-closed"></span> Has Date Closure</div>
-            <div class="legend-item" style="color: #94a387; font-size: 12px;"><i class="fas fa-mouse-pointer"></i> Click a time slot to edit max bookings</div>
+            <span class="legend-title">
+                <i class="fas fa-info-circle"></i> Legend:
+            </span>
+            <div class="legend-item">
+                <span class="legend-color open"></span> Day Open
+            </div>
+            <div class="legend-item">
+                <span class="legend-color closed"></span> Day Closed
+            </div>
+            <div class="legend-item">
+                <span class="legend-color active"></span> Time Slot Active
+            </div>
+            <div class="legend-item">
+                <span class="legend-color inactive"></span> Time Slot Inactive
+            </div>
+            <div class="legend-item">
+                <span class="legend-color date-closed"></span> Has Date Closure
+            </div>
+            <div class="legend-hint">
+                <i class="fas fa-mouse-pointer"></i> Click a time slot to edit max bookings
+            </div>
         </div>
 
-        <!-- ── AVAILABILITY TABLE ─────────────────────────────────────── -->
+        <!-- ═══════════════════════════════════════════════════════════
+             🎨 AVAILABILITY TABLE
+             ═══════════════════════════════════════════════════════════ -->
         <div class="availability-table-wrapper">
             <table class="availability-table">
                 <thead>
                     <tr>
                         <th style="min-width: 160px;">Day</th>
-                        <th style="min-width: 120px; text-align: center;">Status</th>
+                        <th style="min-width: 140px; text-align: center;">Status</th>
                         <th style="min-width: 120px; text-align: center;">Daily Slots</th>
                         <th style="min-width: 300px;">Time Slots (Click to edit)</th>
                     </tr>
@@ -301,18 +1044,22 @@
         <div id="saveStatus"></div>
     </div>
 
-    <!-- ── TIME SLOT EDIT POPUP ───────────────────────────────────────── -->
+    <!-- ═══════════════════════════════════════════════════════════════
+         TIME SLOT EDIT POPUP
+         ═══════════════════════════════════════════════════════════════ -->
     <div id="slotPopup" class="modal-overlay">
         <div class="modal-popup" style="max-width: 400px;">
             <h3 id="popupDayLabel"><i class="fas fa-clock"></i> Edit Time Slot</h3>
             <p class="modal-subtitle" id="popupTimeLabel">Adjust settings for this time slot</p>
-            <div class="form-group">
-                <label for="popupMaxSlots">Max Appointments per Slot</label>
+            <div class="form-group" style="margin-bottom: 14px;">
+                <label for="popupMaxSlots" style="display: block; margin-bottom: 6px;">Max Appointments per Slot</label>
                 <input type="number" id="popupMaxSlots" min="0" max="10" value="1" style="width:100%; padding:12px; border-radius:12px; font-size:14px;">
-                <span style="color: #94a387; font-size: 11px;"><i class="fas fa-info-circle"></i> Set to 0 to disable this time slot</span>
+                <span style="color: #94a387; font-size: 11px; display: block; margin-top: 4px;">
+                    <i class="fas fa-info-circle"></i> Set to 0 to disable this time slot
+                </span>
             </div>
-            <div class="form-group">
-                <label>Slot Status</label>
+            <div class="form-group" style="margin-bottom: 14px;">
+                <label style="display: block; margin-bottom: 6px;">Slot Status</label>
                 <div style="display:flex; align-items:center; gap:12px; cursor:pointer;">
                     <span style="color:#4a5a3f; font-size:13px;">Inactive</span>
                     <label class="toggle-switch">
@@ -324,17 +1071,22 @@
             </div>
             <div style="display:flex; gap:12px; margin-top:20px;">
                 <button class="modal-btn modal-btn-cancel" onclick="closeSlotPopup()">Cancel</button>
-                <button class="modal-btn modal-btn-submit" onclick="saveSlotSettings()"><i class="fas fa-save"></i> Save</button>
+                <button class="modal-btn modal-btn-submit" onclick="saveSlotSettings()">
+                    <i class="fas fa-save"></i> Save
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- ── NEW CUSTOM DATE PICKER MODAL (NO TODAY BUTTON) ───────────── -->
+    <!-- ═══════════════════════════════════════════════════════════════
+         CUSTOM DATE PICKER MODAL
+         ═══════════════════════════════════════════════════════════════ -->
     <div id="specificDateModal" class="modal-overlay">
         <div class="modal-popup" style="max-width: 450px;">
             <h3><i class="fas fa-calendar-plus"></i> Edit Specific Date</h3>
             <p class="modal-subtitle">
-                Apply changes to a <strong>specific date</strong> instead of every <strong id="specificDayName" style="color:#5a7a3f;">Monday</strong>.
+                Apply changes to a <strong>specific date</strong> instead of every 
+                <strong id="specificDayName" style="color:#5a7a3f;">Monday</strong>.
             </p>
             
             <!-- Custom Date Picker -->
@@ -353,8 +1105,8 @@
             </div>
 
             <!-- Action Type -->
-            <div class="form-group" style="margin-top: 15px;">
-                <label>Action for this date</label>
+            <div class="form-group" style="margin-top: 15px; margin-bottom: 14px;">
+                <label style="display: block; margin-bottom: 6px;">Action for this date</label>
                 <select id="specificDateAction" style="width:100%; padding:12px; border-radius:12px; font-size:14px;">
                     <option value="close">Close Clinic (Add Closure)</option>
                     <option value="open">Force Open (Remove Closure)</option>
@@ -362,8 +1114,8 @@
                 </select>
             </div>
             
-            <div class="form-group" id="specificDateSlotsGroup" style="display:none;">
-                <label>Max Slots for this date</label>
+            <div class="form-group" id="specificDateSlotsGroup" style="display:none; margin-bottom: 14px;">
+                <label style="display: block; margin-bottom: 6px;">Max Slots for this date</label>
                 <input type="number" id="specificDateMaxSlots" value="3" min="0" style="width:100%; padding:12px; border-radius:12px;">
             </div>
 
@@ -373,6 +1125,7 @@
             </div>
         </div>
     </div>
-<script src="{{ url_for('static', filename='js/staff_availability.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='js/staff_availability.js') }}"></script>
 </body>
 </html>

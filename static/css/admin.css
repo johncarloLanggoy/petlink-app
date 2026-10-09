@@ -1039,19 +1039,27 @@ canvas {
     padding: 70px 20px 20px;
   }
 
-  .mobile-menu-btn {
+   .mobile-menu-btn {
     display: block;
     position: fixed;
     top: 20px;
     left: 20px;
     z-index: 101;
-    background: #38bdf8;
+    background: #7ba05b;   /* ← GREEN — tugma sa theme */
     border: none;
     padding: 12px;
     border-radius: 12px;
     cursor: pointer;
     font-size: 20px;
-    color: #0f172a;
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(123, 160, 91, 0.35);
+    transition: all 0.3s ease;
+  }
+
+  .mobile-menu-btn:hover {
+    background: #5a7a3f;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(123, 160, 91, 0.45);
   }
 
   .dash-nav-btn { font-size: 11px; padding: 6px 12px; }
@@ -2633,3 +2641,830 @@ body.light-theme #userDetailsModal div[style*="border: 3px solid #334155"] {
 body.light-theme #userDetailsModal div[style*="color: #38bdf8"] {
   color: #5a7a3f !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* ── 🚫 DISABLE DARK THEME — FORCE LIGHT THEME ONLY ──────────────── */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+/* Alisin ang dark theme behavior kahit ano pa ang class sa body */
+body,
+body.dark-theme,
+html.dark-theme {
+    /* Override lahat ng dark theme base values */
+    background: #f0f7eb !important;
+    color: #2d3e1f !important;
+}
+
+/* Sidebar always light */
+body.dark-theme .sidebar,
+html.dark-theme .sidebar {
+    background: #ffffff !important;
+    border-right: 1px solid #d4e5c4 !important;
+}
+
+body.dark-theme .sidebar-logo h2,
+html.dark-theme .sidebar-logo h2 {
+    color: #5a7a3f !important;
+}
+
+body.dark-theme .sidebar-nav a,
+html.dark-theme .sidebar-nav a {
+    color: #4a5a3f !important;
+}
+
+body.dark-theme .sidebar-nav a:hover,
+html.dark-theme .sidebar-nav a:hover {
+    color: #7ba05b !important;
+    background: rgba(123, 160, 91, 0.08) !important;
+}
+
+body.dark-theme .sidebar-nav a.active,
+html.dark-theme .sidebar-nav a.active {
+    background: rgba(123, 160, 91, 0.12) !important;
+    color: #5a7a3f !important;
+}
+
+body.dark-theme .user-info,
+html.dark-theme .user-info {
+    border-top: 1px solid #d4e5c4 !important;
+}
+
+body.dark-theme .user-info p,
+html.dark-theme .user-info p {
+    color: #3d5429 !important;
+}
+
+body.dark-theme .user-info .role,
+html.dark-theme .user-info .role {
+    color: #7ba05b !important;
+}
+
+body.dark-theme .main,
+html.dark-theme .main {
+    background: #f0f7eb !important;
+}
+
+body.dark-theme .main-header h1,
+html.dark-theme .main-header h1 {
+    color: #5a7a3f !important;
+}
+
+body.dark-theme .main-header p,
+html.dark-theme .main-header p {
+    color: #4a5a3f !important;
+}
+
+body.dark-theme .card,
+html.dark-theme .card {
+    background: #ffffff !important;
+    border: 1px solid #d4e5c4 !important;
+}
+
+body.dark-theme .card:hover,
+html.dark-theme .card:hover {
+    border-color: #7ba05b !important;
+}
+
+body.dark-theme .card h2,
+html.dark-theme .card h2 {
+    color: #5a7a3f !important;
+}
+
+body.dark-theme .card p,
+html.dark-theme .card p {
+    color: #4a5a3f !important;
+}
+
+body.dark-theme table th,
+html.dark-theme table th {
+    color: #5a7a3f !important;
+    border-bottom: 1px solid #d4e5c4 !important;
+}
+
+body.dark-theme table td,
+html.dark-theme table td {
+    color: #2d3e1f !important;
+    border-bottom: 1px solid #d4e5c4 !important;
+}
+
+body.dark-theme th,
+body.dark-theme td,
+html.dark-theme th,
+html.dark-theme td {
+    border-bottom: 1px solid #d4e5c4 !important;
+}
+
+body.dark-theme .stat-card,
+html.dark-theme .stat-card {
+    background: #ffffff !important;
+    border: 1px solid #d4e5c4 !important;
+}
+
+body.dark-theme .quick-stat-card,
+html.dark-theme .quick-stat-card {
+    background: #ffffff !important;
+    border: 1px solid #d4e5c4 !important;
+}
+
+body.dark-theme .modal-popup,
+html.dark-theme .modal-popup {
+    background: #ffffff !important;
+    border: 1px solid #7ba05b !important;
+}
+
+body.dark-theme .modal-popup h3,
+html.dark-theme .modal-popup h3 {
+    color: #5a7a3f !important;
+}
+
+body.dark-theme .modal-popup p,
+html.dark-theme .modal-popup p {
+    color: #4a5a3f !important;
+}
+
+body.dark-theme .modal-overlay,
+html.dark-theme .modal-overlay {
+    background: rgba(45, 62, 31, 0.4) !important;
+}
+
+/* Messages section */
+body.dark-theme #section-messages .card,
+html.dark-theme #section-messages .card {
+    background: #ffffff !important;
+    border: 1px solid #d4e5c4 !important;
+}
+
+body.dark-theme .customer-list-wrapper,
+html.dark-theme .customer-list-wrapper {
+    background: #f7fbf3 !important;
+    border: 1px solid #d4e5c4 !important;
+}
+
+body.dark-theme .customer-list-header,
+html.dark-theme .customer-list-header {
+    background: #ffffff !important;
+    border-bottom: 1px solid #d4e5c4 !important;
+}
+
+body.dark-theme .customer-list,
+html.dark-theme .customer-list {
+    background: #f7fbf3 !important;
+}
+
+body.dark-theme .customer-item,
+html.dark-theme .customer-item {
+    border-bottom: 1px solid #d4e5c4 !important;
+    color: #2d3e1f !important;
+}
+
+body.dark-theme .customer-item .info .name,
+html.dark-theme .customer-item .info .name {
+    color: #2d3e1f !important;
+}
+
+body.dark-theme .customer-item .info .email,
+html.dark-theme .customer-item .info .email {
+    color: #94a387 !important;
+}
+
+body.dark-theme .conversation-wrapper,
+html.dark-theme .conversation-wrapper {
+    background: #f7fbf3 !important;
+    border: 1px solid #d4e5c4 !important;
+}
+
+body.dark-theme .conversation-header,
+html.dark-theme .conversation-header {
+    background: #ffffff !important;
+    border-bottom: 1px solid #d4e5c4 !important;
+}
+
+body.dark-theme .conversation-messages,
+html.dark-theme .conversation-messages {
+    background: #f7fbf3 !important;
+    color: #2d3e1f !important;
+}
+
+body.dark-theme .conversation-footer,
+html.dark-theme .conversation-footer {
+    background: #ffffff !important;
+    border-top: 1px solid #d4e5c4 !important;
+}
+
+body.dark-theme #adminReplyMessage,
+html.dark-theme #adminReplyMessage {
+    background: #f7fbf3 !important;
+    border: 1px solid #d4e5c4 !important;
+    color: #2d3e1f !important;
+}
+
+body.dark-theme .message-bubble.received,
+html.dark-theme .message-bubble.received {
+    background: #eaf3e0 !important;
+    color: #2d3e1f !important;
+}
+
+body.dark-theme .message-bubble.sent,
+html.dark-theme .message-bubble.sent {
+    background: #7ba05b !important;
+    color: #ffffff !important;
+}
+
+/* Buttons always green */
+body.dark-theme .dash-nav-btn,
+html.dark-theme .dash-nav-btn {
+    color: #7ba05b !important;
+    background: #eaf3e0 !important;
+    border: 1px solid #d4e5c4 !important;
+}
+
+body.dark-theme .dash-nav-btn.active,
+html.dark-theme .dash-nav-btn.active {
+    color: #ffffff !important;
+    background: #7ba05b !important;
+    border: 1px solid #7ba05b !important;
+}
+
+/* Nav icons always green */
+body.dark-theme .stat-card .stat-icon i,
+html.dark-theme .stat-card .stat-icon i,
+body.dark-theme .quick-stat-icon i,
+html.dark-theme .quick-stat-icon i {
+    color: #7ba05b !important;
+}
+
+/* ML buttons */
+body.dark-theme .ml-action-btn.train-btn,
+html.dark-theme .ml-action-btn.train-btn {
+    background: linear-gradient(135deg, #7ba05b, #5a7a3f) !important;
+    color: #ffffff !important;
+}
+
+body.dark-theme .ml-action-btn.status-btn,
+html.dark-theme .ml-action-btn.status-btn {
+    background: #eaf3e0 !important;
+    color: #5a7a3f !important;
+    border: 1px solid #d4e5c4 !important;
+}
+
+body.dark-theme .ml-action-btn.refresh-btn,
+html.dark-theme .ml-action-btn.refresh-btn {
+    background: #7ba05b !important;
+    color: #ffffff !important;
+}
+
+/* Search wrappers */
+body.dark-theme .search-wrapper,
+html.dark-theme .search-wrapper {
+    background: #f7fbf3 !important;
+    border: 1px solid #d4e5c4 !important;
+}
+
+body.dark-theme .search-input,
+html.dark-theme .search-input {
+    color: #2d3e1f !important;
+}
+
+/* User management bar */
+body.dark-theme .user-management-bar,
+html.dark-theme .user-management-bar {
+    background: #f7fbf3 !important;
+    border: 1px solid #d4e5c4 !important;
+}
+
+/* User filter buttons */
+body.dark-theme .user-filter-btn:not(.active),
+html.dark-theme .user-filter-btn:not(.active) {
+    background: transparent !important;
+    color: #7ba05b !important;
+    border: 1px solid #d4e5c4 !important;
+}
+
+body.dark-theme .user-filter-btn.active,
+html.dark-theme .user-filter-btn.active {
+    background: #7ba05b !important;
+    color: #ffffff !important;
+}
+
+/* Scrollbars */
+body.dark-theme::-webkit-scrollbar-track,
+html.dark-theme::-webkit-scrollbar-track {
+    background: #eaf3e0 !important;
+}
+
+body.dark-theme::-webkit-scrollbar-thumb,
+html.dark-theme::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #7ba05b, #5a7a3f) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* ── MESSAGE BUBBLES — STAFF-STYLE LAYOUT (Name sa taas, Time sa baba) ─ */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Conversation Messages Container ─────────────────────────────── */
+#adminConversationMessages {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    padding: 20px !important;
+    overflow-y: auto !important;
+    flex: 1 1 auto !important;
+    min-height: 280px !important;
+    max-height: 400px !important;
+}
+
+/* ── Individual Message Wrapper ──────────────────────────────────── */
+#adminConversationMessages > div {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    margin-bottom: 10px !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* ── Admin messages (right-aligned) ──────────────────────────────── */
+#adminConversationMessages > div[style*="flex-end"] {
+    align-items: flex-end !important;
+}
+
+/* ── Customer messages (left-aligned) ────────────────────────────── */
+#adminConversationMessages > div[style*="flex-start"] {
+    align-items: flex-start !important;
+}
+
+/* ── Bubble Container (name + bubble + time) ─────────────────────── */
+#adminConversationMessages > div > div {
+    display: flex !important;
+    flex-direction: column !important;
+    max-width: 78% !important;
+    box-sizing: border-box !important;
+}
+
+/* ── Sender Name (nasa TAAS) ─────────────────────────────────────── */
+#adminConversationMessages > div > div > div:first-child {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    margin-bottom: 4px !important;
+    padding: 0 4px !important;
+    line-height: 1.2 !important;
+    letter-spacing: 0.3px !important;
+}
+
+/* ── Message Bubble (nasa GITNA) ─────────────────────────────────── */
+#adminConversationMessages > div > div > div:nth-child(2) {
+    display: inline-block !important;
+    padding: 10px 14px !important;
+    border-radius: 14px !important;
+    font-size: 13.5px !important;
+    line-height: 1.45 !important;
+    word-wrap: break-word !important;
+    overflow-wrap: anywhere !important;
+    box-sizing: border-box !important;
+    text-align: left !important;
+    max-width: 100% !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* ── Admin (sent) Bubble — Blue ──────────────────────────────────── */
+#adminConversationMessages > div[style*="flex-end"] > div > div:nth-child(2) {
+    background: #38bdf8 !important;
+    color: #0f172a !important;
+    border-bottom-right-radius: 4px !important;
+}
+
+/* ── Customer (received) Bubble — Dark slate ─────────────────────── */
+#adminConversationMessages > div[style*="flex-start"] > div > div:nth-child(2) {
+    background: #1e293b !important;
+    color: #e2e8f0 !important;
+    border: 1px solid #334155 !important;
+    border-bottom-left-radius: 4px !important;
+}
+
+/* ── Timestamp (nasa IBABA) ──────────────────────────────────────── */
+#adminConversationMessages > div > div > div:last-child {
+    font-size: 10px !important;
+    color: #64748b !important;
+    margin-top: 4px !important;
+    padding: 0 4px !important;
+    line-height: 1.2 !important;
+    font-weight: 400 !important;
+}
+
+/* ── Image sa loob ng bubble ─────────────────────────────────────── */
+#adminConversationMessages img {
+    max-width: 250px !important;
+    max-height: 250px !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    display: block !important;
+    margin-top: 6px !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* ── 🌿 LIGHT THEME OVERRIDES (Green Theme) ──────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Admin (sent) Bubble — Green sa light theme ──────────────────── */
+body.light-theme #adminConversationMessages > div[style*="flex-end"] > div > div:nth-child(2) {
+    background: #7ba05b !important;
+    color: #ffffff !important;
+    border-bottom-right-radius: 4px !important;
+}
+
+/* ── Customer (received) Bubble — Light sa light theme ───────────── */
+body.light-theme #adminConversationMessages > div[style*="flex-start"] > div > div:nth-child(2) {
+    background: #ffffff !important;
+    color: #2d3e1f !important;
+    border: 1px solid #eaf3e0 !important;
+    border-bottom-left-radius: 4px !important;
+}
+
+/* ── Sender name color ───────────────────────────────────────────── */
+body.light-theme #adminConversationMessages > div > div > div:first-child {
+    color: #5a7a3f !important;
+}
+
+body.light-theme #adminConversationMessages > div[style*="flex-end"] > div > div:first-child {
+    color: #7ba05b !important;
+}
+
+/* ── Timestamp color ─────────────────────────────────────────────── */
+body.light-theme #adminConversationMessages > div > div > div:last-child {
+    color: #94a387 !important;
+}
+
+/* ── Container background ────────────────────────────────────────── */
+body.light-theme #adminConversationMessages {
+    background: #f7fbf3 !important;
+}
+
+/* ── Conversation wrapper ────────────────────────────────────────── */
+body.light-theme .conversation-wrapper {
+    background: #f7fbf3 !important;
+    border: 1px solid #d4e5c4 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* ── 📱 MOBILE RESPONSIVE ────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+    /* ── Messages grid mobile layout ─────────────────────────────── */
+    #section-messages .messages-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0 !important;
+        min-height: auto !important;
+    }
+
+    #section-messages .customer-list-wrapper {
+        max-height: 250px !important;
+        border-radius: 12px 12px 0 0 !important;
+    }
+
+    #section-messages .conversation-wrapper {
+        border-radius: 0 0 12px 12px !important;
+        min-height: 400px !important;
+    }
+
+    /* ── Conversation messages mobile ───────────────────────────── */
+    #adminConversationMessages {
+        padding: 14px 12px !important;
+        min-height: 250px !important;
+        max-height: 350px !important;
+    }
+
+    /* ── Bubble container mobile ────────────────────────────────── */
+    #adminConversationMessages > div > div {
+        max-width: 85% !important;
+    }
+
+    /* ── Sender name mobile ──────────────────────────────────────── */
+    #adminConversationMessages > div > div > div:first-child {
+        font-size: 10px !important;
+    }
+
+    /* ── Bubble mobile ──────────────────────────────────────────── */
+    #adminConversationMessages > div > div > div:nth-child(2) {
+        font-size: 13px !important;
+        padding: 9px 12px !important;
+    }
+
+    /* ── Timestamp mobile ───────────────────────────────────────── */
+    #adminConversationMessages > div > div > div:last-child {
+        font-size: 9px !important;
+    }
+
+    /* ── Image mobile ───────────────────────────────────────────── */
+    #adminConversationMessages img {
+        max-width: 180px !important;
+        max-height: 180px !important;
+    }
+
+    /* ── Conversation header mobile ─────────────────────────────── */
+    #adminConversationHeader {
+        padding: 12px 16px !important;
+    }
+
+    /* ── Reply form mobile ──────────────────────────────────────── */
+    #adminReplyForm {
+        display: flex !important;
+        gap: 6px !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+    }
+
+    #adminReplyMessage {
+        flex: 1 !important;
+        min-width: 0 !important;
+        padding: 12px 16px !important;
+        border-radius: 24px !important;
+        font-size: 14px !important;
+    }
+
+    #adminReplyForm button[type="submit"] {
+        width: 42px !important;
+        height: 42px !important;
+        min-width: 42px !important;
+        padding: 0 !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
+    }
+
+    #adminReplyForm button[type="submit"] i {
+        font-size: 16px !important;
+    }
+
+    #adminEmojiBtn,
+    #adminImageBtn {
+        width: 42px !important;
+        height: 42px !important;
+        min-width: 42px !important;
+        padding: 0 !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* ── 🎨 CUSTOM SCROLLBAR — GREEN THEME (LIGHT) ───────────────────── */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Firefox: Page scrollbar ─────────────────────────────────────── */
+html, body {
+    scrollbar-width: thin;
+    scrollbar-color: #7ba05b #eaf3e0;
+}
+
+/* ── WebKit: Page scrollbar (browser right-side scrollbar) ───────── */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+    background: #eaf3e0;
+    border-left: 1px solid #d4e5c4;
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #7ba05b, #5a7a3f);
+    border-radius: 10px;
+    border: 2px solid #eaf3e0;
+    min-height: 40px;
+}
+
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #5a7a3f, #4a6b32);
+    box-shadow: inset 0 0 6px rgba(123, 160, 91, 0.3);
+}
+
+html::-webkit-scrollbar-thumb:active,
+body::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(180deg, #4a6b32, #3d5429);
+}
+
+html::-webkit-scrollbar-corner,
+body::-webkit-scrollbar-corner {
+    background: #eaf3e0;
+}
+
+/* ── Main Content Area ───────────────────────────────────────────── */
+.main::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+.main::-webkit-scrollbar-track {
+    background: #eaf3e0;
+    border-radius: 10px;
+}
+.main::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #7ba05b, #5a7a3f);
+    border-radius: 10px;
+    border: 2px solid #eaf3e0;
+}
+.main::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #5a7a3f, #4a6b32);
+}
+
+/* ── Sidebar (mini scrollbar) ────────────────────────────────────── */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+.sidebar::-webkit-scrollbar-track {
+    background: #f7fbf3;
+    border: none;
+}
+.sidebar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #a8c48c, #7ba05b);
+    border-radius: 10px;
+    border: none;
+}
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #7ba05b, #5a7a3f);
+}
+
+/* ── User Management Table Wrapper ───────────────────────────────── */
+.user-table-wrapper::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+.user-table-wrapper::-webkit-scrollbar-track {
+    background: #f7fbf3;
+    border-radius: 10px;
+    border: 1px solid #d4e5c4;
+}
+.user-table-wrapper::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #7ba05b, #5a7a3f);
+    border-radius: 10px;
+    border: 2px solid #f7fbf3;
+    min-height: 40px;
+}
+.user-table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #5a7a3f, #4a6b32);
+}
+.user-table-wrapper::-webkit-scrollbar-thumb:horizontal {
+    background: linear-gradient(90deg, #7ba05b, #5a7a3f);
+}
+.user-table-wrapper::-webkit-scrollbar-thumb:horizontal:hover {
+    background: linear-gradient(90deg, #5a7a3f, #4a6b32);
+}
+.user-table-wrapper::-webkit-scrollbar-corner {
+    background: #f7fbf3;
+}
+
+/* ── Customer List (Messages Left Side) ──────────────────────────── */
+.customer-list::-webkit-scrollbar,
+#adminCustomerList::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+.customer-list::-webkit-scrollbar-track,
+#adminCustomerList::-webkit-scrollbar-track {
+    background: #f7fbf3;
+    border-radius: 10px;
+}
+.customer-list::-webkit-scrollbar-thumb,
+#adminCustomerList::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #7ba05b, #5a7a3f);
+    border-radius: 10px;
+    border: 2px solid #f7fbf3;
+}
+.customer-list::-webkit-scrollbar-thumb:hover,
+#adminCustomerList::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #5a7a3f, #4a6b32);
+}
+
+/* ── Conversation Messages (Messages Right Side) ─────────────────── */
+.conversation-messages::-webkit-scrollbar,
+#adminConversationMessages::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+.conversation-messages::-webkit-scrollbar-track,
+#adminConversationMessages::-webkit-scrollbar-track {
+    background: #f7fbf3;
+    border-radius: 10px;
+}
+.conversation-messages::-webkit-scrollbar-thumb,
+#adminConversationMessages::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #7ba05b, #5a7a3f);
+    border-radius: 10px;
+    border: 2px solid #f7fbf3;
+}
+.conversation-messages::-webkit-scrollbar-thumb:hover,
+#adminConversationMessages::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #5a7a3f, #4a6b32);
+}
+
+/* ── Modal Popup ─────────────────────────────────────────────────── */
+.modal-popup::-webkit-scrollbar {
+    width: 8px;
+}
+.modal-popup::-webkit-scrollbar-track {
+    background: #f7fbf3;
+    border-radius: 10px;
+    border: 1px solid #d4e5c4;
+}
+.modal-popup::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #7ba05b, #5a7a3f);
+    border-radius: 10px;
+    border: 2px solid #f7fbf3;
+}
+.modal-popup::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #5a7a3f, #4a6b32);
+}
+
+/* ── Textareas (hal. reply input sa messages) ───────────────────── */
+textarea::-webkit-scrollbar {
+    width: 6px;
+}
+textarea::-webkit-scrollbar-track {
+    background: #f7fbf3;
+    border-radius: 10px;
+}
+textarea::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #7ba05b, #5a7a3f);
+    border-radius: 10px;
+}
+textarea::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #5a7a3f, #4a6b32);
+}
+
+/* ── Generic Overrides — Lahat ng scrollbars ────────────────────── */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #eaf3e0;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #7ba05b, #5a7a3f);
+    border-radius: 10px;
+    border: 2px solid #eaf3e0;
+    min-height: 30px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #5a7a3f, #4a6b32);
+    box-shadow: inset 0 0 8px rgba(123, 160, 91, 0.3);
+}
+
+::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(180deg, #4a6b32, #3d5429);
+}
+
+::-webkit-scrollbar-corner {
+    background: #eaf3e0;
+}
+
+/* ── Global scrollbar-color (Firefox) ────────────────────────────── */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #7ba05b #eaf3e0;
+}
+
+/* ── 📱 Mobile — Mas payat na scrollbar ──────────────────────────── */
+@media (max-width: 768px) {
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar,
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    
+    html::-webkit-scrollbar-thumb,
+    body::-webkit-scrollbar-thumb,
+    ::-webkit-scrollbar-thumb {
+        border-width: 1px;
+        min-height: 30px;
+    }
+    
+    .user-table-wrapper::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* ── END CUSTOM SCROLLBAR ────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* ── END MESSAGE BUBBLES STYLES ──────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════ */ 

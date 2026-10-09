@@ -9,7 +9,8 @@ export function showToast(message, type = 'success') {
     
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.textContent = message;
+    // ✅ GAMITIN ANG innerHTML PARA RENDER ANG HTML TAGS (tulad ng <i class="fas fa-...">)
+    toast.innerHTML = message;
     document.body.appendChild(toast);
     
     setTimeout(() => {

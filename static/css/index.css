@@ -833,6 +833,383 @@ nav ul li a:hover {
   color: #2d3e1f;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   📍 FIND US — LOCATION SECTION (Google Map)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.location-section {
+  padding: 80px 50px 100px;
+  background: #ffffff;
+}
+
+.location-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.location-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.location-header h2 {
+  font-size: 38px;
+  color: #2d3e1f;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.location-header h2 i {
+  color: #7ba05b;
+  margin-right: 10px;
+}
+
+.location-header p {
+  color: #4a5a3f;
+  font-size: 18px;
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+.location-layout {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 30px;
+  align-items: stretch;
+}
+
+/* ── Map Wrapper ──────────────────────────────────────────────── */
+.map-wrapper {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid #d4e5c4;
+  box-shadow: 0 8px 30px rgba(123, 160, 91, 0.12);
+  background: #f7fbf3;
+  min-height: 450px;
+}
+
+.google-map {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 450px;
+  border: 0;
+  filter: saturate(1.05) contrast(1.02);
+}
+
+.map-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(10px);
+  padding: 10px 18px;
+  border-radius: 50px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2d3e1f;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid #d4e5c4;
+  z-index: 2;
+}
+
+.map-badge i {
+  color: #ef4444;
+  font-size: 14px;
+  animation: pulse-pin 2s ease-in-out infinite;
+}
+
+@keyframes pulse-pin {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+/* ── Location Info Card ────────────────────────────────────────── */
+.location-info {
+  background: linear-gradient(160deg, #f7fbf3 0%, #eaf3e0 100%);
+  border-radius: 20px;
+  border: 1px solid #d4e5c4;
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transition: all 0.3s ease;
+}
+
+.location-info:hover {
+  border-color: #7ba05b;
+  box-shadow: 0 12px 35px rgba(123, 160, 91, 0.15);
+}
+
+.location-info-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #d4e5c4;
+}
+
+.location-logo-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(123, 160, 91, 0.2);
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 2px solid #7ba05b;
+}
+
+.location-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.location-info-header h3 {
+  color: #2d3e1f;
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0 0 3px 0;
+  line-height: 1.25;
+}
+
+.location-info-header p {
+  color: #64748b;
+  font-size: 12.5px;
+  margin: 0;
+}
+
+.location-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+.location-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.location-info-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #7ba05b, #5a7a3f);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 15px;
+  flex-shrink: 0;
+  box-shadow: 0 3px 10px rgba(123, 160, 91, 0.25);
+}
+
+.location-info-item > div:last-child {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.location-info-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #94a387;
+}
+
+.location-info-value {
+  font-size: 13.5px;
+  color: #2d3e1f;
+  line-height: 1.55;
+  word-break: break-word;
+}
+
+.location-info-value strong {
+  font-weight: 700;
+}
+
+/* ── Action Buttons ────────────────────────────────────────────── */
+.location-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid #d4e5c4;
+}
+
+.btn-map-primary,
+.btn-map-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 13px 22px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.btn-map-primary {
+  background: linear-gradient(135deg, #7ba05b, #5a7a3f);
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(123, 160, 91, 0.35);
+}
+
+.btn-map-primary:hover {
+  background: linear-gradient(135deg, #5a7a3f, #4a6b32);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(123, 160, 91, 0.5);
+}
+
+.btn-map-secondary {
+  background: #ffffff;
+  color: #5a7a3f;
+  border-color: #7ba05b;
+}
+
+.btn-map-secondary:hover {
+  background: #7ba05b;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(123, 160, 91, 0.35);
+}
+
+.btn-map-primary i,
+.btn-map-secondary i {
+  font-size: 13px;
+}
+
+/* ── Responsive Location ───────────────────────────────────────── */
+@media (max-width: 992px) {
+  .location-layout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .map-wrapper {
+    min-height: 380px;
+  }
+
+  .google-map {
+    min-height: 380px;
+  }
+
+  .location-info {
+    padding: 26px 22px;
+  }
+}
+
+@media (max-width: 768px) {
+  .location-section {
+    padding: 50px 20px 70px;
+  }
+
+  .location-header h2 {
+    font-size: 26px;
+  }
+
+  .location-header p {
+    font-size: 14px;
+  }
+
+  .map-wrapper {
+    min-height: 320px;
+    border-radius: 16px;
+  }
+
+  .google-map {
+    min-height: 320px;
+  }
+
+  .map-badge {
+    font-size: 11.5px;
+    padding: 8px 14px;
+    top: 12px;
+    left: 12px;
+  }
+
+  .location-info-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+
+  .location-info-header h3 {
+    font-size: 16px;
+  }
+
+  .location-info-item {
+    gap: 10px;
+  }
+
+  .location-info-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 14px;
+  }
+
+  .location-info-value {
+    font-size: 12.5px;
+  }
+
+  .location-actions {
+    flex-direction: column;
+  }
+
+  .btn-map-primary,
+  .btn-map-secondary {
+    width: 100%;
+    padding: 12px 18px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .location-section {
+    padding: 40px 14px 60px;
+  }
+
+  .location-header h2 {
+    font-size: 22px;
+  }
+
+  .map-wrapper {
+    min-height: 280px;
+  }
+
+  .google-map {
+    min-height: 280px;
+  }
+
+  .location-info {
+    padding: 22px 18px;
+  }
+
+  .location-info-value {
+    font-size: 12px;
+  }
+}
+
 /* ── STATS SECTION ─────────────────────────────────────────────── */
 .stats-wrapper {
   background: #ffffff;
@@ -1196,4 +1573,521 @@ footer .footer-contact i {
 
 .float-animation {
   animation: float 3s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   🎠 UNIFIED TUTORIAL CAROUSEL
+   ═══════════════════════════════════════════════════════════════════ */
+
+.main-carousel {
+  position: relative;
+  background: #ffffff;
+  border-radius: 24px;
+  border: 1px solid #d4e5c4;
+  box-shadow: 0 8px 30px rgba(123, 160, 91, 0.1);
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+/* ── Viewport & Track ─────────────────────────────────────────────── */
+.main-carousel .carousel-viewport {
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+}
+
+.main-carousel .carousel-track {
+  display: flex;
+  flex-wrap: nowrap;
+  width: 300%; /* 3 slides × 100% */
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+.main-carousel .carousel-slide {
+  flex: 0 0 calc(100% / 3);
+  width: calc(100% / 3);
+  min-width: calc(100% / 3);
+  max-width: calc(100% / 3);
+  padding: 45px 40px 35px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  max-height: 720px;
+}
+
+/* ── Slide Header ─────────────────────────────────────────────────── */
+.slide-header {
+  text-align: center;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #eaf3e0;
+}
+
+.slide-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #7ba05b, #5a7a3f);
+  color: #ffffff;
+  padding: 6px 18px;
+  border-radius: 50px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 12px rgba(123, 160, 91, 0.3);
+}
+
+.slide-badge i {
+  margin-right: 6px;
+}
+
+.slide-header h3 {
+  color: #2d3e1f;
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+}
+
+.slide-header h3 i {
+  color: #7ba05b;
+  margin-right: 10px;
+}
+
+.slide-header p {
+  color: #64748b;
+  font-size: 15px;
+  margin: 0 auto;
+  max-width: 620px;
+  line-height: 1.6;
+}
+
+/* ── Steps Grid (Panel 1) ─────────────────────────────────────────── */
+.tutorial-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.tutorial-steps-grid .step-card {
+  background: #f7fbf3;
+  border-radius: 18px;
+  padding: 28px 22px;
+  text-align: center;
+  border: 1px solid #d4e5c4;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.tutorial-steps-grid .step-card:hover {
+  border-color: #7ba05b;
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(123, 160, 91, 0.15);
+  background: #ffffff;
+}
+
+.tutorial-steps-grid .step-card h3 {
+  color: #2d3e1f;
+  font-size: 17px;
+  margin-bottom: 8px;
+}
+
+.tutorial-steps-grid .step-card p {
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+/* ── System Guide Grid (Panel 2) ──────────────────────────────────── */
+.main-carousel .system-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.main-carousel .guide-card {
+  background: #f7fbf3;
+  border-radius: 16px;
+  padding: 22px;
+  border: 1px solid #d4e5c4;
+  transition: all 0.3s ease;
+}
+
+.main-carousel .guide-card:hover {
+  border-color: #7ba05b;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(123, 160, 91, 0.12);
+  background: #ffffff;
+}
+
+.main-carousel .guide-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #d4e5c4;
+}
+
+.main-carousel .guide-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.main-carousel .guide-icon.blue { background: linear-gradient(135deg, #7ba05b, #a8c48c); }
+.main-carousel .guide-icon.purple { background: linear-gradient(135deg, #5a7a3f, #7ba05b); }
+.main-carousel .guide-icon.pink { background: linear-gradient(135deg, #4a6b32, #5a7a3f); }
+.main-carousel .guide-icon.green { background: linear-gradient(135deg, #6ea64a, #8cbf6f); }
+.main-carousel .guide-icon.orange { background: linear-gradient(135deg, #d97706, #f59e0b); }
+.main-carousel .guide-icon.teal { background: linear-gradient(135deg, #0d9488, #14b8a6); }
+
+.main-carousel .guide-card-header h4 {
+  color: #2d3e1f;
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.main-carousel .guide-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: guide-counter;
+}
+
+.main-carousel .guide-steps li {
+  counter-increment: guide-counter;
+  position: relative;
+  padding: 7px 0 7px 34px;
+  color: #4a5a3f;
+  font-size: 12.5px;
+  line-height: 1.55;
+  border-bottom: 1px dashed #eaf3e0;
+}
+
+.main-carousel .guide-steps li:last-child {
+  border-bottom: none;
+}
+
+.main-carousel .guide-steps li::before {
+  content: counter(guide-counter);
+  position: absolute;
+  left: 0;
+  top: 7px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #7ba05b;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.main-carousel .guide-steps li strong {
+  color: #5a7a3f;
+}
+
+/* ── Tips Grid (Panel 3) ──────────────────────────────────────────── */
+.main-carousel .tips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+}
+
+.main-carousel .tip-item {
+  background: linear-gradient(135deg, rgba(123, 160, 91, 0.06), rgba(90, 122, 63, 0.03));
+  border-radius: 14px;
+  padding: 22px 22px;
+  border: 1px solid #d4e5c4;
+  transition: all 0.3s ease;
+}
+
+.main-carousel .tip-item:hover {
+  border-color: #7ba05b;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(123, 160, 91, 0.12);
+  background: #ffffff;
+}
+
+.main-carousel .tip-item i {
+  font-size: 26px;
+  color: #7ba05b;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.main-carousel .tip-item strong {
+  color: #2d3e1f;
+  font-size: 15px;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.main-carousel .tip-item p {
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* ── Step Detail List ─────────────────────────────────────────────── */
+.tutorial-steps-grid .step-detail-list {
+  list-style: none;
+  padding: 0;
+  margin: 14px 0 0 0;
+  text-align: left;
+  border-top: 1px dashed #d4e5c4;
+  padding-top: 12px;
+}
+
+.tutorial-steps-grid .step-detail-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: #4a5a3f;
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 4px 0;
+}
+
+.tutorial-steps-grid .step-detail-list li i {
+  color: #7ba05b;
+  font-size: 10px;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.tutorial-steps-grid .step-detail-list li strong {
+  color: #5a7a3f;
+}
+
+/* ── Carousel Controls (NOW AT THE TOP) ──────────────────────────── */
+.main-carousel .carousel-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  padding: 18px 40px;
+  border-bottom: 1px solid #eaf3e0;
+  background: #f7fbf3;
+}
+
+.carousel-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 50px;
+  border: 2px solid #d4e5c4;
+  background: #ffffff;
+  color: #5a7a3f;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.carousel-nav-btn:hover:not(:disabled) {
+  background: #7ba05b;
+  border-color: #7ba05b;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(123, 160, 91, 0.35);
+}
+
+.carousel-nav-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.carousel-nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.carousel-nav-btn i {
+  font-size: 12px;
+}
+
+/* ── Dots with labels ─────────────────────────────────────────────── */
+.main-carousel .carousel-dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.main-carousel .carousel-dot {
+  padding: 8px 16px;
+  border-radius: 50px;
+  border: 2px solid #d4e5c4;
+  background: #ffffff;
+  color: #94a387;
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.main-carousel .carousel-dot:hover {
+  border-color: #7ba05b;
+  color: #5a7a3f;
+}
+
+.main-carousel .carousel-dot.active {
+  background: linear-gradient(135deg, #7ba05b, #5a7a3f);
+  border-color: #7ba05b;
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(123, 160, 91, 0.35);
+}
+
+.main-carousel .carousel-dot .dot-label {
+  display: inline-block;
+}
+
+/* ── Progress Bar (NOW AT THE TOP) ───────────────────────────────── */
+.main-carousel .carousel-progress {
+  height: 4px;
+  background: #eaf3e0;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid #eaf3e0;
+}
+
+.main-carousel .carousel-progress-bar {
+  height: 100%;
+  width: 33.333%;
+  background: linear-gradient(90deg, #7ba05b, #5a7a3f, #a8c48c);
+  border-radius: 4px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── RESPONSIVE ───────────────────────────────────────────────────── */
+@media (max-width: 992px) {
+  .main-carousel .carousel-slide {
+    padding: 35px 25px 28px;
+    max-height: 800px;
+  }
+
+  .slide-header h3 {
+    font-size: 22px;
+  }
+
+  .slide-header p {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-carousel .carousel-slide {
+    padding: 28px 18px 22px;
+    max-height: 900px;
+  }
+
+  .slide-header {
+    margin-bottom: 22px;
+    padding-bottom: 18px;
+  }
+
+  .slide-badge {
+    font-size: 10px;
+    padding: 5px 14px;
+  }
+
+  .slide-header h3 {
+    font-size: 19px;
+  }
+
+  .slide-header p {
+    font-size: 13px;
+  }
+
+  .tutorial-steps-grid,
+  .main-carousel .system-guide-grid,
+  .main-carousel .tips-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .tutorial-steps-grid .step-card {
+    padding: 22px 18px;
+  }
+
+  .main-carousel .carousel-controls {
+    padding: 15px 16px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .carousel-nav-btn {
+    padding: 9px 16px;
+    font-size: 13px;
+  }
+
+  .carousel-nav-btn span {
+    display: none;
+  }
+
+  .carousel-nav-btn i {
+    font-size: 14px;
+  }
+
+  .main-carousel .carousel-dots {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .main-carousel .carousel-dot {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-carousel .carousel-slide {
+    padding: 22px 14px 18px;
+    max-height: 1000px;
+  }
+
+  .slide-header h3 {
+    font-size: 17px;
+  }
+
+  .slide-header p {
+    font-size: 12px;
+  }
+
+  .main-carousel .guide-steps li {
+    font-size: 11.5px;
+    padding-left: 30px;
+  }
+
+  .main-carousel .guide-steps li::before {
+    width: 22px;
+    height: 22px;
+    font-size: 10px;
+  }
+
+  .tutorial-steps-grid .step-detail-list li {
+    font-size: 11.5px;
+  }
+
+  .main-carousel .carousel-dot {
+    padding: 5px 10px;
+    font-size: 10px;
+  }
 }

@@ -1,75 +1,134 @@
 // ── SOCKET.IO CONNECTION ────────────────────────────────────────────
 
 import { getLoggedInEmail } from './utils.js';
-import { loadStaffConversations, loadUnreadCount, updateMessageBadge } from './messages.js';
-import { getCurrentSection } from './sidebar.js';
 
 let socket = null;
 let currentStaffEmail = null;
 
 // ── Connect Socket ──────────────────────────────────────────────────
 export function connectSocket() {
-    if (socket && socket.connected) return;
+    // ── Guard: check if Socket.IO client is loaded ─────────────────
+    if (typeof io === 'undefined') {
+        console.error('❌ [Socket] Socket.IO client not loaded. Please add <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script> to the page.');
+        return;
+    }
     
+    if (socket && socket.connected) {
+        console.log('✅ [Socket] Already connected');
+        return;
+    }
+    
+    console.log('🔌 [Socket] Connecting...');
     socket = io();
     
     const currentUser = getLoggedInEmail();
     if (currentUser) {
         socket.emit('register_user', { email: currentUser });
+        console.log('🔌 [Socket] Registered user:', currentUser);
     }
     
+    // ── NEW MESSAGE HANDLER ─────────────────────────────────────────
     socket.on('new_message', function(data) {
-        const currentUser = getLoggedInEmail();
+        const loggedInUser = getLoggedInEmail();
         
-        if (data.receiver === currentUser || data.sender === currentUser) {
-            // ✅ AGAD na i-update ang badge
-            loadUnreadCount();
-            // ✅ I-double call para siguradong updated (gaya ng admin)
-            setTimeout(function() { loadUnreadCount(); }, 500);
-            updateMessageBadge();
+        console.log('📩 [Socket] new_message received:', data);
+        console.log('📩 [Socket] Logged in user:', loggedInUser);
+        
+        // Only handle messages involving the logged-in user
+        if (data.receiver === loggedInUser || data.sender === loggedInUser) {
             
-            const section = getCurrentSection();
-            if (section === 'messages') {
-                loadStaffConversations();
-                // Reload conversation if needed - use dynamic import to avoid circular dependency
-                import('./messages.js').then(module => {
-                    if (module.currentStaffEmail) {
-                        module.loadCustomerConversation(module.currentStaffEmail);
+            // ✅ Dynamic import to avoid circular dependency
+            import('./messages.js').then(module => {
+                // ── 1. Update unread count and badge ──────────────
+                module.loadUnreadCount();
+                setTimeout(function() { 
+                    module.loadUnreadCount(); 
+                }, 500);
+                module.updateMessageBadge();
+                
+                // ── 2. Reload conversation if on messages section ──
+                import('./sidebar.js').then(sidebarModule => {
+                    const section = sidebarModule.getCurrentSection();
+                    console.log('📩 [Socket] Current section:', section);
+                    
+                    if (section === 'messages') {
+                        // Reload staff list to update unread counts
+                        module.loadStaffConversations();
+                        
+                        const activeStaffEmail = module.currentStaffEmail;
+                        console.log('📩 [Socket] Active staff email:', activeStaffEmail);
+                        console.log('📩 [Socket] Message sender:', data.sender);
+                        console.log('📩 [Socket] Message receiver:', data.receiver);
+                        
+                        // ── Reload the active conversation ─────────────
+                        // IF the message involves the currently-open staff member
+                        if (activeStaffEmail && 
+                            (data.sender === activeStaffEmail || data.receiver === activeStaffEmail)) {
+                            console.log('📩 [Socket] Reloading conversation with:', activeStaffEmail);
+                            setTimeout(() => {
+                                module.loadCustomerConversation(activeStaffEmail);
+                            }, 100);
+                        } 
+                        // ── Auto-open conversation if none is active ───
+                        else if (!activeStaffEmail && data.sender && data.sender !== loggedInUser) {
+                            console.log('📩 [Socket] No active conversation, auto-opening with:', data.sender);
+                            setTimeout(() => {
+                                module.loadCustomerConversation(data.sender);
+                            }, 100);
+                        }
+                    } else {
+                        console.log('📩 [Socket] Not on messages section — only updating badge');
                     }
+                }).catch(err => {
+                    console.error('❌ [Socket] Failed to load sidebar module:', err);
                 });
-            }
-            
-            // Log with image info
-            const hasImage = data.image_data ? 'with image' : '';
-            console.log(`New message from ${data.sender || 'Staff'} ${hasImage} - Unread count updated.`);
+            }).catch(err => {
+                console.error('❌ [Socket] Failed to load messages module:', err);
+            });
+        } else {
+            console.log('📩 [Socket] Ignoring message (not related to logged-in user)');
         }
     });
     
+    // ── USER TYPING HANDLER ─────────────────────────────────────────
     socket.on('user_typing', function(data) {
+        console.log('⌨️ [Socket] user_typing:', data);
+        
+        // Only show typing indicator if the sender is the active staff member
         if (data.sender === currentStaffEmail) {
             showTypingIndicator(data.is_typing);
         }
     });
     
+    // ── MESSAGE SENT CONFIRMATION ───────────────────────────────────
     socket.on('message_sent', function(data) {
         if (data.success) {
-            console.log('Message sent confirmed');
+            console.log('✅ [Socket] Message sent confirmed');
         }
     });
     
+    // ── CONNECT EVENT ───────────────────────────────────────────────
     socket.on('connect', function() {
-        console.log('Connected to WebSocket server');
+        console.log('✅ [Socket] Connected to WebSocket server, SID:', socket.id);
+        
         const currentUser = getLoggedInEmail();
         if (currentUser) {
             socket.emit('register_user', { email: currentUser });
+            console.log('✅ [Socket] Re-registered user on connect:', currentUser);
         }
-        // ✅ I-refresh ang unread count pagka-connect (gaya ng admin)
-        loadUnreadCount();
-        updateMessageBadge();
+        
+        // Refresh unread count and badge on connect
+        import('./messages.js').then(module => {
+            module.loadUnreadCount();
+            module.updateMessageBadge();
+        }).catch(err => {
+            console.error('❌ [Socket] Failed to refresh on connect:', err);
+        });
     });
     
+    // ── DISCONNECT EVENT ────────────────────────────────────────────
     socket.on('disconnect', function() {
-        console.log('Disconnected from WebSocket server');
+        console.log('❌ [Socket] Disconnected from WebSocket server');
         setTimeout(connectSocket, 2000);
     });
 }
@@ -82,7 +141,7 @@ export function getSocket() {
 // ── Send Message via Socket ───────────────────────────────────────
 export function socketSendMessage(sender, receiver, message, subject = '') {
     if (!socket || !socket.connected) {
-        console.warn('Socket not connected. Message will not be sent via WebSocket.');
+        console.warn('⚠️ [Socket] Socket not connected. Message will not be sent via WebSocket.');
         return;
     }
     

@@ -560,14 +560,13 @@
 }
 
 .message-item .avatar {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    background: rgba(56, 189, 248, 0.15);
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
     flex-shrink: 0;
 }
 

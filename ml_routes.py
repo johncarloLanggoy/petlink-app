@@ -1,6 +1,6 @@
 # ml_routes.py - API routes for AI Feature 1
 
-from flask import jsonify, request
+from flask import jsonify, request, session
 import sqlite3
 from datetime import datetime
 import json
@@ -130,7 +130,7 @@ def register_ml_routes(app):
                 structured_recs.append({
                     'type': 'allergy_alert',
                     'priority': 'high',
-                    'text': f"⚠️ {pet_dict['name']} has allergies: {pet_dict['allergies']}. Avoid triggers and consider allergy management.",
+                    'text': f"<i class='fas fa-exclamation-triangle'></i> {pet_dict['name']} has allergies: {pet_dict['allergies']}. Avoid triggers and consider allergy management.",
                     'action': 'Manage allergies'
                 })
             
@@ -140,7 +140,7 @@ def register_ml_routes(app):
                 structured_recs.append({
                     'type': 'medical_history',
                     'priority': 'medium',
-                    'text': f"📋 Medical history: {pet_dict['medical_history']}. Monitor for recurrence.",
+                    'text': f"<i class='fas fa-clipboard-list'></i> Medical history: {pet_dict['medical_history']}. Monitor for recurrence.",
                     'action': 'View records'
                 })
             
@@ -183,13 +183,31 @@ def register_ml_routes(app):
                 'message': f'Error generating recommendation: {str(e)}'
             }), 500
     
+    # ═══════════════════════════════════════════════════════════════════
+    # ✅ FIXED: /api/ml/predict/all — Filter by current logged-in user
+    # ═══════════════════════════════════════════════════════════════════
     @app.route('/api/ml/predict/all', methods=['GET'])
     def ml_predict_all_pets():
-        """Get AI recommendations for all pets"""
+        """Get AI recommendations for CURRENT USER's pets only"""
         try:
+            # ✅ Kunin ang current user email mula sa session
+            user_email = session.get('username')
+            
+            # ✅ Fallback: kung walang session, tingnan ang query parameter
+            if not user_email:
+                user_email = request.args.get('email')
+            
+            if not user_email:
+                return jsonify({
+                    'success': False,
+                    'message': 'Not logged in. Please login first.',
+                    'recommendations': []
+                }), 401
+            
             conn = sqlite3.connect('secure_auth.db')
             conn.row_factory = sqlite3.Row
             
+            # ✅ FILTER: Kunin lang ang pets ng current user
             pets = conn.execute("""
                 SELECT 
                     p.*,
@@ -198,8 +216,9 @@ def register_ml_routes(app):
                 FROM pets p
                 LEFT JOIN vaccinations v ON p.id = v.pet_id
                 LEFT JOIN appointments a ON p.id = a.pet_id AND a.status = 'completed'
+                WHERE p.customer_email = ?
                 GROUP BY p.id
-            """).fetchall()
+            """, (user_email,)).fetchall()
             
             conn.close()
             
@@ -207,7 +226,7 @@ def register_ml_routes(app):
                 return jsonify({
                     'success': True,
                     'recommendations': [],
-                    'message': 'No pets found.'
+                    'message': 'No pets found for this user.'
                 })
             
             recommender = get_recommender()
@@ -224,9 +243,11 @@ def register_ml_routes(app):
             })
             
         except Exception as e:
+            print(f"Error getting recommendations: {e}")
             return jsonify({
                 'success': False,
-                'message': f'Error getting recommendations: {str(e)}'
+                'message': f'Error getting recommendations: {str(e)}',
+                'recommendations': []
             }), 500
     
     @app.route('/api/ml/status', methods=['GET'])

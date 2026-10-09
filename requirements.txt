@@ -7,3 +7,4 @@ pandas
 numpy
 gunicorn==26.2.0
 python-dotenv==1.0.0
+xendit-python

@@ -19,7 +19,6 @@
       flex-wrap: wrap;
     }
 
-    /* ── BASE BUTTON STYLES ───────────────────────────── */
     .nav-buttons button {
       position: relative;
       display: inline-flex;
@@ -40,7 +39,6 @@
       outline: none;
     }
 
-    /* Ripple / shine effect on hover */
     .nav-buttons button::before {
       content: '';
       position: absolute;
@@ -48,12 +46,7 @@
       left: -100%;
       width: 100%;
       height: 100%;
-      background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.25),
-        transparent
-      );
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
       transition: left 0.6s ease;
     }
 
@@ -61,7 +54,6 @@
       left: 100%;
     }
 
-    /* ── LOGIN BUTTON (Outline / Secondary) ───────────── */
     .login-btn {
       background: transparent;
       color: #5a7a3f;
@@ -91,7 +83,6 @@
       font-size: 14px;
     }
 
-    /* ── REGISTER BUTTON (Solid / Primary) ─────────────── */
     .register-btn {
       background: linear-gradient(135deg, #7ba05b 0%, #5a7a3f 100%);
       color: #ffffff;
@@ -122,7 +113,6 @@
       font-size: 14px;
     }
 
-    /* ── DASHBOARD BUTTON (Logged-in state) ────────────── */
     .dashboard-btn {
       background: linear-gradient(135deg, #7ba05b 0%, #5a7a3f 100%);
       color: #ffffff;
@@ -154,7 +144,6 @@
       transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
-    /* ── LOGO STYLES ─────────────────────────────────── */
     .navbar-brand {
       display: flex;
       align-items: center;
@@ -189,7 +178,6 @@
       border-radius: 50%;
     }
 
-    /* ── HERO BACKGROUND (FIXED — NO PARALLAX) ────────── */
     .hero {
       background-image: 
         linear-gradient(to right, 
@@ -205,553 +193,418 @@
       position: relative;
     }
 
-    /* ── MOBILE RESPONSIVE ─────────────────────────────── */
+    /* ═══════════════════════════════════════════════════════════════
+       🎨 MOBILE VIEW OVERRIDES — INDEX.HTML (FIXED)
+       ═══════════════════════════════════════════════════════════════ */
     @media (max-width: 768px) {
+      nav {
+        flex-direction: column !important;
+        align-items: center !important;
+        padding: 12px 16px 14px !important;
+        gap: 10px !important;
+        background: transparent !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        box-shadow: none !important;
+        border-bottom: 1px solid transparent !important;
+        transition: all 0.3s ease !important;
+      }
+
+      nav.scrolled {
+        background: rgba(255, 255, 255, 0.98) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        box-shadow: 0 4px 20px rgba(123, 160, 91, 0.1) !important;
+        border-bottom: 1px solid rgba(123, 160, 91, 0.15) !important;
+        padding: 10px 16px 12px !important;
+      }
+
+      nav h1.navbar-brand {
+        order: 1 !important;
+        margin: 0 auto !important;
+        justify-content: center !important;
+      }
+
+      nav h1 .brand-text {
+        font-size: 17px !important;
+      }
+
+      nav h1 img,
+      nav h1 .navbar-logo {
+        width: 38px !important;
+        height: 38px !important;
+      }
+
       .nav-buttons {
+        order: 2 !important;
+        width: 100% !important;
+        justify-content: center !important;
+        gap: 10px !important;
+      }
+
+      .nav-buttons .login-btn,
+      .nav-buttons .register-btn,
+      .nav-buttons .dashboard-btn {
+        flex: 1 1 auto !important;
+        padding: 10px 18px !important;
+        font-size: 13px !important;
+        border-radius: 50px !important;
+      }
+
+      nav ul {
+        order: 3 !important;
+        width: 100% !important;
+        justify-content: center !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        margin-top: 4px !important;
+        padding-bottom: 0 !important;
+        overflow-x: visible !important;
+        white-space: normal !important;
+      }
+
+      nav ul li a {
+        font-size: 12px !important;
+        padding: 6px 12px !important;
+        background: rgba(255, 255, 255, 0.7) !important;
+        border-radius: 50px !important;
+        display: inline-block !important;
+      }
+
+      nav ul li a::after {
+        display: none !important;
+      }
+
+      .hero {
+        background-image: 
+          linear-gradient(
+            180deg, 
+            rgba(234, 243, 224, 0.55) 0%, 
+            rgba(234, 243, 224, 0.5) 50%, 
+            rgba(234, 243, 224, 0.6) 100%
+          ),
+          url('{{ url_for("static", filename="images/homepage-bg.jpg") }}') !important;
+        background-size: cover !important;
+        background-position: center !important;
+        background-attachment: scroll !important;
+        padding-top: 170px !important;
+      }
+
+      .hero-content {
+        background: transparent !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        padding: 20px 16px !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        max-width: 100% !important;
+        margin: 0 auto !important;
+        text-align: center;
+      }
+
+      .hero h2 {
+        color: #1f2e14 !important;
+        font-size: 32px;
+        font-weight: 800;
+        text-shadow: 
+          0 1px 2px rgba(255, 255, 255, 0.9),
+          0 2px 8px rgba(255, 255, 255, 0.7),
+          0 0 20px rgba(255, 255, 255, 0.5) !important;
+        letter-spacing: -0.5px;
+      }
+
+      .hero h2 .highlight {
+        color: #3d5429 !important;
+        text-shadow: 
+          0 1px 2px rgba(255, 255, 255, 0.9),
+          0 2px 8px rgba(255, 255, 255, 0.7) !important;
+      }
+
+      .hero p {
+        color: #2d3e1f !important;
+        font-weight: 600;
+        font-size: 15px;
+        text-shadow: 
+          0 1px 2px rgba(255, 255, 255, 0.9),
+          0 2px 6px rgba(255, 255, 255, 0.6) !important;
+        line-height: 1.6;
+      }
+
+      .hero p i {
+        color: #3d5429 !important;
+      }
+
+      .hero-buttons {
+        flex-direction: column;
+        width: 100%;
+        gap: 12px;
+        margin-top: 8px;
+      }
+
+      .hero-buttons .btn-primary,
+      .hero-buttons .btn-secondary {
+        width: 100%;
         justify-content: center;
-        gap: 10px;
+        padding: 14px 20px;
+        font-size: 15px;
       }
 
-      .nav-buttons button,
-      .dashboard-btn {
-        padding: 10px 20px;
+      .section-header-wrapper {
+        padding: 40px 20px 0;
+      }
+
+      .section-header h2 {
+        font-size: 30px;
+      }
+
+      .tutorial-section {
+        padding: 50px 16px 60px;
+      }
+
+      .tutorial-header h2 {
+        font-size: 26px;
+      }
+
+      .no-account-box {
+        flex-direction: column;
+        text-align: center;
+        padding: 24px 20px;
+        gap: 16px;
+      }
+
+      .no-account-box .btn-visit-clinic {
+        width: 100%;
+        justify-content: center;
+        padding: 12px 20px;
+      }
+
+      .tutorial-cta {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .tutorial-cta .btn-tutorial,
+      .tutorial-cta .btn-tutorial-secondary {
+        width: 100%;
+        justify-content: center;
+        margin-left: 0;
+        padding: 14px 20px;
+        font-size: 14px;
+      }
+
+      .features {
+        padding: 40px 16px 60px;
+        gap: 20px;
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        padding: 30px 20px;
+      }
+
+      .stats-wrapper {
+        padding: 40px 16px 60px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .stat-number {
+        font-size: 32px;
+      }
+
+      .about {
+        padding: 50px 20px 60px;
+      }
+
+      .about h2 {
+        font-size: 28px;
+      }
+
+      .about .feature-badges {
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .about .feature-badges .badge {
+        width: 100%;
+        justify-content: center;
         font-size: 13px;
-        border-radius: 10px;
       }
 
-      .navbar-logo {
-        width: 38px;
-        height: 38px;
+      footer {
+        padding: 40px 20px;
       }
 
-      .brand-text {
-        font-size: 0.95em;
+      footer .footer-brand {
+        font-size: 18px;
+      }
+
+      footer .footer-links {
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      footer .footer-contact {
+        flex-direction: column;
+        gap: 8px;
+        font-size: 12px;
       }
     }
 
     @media (max-width: 480px) {
-      .nav-buttons {
-        width: 100%;
+      nav {
+        padding: 10px 12px !important;
+      }
+
+      nav h1 {
+        font-size: 16px !important;
+      }
+
+      nav h1 .brand-text {
+        font-size: 15px !important;
+      }
+
+      nav h1 img,
+      nav h1 .navbar-logo {
+        width: 34px !important;
+        height: 34px !important;
       }
 
       .nav-buttons button,
       .dashboard-btn {
-        flex: 1;
-        padding: 10px 14px;
-        font-size: 12.5px;
+        padding: 9px 12px !important;
+        font-size: 12px !important;
+      }
+
+      .nav-buttons button i,
+      .dashboard-btn i {
+        font-size: 11px !important;
+      }
+
+      nav ul li a {
+        font-size: 11px !important;
+        padding: 5px 10px !important;
+      }
+
+      .hero {
+        padding: 150px 16px 30px !important;
+      }
+
+      .hero-content {
+        padding: 16px 12px !important;
+      }
+
+      .hero h2 {
+        font-size: 26px;
+      }
+
+      .hero p {
+        font-size: 14px;
+      }
+
+      .tutorial-features {
+        grid-template-columns: 1fr;
       }
     }
-  </style>
-  <!-- ═══════════════════════════════════════════════════════════════
-      🎨 MOBILE VIEW OVERRIDES — INDEX.HTML
-      ═══════════════════════════════════════════════════════════════ -->
-  <style>
-      /* ═══════════════════════════════════════════════════════════════
-        📱 TABLET VIEW (max-width: 1024px)
-        ═══════════════════════════════════════════════════════════════ */
-      @media (max-width: 1024px) {
-          /* ── NAVBAR ──────────────────────────────────────────────── */
-          nav {
-              padding: 14px 24px;
-          }
 
-          nav ul {
-              gap: 20px;
-          }
+    /* ═══════════════════════════════════════════════════════════════
+       🔽 SCROLL DOWN BUTTON — FIXED SIDE BUTTON
+       ═══════════════════════════════════════════════════════════════ */
+    .scroll-down-btn {
+      position: fixed;
+      right: 24px;
+      bottom: 32px;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7ba05b 0%, #5a7a3f 100%);
+      color: #ffffff;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 8px 24px rgba(123, 160, 91, 0.45);
+      z-index: 999;
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: scrollBtnFloat 2.5s ease-in-out infinite;
+      outline: none;
+    }
 
-          nav ul li a {
-              font-size: 14px;
-          }
+    .scroll-down-btn:hover {
+      transform: translateY(-5px) scale(1.08);
+      box-shadow: 0 14px 32px rgba(123, 160, 91, 0.6);
+      background: linear-gradient(135deg, #5a7a3f 0%, #4a6b32 100%);
+    }
 
-          /* ── HERO ────────────────────────────────────────────────── */
-          .hero {
-              padding: 100px 40px 60px;
-              flex-direction: column;
-              text-align: center;
-          }
+    .scroll-down-btn:active {
+      transform: translateY(-2px) scale(1.02);
+    }
 
-          .hero-content {
-              max-width: 100%;
-          }
+    .scroll-down-btn i {
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
 
-          .hero h2 {
-              font-size: 42px;
-          }
+    .scroll-down-btn:hover i {
+      transform: translateY(3px);
+    }
 
-          .hero p {
-              font-size: 16px;
-          }
+    /* Kapag nasa pinakababa na, mag-flip ang arrow pataas */
+    .scroll-down-btn.at-bottom {
+      background: linear-gradient(135deg, #5a7a3f 0%, #4a6b32 100%);
+    }
 
-          .hero-buttons {
-              justify-content: center;
-          }
+    .scroll-down-btn.at-bottom i {
+      transform: rotate(180deg);
+    }
 
-          .hero-visual {
-              position: relative;
-              right: auto;
-              top: auto;
-              transform: none;
-              width: 100%;
-              max-width: 500px;
-              margin: 40px auto 0;
-          }
+    .scroll-down-btn.at-bottom:hover i {
+      transform: rotate(180deg) translateY(3px);
+    }
 
-          .dashboard-preview {
-              transform: none;
-          }
+    @keyframes scrollBtnFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
 
-          .dashboard-preview:hover {
-              transform: translateY(-5px);
-          }
-
-          /* ── TUTORIAL SECTION ────────────────────────────────────── */
-          .tutorial-section {
-              padding: 60px 30px 70px;
-          }
-
-          .tutorial-steps {
-              grid-template-columns: repeat(2, 1fr);
-              gap: 20px;
-          }
-
-          .no-account-box {
-              flex-direction: row;
-              text-align: left;
-          }
-
-          /* ── FEATURES ────────────────────────────────────────────── */
-          .features {
-              padding: 50px 30px 70px;
-              gap: 25px;
-          }
-
-          /* ── STATS ───────────────────────────────────────────────── */
-          .stats-wrapper {
-              padding: 50px 30px 70px;
-          }
-
-          .stats {
-              grid-template-columns: repeat(3, 1fr);
-              gap: 20px;
-          }
-
-          .stat-number {
-              font-size: 36px;
-          }
+    /* ── Mobile adjustments ─────────────────────────────────── */
+    @media (max-width: 768px) {
+      .scroll-down-btn {
+        right: 16px;
+        bottom: 20px;
+        width: 46px;
+        height: 46px;
+        font-size: 17px;
       }
+    }
 
-      /* ═══════════════════════════════════════════════════════════════
-        📱 MOBILE VIEW (max-width: 768px)
-        ═══════════════════════════════════════════════════════════════ */
-      @media (max-width: 768px) {
-          /* ── NAVBAR ──────────────────────────────────────────────── */
-          nav {
-              padding: 12px 16px;
-              flex-direction: row;
-              flex-wrap: wrap;
-              gap: 10px;
-          }
-
-          nav h1 {
-              font-size: 18px;
-          }
-
-          nav h1 .brand-text {
-              font-size: 16px;
-          }
-
-          nav h1 img,
-          nav h1 .navbar-logo {
-              width: 36px;
-              height: 36px;
-          }
-
-          nav ul {
-              display: flex;
-              overflow-x: auto;
-              white-space: nowrap;
-              gap: 12px;
-              padding-bottom: 4px;
-              scrollbar-width: none;
-              -ms-overflow-style: none;
-              order: 3;
-              width: 100%;
-          }
-
-          nav ul::-webkit-scrollbar {
-              display: none;
-          }
-
-          nav ul li a {
-              font-size: 12px;
-              padding: 6px 10px;
-              background: rgba(123, 160, 91, 0.08);
-              border-radius: 8px;
-              display: inline-block;
-          }
-
-          nav ul li a::after {
-              display: none;
-          }
-
-          .nav-buttons {
-              margin-left: auto;
-              gap: 8px;
-          }
-
-          .nav-buttons button,
-          .dashboard-btn {
-              padding: 8px 14px;
-              font-size: 12px;
-              border-radius: 8px;
-          }
-
-          .nav-buttons button i,
-          .dashboard-btn i {
-              font-size: 12px;
-          }
-
-          /* ── HERO ────────────────────────────────────────────────── */
-          .hero {
-              padding: 90px 20px 40px;
-              min-height: auto;
-          }
-
-          .hero h2 {
-              font-size: 32px;
-              line-height: 1.2;
-          }
-
-          .hero p {
-              font-size: 15px;
-              line-height: 1.6;
-          }
-
-          .hero-buttons {
-              flex-direction: column;
-              width: 100%;
-              gap: 12px;
-          }
-
-          .hero-buttons .btn-primary,
-          .hero-buttons .btn-secondary {
-              width: 100%;
-              justify-content: center;
-              padding: 14px 20px;
-              font-size: 15px;
-          }
-
-          .hero-visual {
-              max-width: 100%;
-              margin: 30px auto 0;
-          }
-
-          /* ── TUTORIAL SECTION ────────────────────────────────────── */
-          .tutorial-section {
-              padding: 50px 16px 60px;
-          }
-
-          .tutorial-header h2 {
-              font-size: 26px;
-          }
-
-          .tutorial-header p {
-              font-size: 15px;
-          }
-
-          .tutorial-steps {
-              grid-template-columns: 1fr;
-              gap: 16px;
-          }
-
-          .step-card {
-              padding: 28px 20px;
-          }
-
-          .step-card h3 {
-              font-size: 18px;
-          }
-
-          .step-card p {
-              font-size: 13px;
-          }
-
-          .step-number {
-              width: 36px;
-              height: 36px;
-              font-size: 15px;
-          }
-
-          .step-icon {
-              width: 56px;
-              height: 56px;
-              font-size: 24px;
-          }
-
-          /* ── NO ACCOUNT BOX ──────────────────────────────────────── */
-          .no-account-box {
-              flex-direction: column;
-              text-align: center;
-              padding: 24px 20px;
-              gap: 16px;
-          }
-
-          .no-account-box .icon-large {
-              width: 56px;
-              height: 56px;
-              font-size: 24px;
-          }
-
-          .no-account-box .content h4 {
-              font-size: 16px;
-          }
-
-          .no-account-box .content p {
-              font-size: 13px;
-          }
-
-          .no-account-box .btn-visit-clinic {
-              width: 100%;
-              justify-content: center;
-              padding: 12px 20px;
-          }
-
-          /* ── TUTORIAL FEATURES ───────────────────────────────────── */
-          .tutorial-features {
-              grid-template-columns: repeat(2, 1fr);
-              gap: 16px;
-          }
-
-          .tutorial-feature-item {
-              font-size: 12px;
-          }
-
-          .tutorial-feature-item .icon {
-              font-size: 22px;
-          }
-
-          /* ── TUTORIAL CTA ────────────────────────────────────────── */
-          .tutorial-cta {
-              display: flex;
-              flex-direction: column;
-              gap: 12px;
-          }
-
-          .tutorial-cta .btn-tutorial,
-          .tutorial-cta .btn-tutorial-secondary {
-              width: 100%;
-              justify-content: center;
-              margin-left: 0;
-              padding: 14px 20px;
-              font-size: 14px;
-          }
-
-          /* ── FEATURES ────────────────────────────────────────────── */
-          .features {
-              padding: 40px 16px 60px;
-              gap: 20px;
-              grid-template-columns: 1fr;
-          }
-
-          .card {
-              padding: 30px 20px;
-          }
-
-          .card h3 {
-              font-size: 18px;
-          }
-
-          .card p {
-              font-size: 14px;
-          }
-
-          .card .icon-wrapper {
-              width: 60px;
-              height: 60px;
-              font-size: 26px;
-          }
-
-          /* ── STATS ───────────────────────────────────────────────── */
-          .stats-wrapper {
-              padding: 40px 16px 60px;
-          }
-
-          .stats {
-              grid-template-columns: 1fr;
-              gap: 16px;
-          }
-
-          .stat-item {
-              padding: 24px 16px;
-          }
-
-          .stat-number {
-              font-size: 32px;
-          }
-
-          .stat-number i {
-              font-size: 24px;
-          }
-
-          .stat-label {
-              font-size: 13px;
-          }
-
-          /* ── ABOUT ───────────────────────────────────────────────── */
-          .about {
-              padding: 50px 20px 60px;
-          }
-
-          .about h2 {
-              font-size: 28px;
-          }
-
-          .about p {
-              font-size: 15px;
-          }
-
-          .about .feature-badges {
-              flex-direction: column;
-              align-items: center;
-              gap: 12px;
-          }
-
-          .about .feature-badges .badge {
-              width: 100%;
-              justify-content: center;
-              font-size: 13px;
-          }
-
-          /* ── FOOTER ──────────────────────────────────────────────── */
-          footer {
-              padding: 40px 20px;
-          }
-
-          footer .footer-brand {
-              font-size: 18px;
-          }
-
-          footer .footer-links {
-              flex-direction: column;
-              gap: 12px;
-          }
-
-          footer .footer-links a {
-              font-size: 13px;
-          }
-
-          footer .footer-contact {
-              flex-direction: column;
-              gap: 8px;
-              font-size: 12px;
-          }
-
-          footer p {
-              font-size: 12px;
-          }
+    @media (max-width: 480px) {
+      .scroll-down-btn {
+        right: 12px;
+        bottom: 16px;
+        width: 42px;
+        height: 42px;
+        font-size: 15px;
       }
-
-      /* ═══════════════════════════════════════════════════════════════
-        📱 SMALL MOBILE (max-width: 480px)
-        ═══════════════════════════════════════════════════════════════ */
-      @media (max-width: 480px) {
-          /* ── NAVBAR ──────────────────────────────────────────────── */
-          nav {
-              padding: 10px 12px;
-          }
-
-          nav h1 {
-              font-size: 16px;
-          }
-
-          nav h1 .brand-text {
-              display: none; /* Itago ang text, logo lang */
-          }
-
-          .nav-buttons button,
-          .dashboard-btn {
-              padding: 8px 12px;
-              font-size: 11px;
-          }
-
-          .nav-buttons button i,
-          .dashboard-btn i {
-              margin-right: 4px;
-          }
-
-          /* ── HERO ────────────────────────────────────────────────── */
-          .hero {
-              padding: 80px 16px 30px;
-          }
-
-          .hero h2 {
-              font-size: 26px;
-          }
-
-          .hero p {
-              font-size: 14px;
-          }
-
-          .hero-buttons .btn-primary,
-          .hero-buttons .btn-secondary {
-              padding: 12px 16px;
-              font-size: 14px;
-          }
-
-          /* ── TUTORIAL ────────────────────────────────────────────── */
-          .tutorial-section {
-              padding: 40px 12px 50px;
-          }
-
-          .tutorial-header h2 {
-              font-size: 22px;
-          }
-
-          .tutorial-header p {
-              font-size: 14px;
-          }
-
-          .tutorial-features {
-              grid-template-columns: 1fr;
-          }
-
-          /* ── FEATURES ────────────────────────────────────────────── */
-          .features {
-              padding: 30px 12px 50px;
-          }
-
-          .card {
-              padding: 24px 16px;
-          }
-
-          .card h3 {
-              font-size: 16px;
-          }
-
-          /* ── ABOUT ───────────────────────────────────────────────── */
-          .about h2 {
-              font-size: 24px;
-          }
-
-          .about p {
-              font-size: 14px;
-          }
-
-          /* ── FOOTER ──────────────────────────────────────────────── */
-          footer {
-              padding: 30px 16px;
-          }
-
-          footer .footer-brand {
-              font-size: 16px;
-          }
-      }
+    }
   </style>
 </head>
 <body>
 
   <!-- Scroll Progress Bar -->
   <div class="scroll-progress" id="scrollProgress"></div>
+
+  <!-- 🔽 FIXED SCROLL DOWN BUTTON -->
+  <button class="scroll-down-btn" id="scrollDownBtn" onclick="handleScrollToggle()" aria-label="Scroll to bottom" title="Scroll to bottom">
+    <i class="fas fa-chevron-down" id="scrollDownIcon"></i>
+  </button>
 
   <!-- NAVBAR -->
   <nav id="navbar">
@@ -763,6 +616,7 @@
       <li><a href="#home"><i class="fas fa-home"></i> Home</a></li>
       <li><a href="#features"><i class="fas fa-cogs"></i> Features</a></li>
       <li><a href="#tutorial"><i class="fas fa-graduation-cap"></i> How It Works</a></li>
+      <li><a href="#location"><i class="fas fa-map-marked-alt"></i> Find Us</a></li>
       <li><a href="#about"><i class="fas fa-info-circle"></i> About</a></li>
     </ul>
     <div class="nav-buttons" id="navButtons">
@@ -872,46 +726,254 @@
     </div>
   </section>
 
-  <!-- ── TUTORIAL / HOW IT WORKS SECTION ───────────────────────────── -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- ═══ UNIFIED TUTORIAL CAROUSEL ══════════════════════════════ -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
   <section class="tutorial-section" id="tutorial">
     <div class="tutorial-container">
+      
       <div class="tutorial-header">
         <h2><i class="fas fa-graduation-cap"></i> How It Works</h2>
-        <p>Sign up or log in to manage your pet's health and appointments in just a few steps.</p>
+        <p>New to PetLink? Click through to learn how to get started, explore the system, and read our top tips.</p>
       </div>
 
-      <div class="tutorial-steps">
-        <div class="step-card">
-          <div class="step-number">1</div>
-          <div class="step-icon blue"><i class="fas fa-user-plus"></i></div>
-          <h3>Create an Account</h3>
-          <p>Sign up with your <span class="highlight">email</span> and create a secure password to get started.</p>
+      <div class="main-carousel" id="tutorialCarousel">
+        
+        <div class="carousel-controls">
+          <button class="carousel-nav-btn prev" id="carouselPrev" onclick="carouselPrev()" aria-label="Previous">
+            <i class="fas fa-chevron-left"></i>
+            <span>Prev</span>
+          </button>
+
+          <div class="carousel-dots" id="carouselDots">
+            <button class="carousel-dot active" data-slide="0" onclick="carouselGoTo(0)" aria-label="Go to Step 1">
+              <span class="dot-label">How It Works</span>
+            </button>
+            <button class="carousel-dot" data-slide="1" onclick="carouselGoTo(1)" aria-label="Go to Step 2">
+              <span class="dot-label">System Guide</span>
+            </button>
+            <button class="carousel-dot" data-slide="2" onclick="carouselGoTo(2)" aria-label="Go to Step 3">
+              <span class="dot-label">Pro Tips</span>
+            </button>
+          </div>
+
+          <button class="carousel-nav-btn next" id="carouselNext" onclick="carouselNext()" aria-label="Next">
+            <span>Next</span>
+            <i class="fas fa-chevron-right"></i>
+          </button>
         </div>
 
-        <div class="step-card">
-          <div class="step-number">2</div>
-          <div class="step-icon purple"><i class="fas fa-dog"></i></div>
-          <h3>Register Your Pet</h3>
-          <p>Add your pet's <span class="highlight">details</span>, breed, age, and health information.</p>
+        <div class="carousel-progress">
+          <div class="carousel-progress-bar" id="carouselProgress"></div>
         </div>
 
-        <div class="step-card">
-          <div class="step-number">3</div>
-          <div class="step-icon pink"><i class="fas fa-calendar-plus"></i></div>
-          <h3>Book Appointments</h3>
-          <p>Schedule appointments directly from your <span class="highlight">dashboard</span> with ease.</p>
+        <div class="carousel-viewport">
+          <div class="carousel-track" id="carouselTrack">
+
+            <!-- PANEL 1 -->
+            <div class="carousel-slide">
+              <div class="slide-header">
+                <span class="slide-badge"><i class="fas fa-list-ol"></i> Step 1 of 3</span>
+                <h3><i class="fas fa-rocket"></i> Getting Started in 4 Steps</h3>
+                <p>Follow these simple steps to create your account, register your pet, and book your first appointment.</p>
+              </div>
+
+              <div class="tutorial-steps-grid">
+                <div class="step-card">
+                  <div class="step-number">1</div>
+                  <div class="step-icon blue"><i class="fas fa-user-plus"></i></div>
+                  <h3>Create Your Account</h3>
+                  <p>Sign up with your <span class="highlight">email</span> and create a secure password. You'll receive a verification code.</p>
+                  <ul class="step-detail-list">
+                    <li><i class="fas fa-check"></i> Enter full name, email, phone & address</li>
+                    <li><i class="fas fa-check"></i> Set a strong password (8+ chars)</li>
+                    <li><i class="fas fa-check"></i> Check email for the 6-digit code</li>
+                  </ul>
+                </div>
+
+                <div class="step-card">
+                  <div class="step-number">2</div>
+                  <div class="step-icon purple"><i class="fas fa-sign-in-alt"></i></div>
+                  <h3>Login to Dashboard</h3>
+                  <p>Use your verified email and password to <span class="highlight">sign in</span> and access your dashboard.</p>
+                  <ul class="step-detail-list">
+                    <li><i class="fas fa-check"></i> Enter your registered email & password</li>
+                    <li><i class="fas fa-check"></i> First-time users see a welcome celebration</li>
+                    <li><i class="fas fa-check"></i> Forgot password? Use "Forgot Password?"</li>
+                  </ul>
+                </div>
+
+                <div class="step-card">
+                  <div class="step-number">3</div>
+                  <div class="step-icon pink"><i class="fas fa-dog"></i></div>
+                  <h3>Register Your Pet</h3>
+                  <p>Add your pet's <span class="highlight">details</span> — name, breed, age, gender, weight, allergies, medical history.</p>
+                  <ul class="step-detail-list">
+                    <li><i class="fas fa-check"></i> Go to <strong>My Pets</strong> → "Add New Pet"</li>
+                    <li><i class="fas fa-check"></i> Upload a photo, fill in details & allergies</li>
+                    <li><i class="fas fa-check"></i> Age can be entered in <strong>Years</strong> or <strong>Months</strong></li>
+                  </ul>
+                </div>
+
+                <div class="step-card">
+                  <div class="step-number">4</div>
+                  <div class="step-icon green"><i class="fas fa-calendar-plus"></i></div>
+                  <h3>Book Appointments</h3>
+                  <p>Schedule <span class="highlight">grooming, vaccination, or check-ups</span> with real-time slot availability.</p>
+                  <ul class="step-detail-list">
+                    <li><i class="fas fa-check"></i> Go to <strong>My Appointments</strong></li>
+                    <li><i class="fas fa-check"></i> Select pet, services, date & time</li>
+                    <li><i class="fas fa-check"></i> Pay via GCash or Maya to confirm</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- PANEL 2 -->
+            <div class="carousel-slide">
+              <div class="slide-header">
+                <span class="slide-badge"><i class="fas fa-book-open"></i> Step 2 of 3</span>
+                <h3><i class="fas fa-book-open"></i> Complete System Guide</h3>
+                <p>Everything you can do inside the PetLink system — explained step-by-step.</p>
+              </div>
+
+              <div class="system-guide-grid">
+                <div class="guide-card">
+                  <div class="guide-card-header">
+                    <div class="guide-icon blue"><i class="fas fa-user-circle"></i></div>
+                    <h4>Account Setup & Login</h4>
+                  </div>
+                  <ol class="guide-steps">
+                    <li><strong>Register:</strong> Click "Register" → fill out the form → submit</li>
+                    <li><strong>Verify Email:</strong> Enter the 6-digit code sent to your inbox</li>
+                    <li><strong>Login:</strong> Use your email & password → click "Sign In"</li>
+                    <li><strong>Forgot Password:</strong> Click "Forgot Password?" → click the reset link</li>
+                    <li><strong>Profile Settings:</strong> Update name, phone, address & profile picture</li>
+                  </ol>
+                </div>
+
+                <div class="guide-card">
+                  <div class="guide-card-header">
+                    <div class="guide-icon purple"><i class="fas fa-dog"></i></div>
+                    <h4>Pet Management</h4>
+                  </div>
+                  <ol class="guide-steps">
+                    <li><strong>Add Pet:</strong> "My Pets" → "Add New Pet" → upload photo → save</li>
+                    <li><strong>Edit Pet:</strong> Click "Edit" on any pet card to update info</li>
+                    <li><strong>Change Photo:</strong> Click the camera icon on the pet avatar</li>
+                    <li><strong>Delete Pet:</strong> Click "Delete" → confirm (cannot be undone)</li>
+                    <li><strong>Allergies:</strong> Select from a list or add custom allergies</li>
+                  </ol>
+                </div>
+
+                <div class="guide-card">
+                  <div class="guide-card-header">
+                    <div class="guide-icon pink"><i class="fas fa-calendar-check"></i></div>
+                    <h4>Booking Appointments</h4>
+                  </div>
+                  <ol class="guide-steps">
+                    <li><strong>Open Booking:</strong> "My Appointments" → "Book New Appointment"</li>
+                    <li><strong>Choose Pet:</strong> Select which pet the appointment is for</li>
+                    <li><strong>Select Services:</strong> Pick one or more services</li>
+                    <li><strong>Pick Date & Time:</strong> Available dates shown on calendar</li>
+                    <li><strong>Confirm & Pay:</strong> Review → pay via GCash or Maya</li>
+                    <li><strong>Cancellation:</strong> Cancel unpaid appointments anytime</li>
+                    <li><strong>Retrieve:</strong> Cancelled appointments can be retrieved</li>
+                  </ol>
+                </div>
+
+                <div class="guide-card">
+                  <div class="guide-card-header">
+                    <div class="guide-icon green"><i class="fas fa-robot"></i></div>
+                    <h4>Smart Pet Care (AI)</h4>
+                  </div>
+                  <ol class="guide-steps">
+                    <li><strong>Access:</strong> Go to "Smart Pet Care" on your dashboard</li>
+                    <li><strong>Generate:</strong> Click "Get Recommendations"</li>
+                    <li><strong>Read:</strong> See personalized tips for vaccination & health</li>
+                    <li><strong>Take Action:</strong> Click "Book Appointment" from a recommendation</li>
+                    <li><strong>Medical Records:</strong> View your pet's full medical history</li>
+                  </ol>
+                </div>
+
+                <div class="guide-card">
+                  <div class="guide-card-header">
+                    <div class="guide-icon orange"><i class="fas fa-comments"></i></div>
+                    <h4>Messages & Communication</h4>
+                  </div>
+                  <ol class="guide-steps">
+                    <li><strong>Open Messages:</strong> Click "Messages" on the sidebar</li>
+                    <li><strong>Choose Recipient:</strong> Chat with Admin, Staff, or Veterinarian</li>
+                    <li><strong>Send Message:</strong> Type your message and press "Send"</li>
+                    <li><strong>Emoji & Images:</strong> Use 😊 for emojis, 🖼️ to upload photos</li>
+                    <li><strong>Real-Time Chat:</strong> Replies appear instantly</li>
+                  </ol>
+                </div>
+
+                <div class="guide-card">
+                  <div class="guide-card-header">
+                    <div class="guide-icon teal"><i class="fas fa-credit-card"></i></div>
+                    <h4>Payments & Receipts</h4>
+                  </div>
+                  <ol class="guide-steps">
+                    <li><strong>Pay Now:</strong> Click "Pay Now" to pay via GCash or Maya</li>
+                    <li><strong>Pay Later:</strong> Skip and pay anytime from "My Appointments"</li>
+                    <li><strong>Secure Gateway:</strong> Payments processed securely by Xendit</li>
+                    <li><strong>Receipt:</strong> Click "View Receipt" to print or save</li>
+                    <li><strong>Payment Status:</strong> Track unpaid / paid / failed</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+
+            <!-- PANEL 3 -->
+            <div class="carousel-slide">
+              <div class="slide-header">
+                <span class="slide-badge"><i class="fas fa-lightbulb"></i> Step 3 of 3</span>
+                <h3><i class="fas fa-lightbulb"></i> Pro Tips for New Customers</h3>
+                <p>Make the most out of your PetLink experience.</p>
+              </div>
+
+              <div class="tips-grid">
+                <div class="tip-item">
+                  <i class="fas fa-envelope-open-text"></i>
+                  <strong>Check Your Email</strong>
+                  <p>Verification codes and appointment updates are sent to your email — keep it updated.</p>
+                </div>
+                <div class="tip-item">
+                  <i class="fas fa-clock"></i>
+                  <strong>Book Early</strong>
+                  <p>Slots fill up quickly. Book your appointment at least 1–2 days in advance.</p>
+                </div>
+                <div class="tip-item">
+                  <i class="fas fa-shield-alt"></i>
+                  <strong>Strong Password</strong>
+                  <p>Use at least 8 characters with uppercase, lowercase, number & special character.</p>
+                </div>
+                <div class="tip-item">
+                  <i class="fas fa-image"></i>
+                  <strong>Add Pet Photos</strong>
+                  <p>Upload clear pet photos so our staff can easily identify your pet during visits.</p>
+                </div>
+                <div class="tip-item">
+                  <i class="fas fa-bell"></i>
+                  <strong>Check Notifications</strong>
+                  <p>The red badge on the Messages tab shows unread replies from our team.</p>
+                </div>
+                <div class="tip-item">
+                  <i class="fas fa-phone-alt"></i>
+                  <strong>Need Help?</strong>
+                  <p>Message us directly in the app or call (02) 8123 4567 during clinic hours.</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
         </div>
 
-        <div class="step-card">
-          <div class="step-number">4</div>
-          <div class="step-icon green"><i class="fas fa-heartbeat"></i></div>
-          <h3>Track Your Pet's Health</h3>
-          <p>View <span class="highlight">medical records</span>, vaccination history, and health status.</p>
-        </div>
-      </div>
+      </div><!-- /main-carousel -->
 
-      <!-- ── NO ACCOUNT INFO BOX ────────────────────────────────────── -->
-      <div class="no-account-box">
+      <div class="no-account-box" style="margin-top: 60px;">
         <div class="icon-large"><i class="fas fa-clinic-medical"></i></div>
         <div class="content">
           <h4><i class="fas fa-flag"></i> No Account Yet?</h4>
@@ -928,12 +990,11 @@
             <i class="far fa-clock" style="color: #7ba05b;"></i> Clinic Hours: Monday to Saturday, 8:00 AM - 5:00 PM
           </p>
         </div>
-        <button class="btn-visit-clinic" onclick="showClinicLocation()">
-          <i class="fas fa-location-dot"></i> Visit Clinic
+        <button class="btn-visit-clinic" onclick="scrollToLocation()">
+          <i class="fas fa-map-marker-alt"></i> View Location
         </button>
       </div>
 
-      <!-- Benefits / Features -->
       <div class="tutorial-features">
         <div class="tutorial-feature-item">
           <span class="icon blue"><i class="fas fa-shield-alt"></i></span>
@@ -957,7 +1018,6 @@
         </div>
       </div>
 
-      <!-- Call to Action -->
       <div class="tutorial-cta">
         <button class="btn-tutorial" id="mainCtaBtn" onclick="handleMainCta()">
           <i class="fas fa-sign-in-alt"></i> Login to Get Started
@@ -969,7 +1029,7 @@
     </div>
   </section>
 
-  <!-- ── STATS SECTION ───────────────────────────────────────────────── -->
+  <!-- STATS -->
   <div class="stats-wrapper">
     <div class="stats">
       <div class="stat-item">
@@ -996,19 +1056,113 @@
         <i class="fas fa-heart" style="color: #5a7a3f;"></i> Join thousands of happy pet owners who trust PetLink for their furry friends' wellbeing.
       </p>
       <div class="feature-badges">
-        <div class="badge">
-          <i class="fas fa-check-circle blue"></i> Trusted by vets
-        </div>
-        <div class="badge">
-          <i class="fas fa-robot purple"></i> AI-powered insights
-        </div>
-        <div class="badge">
-          <i class="fas fa-shield-alt green"></i> Secure & reliable
-        </div>
-        <div class="badge">
-          <i class="fas fa-heart pink"></i> Loved by pets
-        </div>
+        <div class="badge"><i class="fas fa-check-circle blue"></i> Trusted by vets</div>
+        <div class="badge"><i class="fas fa-robot purple"></i> AI-powered insights</div>
+        <div class="badge"><i class="fas fa-shield-alt green"></i> Secure & reliable</div>
+        <div class="badge"><i class="fas fa-heart pink"></i> Loved by pets</div>
       </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- ═══ FIND US — GOOGLE MAP (EXACT LOCATION) ══════════════════ -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section class="location-section" id="location">
+    <div class="location-container">
+      
+      <div class="location-header">
+        <h2><i class="fas fa-map-marked-alt"></i> Find Our Clinic</h2>
+        <p>Visit us at PetLink Canine Distemper Center — we're ready to help you and your pet.</p>
+      </div>
+
+      <div class="location-layout">
+        
+        <!-- Google Map with EXACT PetLink address -->
+        <div class="map-wrapper">
+          <iframe
+            class="google-map"
+            src="https://www.google.com/maps?q=48+B.+Serrano+St.,+Grace+Park+East,+Caloocan+City,+Metro+Manila,+Philippines&output=embed&z=18"
+            width="100%"
+            height="450"
+            style="border:0;"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            title="PetLink Clinic Location"
+          ></iframe>
+          <div class="map-badge">
+            <i class="fas fa-map-pin"></i>
+            <span>PetLink Canine Distemper Center</span>
+          </div>
+        </div>
+
+        <!-- Info Card -->
+        <div class="location-info">
+          <div class="location-info-header">
+            <div class="location-logo-wrap">
+              <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="PetLink Logo" class="location-logo">
+            </div>
+            <div>
+              <h3>PetLink Canine Distemper Center</h3>
+              <p>Your trusted partner for pet care</p>
+            </div>
+          </div>
+
+          <div class="location-info-list">
+            <div class="location-info-item">
+              <div class="location-info-icon"><i class="fas fa-map-marker-alt"></i></div>
+              <div>
+                <span class="location-info-label">Address</span>
+                <span class="location-info-value">48 B. Serrano St., Grace Park East, Caloocan City, Metro Manila, Philippines</span>
+              </div>
+            </div>
+
+            <div class="location-info-item">
+              <div class="location-info-icon"><i class="fas fa-phone-alt"></i></div>
+              <div>
+                <span class="location-info-label">Phone</span>
+                <span class="location-info-value">(02) 8123 4567</span>
+              </div>
+            </div>
+
+            <div class="location-info-item">
+              <div class="location-info-icon"><i class="fas fa-envelope"></i></div>
+              <div>
+                <span class="location-info-label">Email</span>
+                <span class="location-info-value">petlink@clinic.com</span>
+              </div>
+            </div>
+
+            <div class="location-info-item">
+              <div class="location-info-icon"><i class="fas fa-clock"></i></div>
+              <div>
+                <span class="location-info-label">Clinic Hours</span>
+                <span class="location-info-value">
+                  Monday – Saturday: 8:00 AM – 5:00 PM<br>
+                  Sunday: <strong style="color:#ef4444;">Closed</strong>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="location-actions">
+            <a href="https://www.google.com/maps/dir/?api=1&destination=48+B.+Serrano+St.,+Grace+Park+East,+Caloocan+City,+Metro+Manila,+Philippines" 
+               target="_blank" 
+               rel="noopener noreferrer" 
+               class="btn-map-primary">
+              <i class="fas fa-route"></i> Get Directions
+            </a>
+            <a href="https://www.google.com/maps/search/?api=1&query=48+B.+Serrano+St.,+Grace+Park+East,+Caloocan+City,+Metro+Manila,+Philippines" 
+               target="_blank" 
+               rel="noopener noreferrer" 
+               class="btn-map-secondary">
+              <i class="fas fa-external-link-alt"></i> Open in Google Maps
+            </a>
+          </div>
+        </div>
+
+      </div>
+
     </div>
   </section>
 
@@ -1022,6 +1176,7 @@
       <a href="#home"><i class="fas fa-home"></i> Home</a>
       <a href="#features"><i class="fas fa-cogs"></i> Features</a>
       <a href="#tutorial"><i class="fas fa-graduation-cap"></i> How It Works</a>
+      <a href="#location"><i class="fas fa-map-marked-alt"></i> Find Us</a>
       <a href="#about"><i class="fas fa-info-circle"></i> About</a>
       <a href="/login"><i class="fas fa-sign-in-alt"></i> Login</a>
     </div>
@@ -1035,18 +1190,16 @@
 
   <script>
     function showClinicLocation() {
-      alert(
-        '📍 PetLink Canine Distemper Center\n' +
-        '48 B. Serrano St., Caloocan City\n\n' +
-        '⏰ Clinic Hours:\n' +
-        'Monday - Saturday: 8:00 AM - 5:00 PM\n' +
-        'Sunday: Closed\n\n' +
-        '📞 Contact us at: (02) 8123 4567\n\n' +
-        'Come visit us to register your pet and create your account! 🐾'
-      );
+      scrollToLocation();
     }
 
-    // Fallback for auth modal (in case index.js fails to load)
+    function scrollToLocation() {
+      const locationSection = document.getElementById('location');
+      if (locationSection) {
+        locationSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
     function openAuthModal(type) {
       if (type === 'register') {
         window.location.href = '/register';
@@ -1056,7 +1209,186 @@
     }
 
     window.showClinicLocation = showClinicLocation;
+    window.scrollToLocation = scrollToLocation;
     window.openAuthModal = openAuthModal;
+  </script>
+
+  <!-- CAROUSEL JS -->
+  <script>
+    (function() {
+      let currentSlide = 0;
+      const totalSlides = 3;
+      let autoSlideTimer = null;
+      const AUTO_SLIDE_DELAY = 10000;
+
+      function getTrack() {
+        return document.getElementById('carouselTrack');
+      }
+
+      function getDots() {
+        return document.querySelectorAll('#carouselDots .carousel-dot');
+      }
+
+      function getProgressBar() {
+        return document.getElementById('carouselProgress');
+      }
+
+      function updateCarousel() {
+        const track = getTrack();
+        if (!track) return;
+
+        const percentPerSlide = 100 / totalSlides;
+        const translateX = -currentSlide * percentPerSlide;
+        track.style.transform = 'translateX(' + translateX + '%)';
+
+        getDots().forEach(function(dot, i) {
+          dot.classList.toggle('active', i === currentSlide);
+        });
+
+        const progress = getProgressBar();
+        if (progress) {
+          progress.style.width = ((currentSlide + 1) / totalSlides * 100) + '%';
+        }
+
+        const prevBtn = document.getElementById('carouselPrev');
+        const nextBtn = document.getElementById('carouselNext');
+        if (prevBtn) prevBtn.disabled = (currentSlide === 0);
+        if (nextBtn) nextBtn.disabled = (currentSlide === totalSlides - 1);
+      }
+
+      function goToSlide(index) {
+        if (index < 0 || index >= totalSlides) return;
+        currentSlide = index;
+        updateCarousel();
+        resetAutoSlide();
+      }
+
+      function nextSlide() {
+        if (currentSlide < totalSlides - 1) {
+          currentSlide++;
+        } else {
+          currentSlide = 0;
+        }
+        updateCarousel();
+        resetAutoSlide();
+      }
+
+      function prevSlide() {
+        if (currentSlide > 0) {
+          currentSlide--;
+        } else {
+          currentSlide = totalSlides - 1;
+        }
+        updateCarousel();
+        resetAutoSlide();
+      }
+
+      function startAutoSlide() {
+        autoSlideTimer = setInterval(function() {
+          if (currentSlide < totalSlides - 1) {
+            currentSlide++;
+          } else {
+            currentSlide = 0;
+          }
+          updateCarousel();
+        }, AUTO_SLIDE_DELAY);
+      }
+
+      function resetAutoSlide() {
+        if (autoSlideTimer) clearInterval(autoSlideTimer);
+        startAutoSlide();
+      }
+
+      window.carouselNext = nextSlide;
+      window.carouselPrev = prevSlide;
+      window.carouselGoTo = goToSlide;
+
+      document.addEventListener('DOMContentLoaded', function() {
+        updateCarousel();
+        startAutoSlide();
+
+        const track = getTrack();
+        if (track) {
+          let startX = 0;
+          let isSwiping = false;
+
+          track.addEventListener('touchstart', function(e) {
+            startX = e.touches[0].clientX;
+            isSwiping = true;
+          }, { passive: true });
+
+          track.addEventListener('touchend', function(e) {
+            if (!isSwiping) return;
+            isSwiping = false;
+            const diff = startX - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 50) {
+              if (diff > 0) nextSlide();
+              else prevSlide();
+            }
+          }, { passive: true });
+        }
+
+        const carousel = document.getElementById('tutorialCarousel');
+        if (carousel) {
+          carousel.addEventListener('mouseenter', function() {
+            if (autoSlideTimer) clearInterval(autoSlideTimer);
+          });
+          carousel.addEventListener('mouseleave', function() {
+            resetAutoSlide();
+          });
+        }
+      });
+    })();
+  </script>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       🔽 SCROLL DOWN BUTTON — TOGGLE LOGIC
+       ═══════════════════════════════════════════════════════════════ -->
+  <script>
+    (function() {
+      const btn = document.getElementById('scrollDownBtn');
+      const icon = document.getElementById('scrollDownIcon');
+      if (!btn || !icon) return;
+
+      // Kapag pinindot: kung wala pa sa baba, scroll pababa. Kung nasa baba na, scroll pabalik sa taas.
+      window.handleScrollToggle = function() {
+        const scrollBottom = window.innerHeight + window.scrollY;
+        const docHeight = document.documentElement.scrollHeight;
+        const atBottom = (scrollBottom >= docHeight - 5);
+
+        if (atBottom) {
+          // Scroll pataas
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          // Scroll pababa
+          window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+      };
+
+      // I-check kung nasa pinakababa na para i-flip ang arrow
+      function updateScrollBtnState() {
+        const scrollBottom = window.innerHeight + window.scrollY;
+        const docHeight = document.documentElement.scrollHeight;
+        const atBottom = (scrollBottom >= docHeight - 5);
+
+        if (atBottom) {
+          btn.classList.add('at-bottom');
+          icon.className = 'fas fa-chevron-down'; // CSS rotate(180) ang mag-flip
+          btn.setAttribute('title', 'Scroll to top');
+          btn.setAttribute('aria-label', 'Scroll to top');
+        } else {
+          btn.classList.remove('at-bottom');
+          icon.className = 'fas fa-chevron-down';
+          btn.setAttribute('title', 'Scroll to bottom');
+          btn.setAttribute('aria-label', 'Scroll to bottom');
+        }
+      }
+
+      window.addEventListener('scroll', updateScrollBtnState, { passive: true });
+      window.addEventListener('resize', updateScrollBtnState);
+      document.addEventListener('DOMContentLoaded', updateScrollBtnState);
+      updateScrollBtnState();
+    })();
   </script>
 
   <script src="{{ url_for('static', filename='js/index.js') }}"></script>

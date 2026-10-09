@@ -13,7 +13,9 @@ import { getCurrentSection, switchSection } from './sidebar.js';
 
 let selectedServices = [];
 
-// ── Load Services for Booking ──────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+// ── Load Services for Booking (COLLAPSIBLE BY CATEGORY) ────────────
+// ═══════════════════════════════════════════════════════════════════
 export async function loadServices() {
     try {
         const data = await fetchServices();
@@ -22,7 +24,16 @@ export async function loadServices() {
             container.innerHTML = '';
             selectedServices = [];
             
-            data.services.forEach(service => {
+            // ── I-group ang services by category ─────────────────────
+            const staffServices = data.services.filter(s => 
+                (s.service_category || 'staff') === 'staff'
+            );
+            const vetServices = data.services.filter(s => 
+                s.service_category === 'vet'
+            );
+            
+            // ── Helper function para mag-render ng service checkbox ──
+            const renderServiceCheckbox = (service) => {
                 const label = document.createElement('label');
                 label.style.cssText = `
                     display: flex;
@@ -62,6 +73,7 @@ export async function loadServices() {
                 checkbox.value = service.name;
                 checkbox.dataset.price = service.price;
                 checkbox.dataset.duration = service.duration;
+                checkbox.dataset.category = service.service_category || 'staff';
                 checkbox.id = `service-${service.id}`;
                 checkbox.style.cssText = `
                     width: 18px;
@@ -82,6 +94,14 @@ export async function loadServices() {
                         label.style.boxShadow = 'none';
                     }
                     updateServiceSelection();
+                    
+                    // ✅ Check vet availability kapag may vet service na na-select
+                    if (this.dataset.category === 'vet' && this.checked) {
+                        const selectedDate = document.getElementById('bookingDate').value;
+                        if (selectedDate) {
+                            loadTimeSlots(selectedDate, false);
+                        }
+                    }
                 });
                 
                 const info = document.createElement('span');
@@ -99,8 +119,218 @@ export async function loadServices() {
                 
                 label.appendChild(checkbox);
                 label.appendChild(info);
-                container.appendChild(label);
-            });
+                return label;
+            };
+            
+            // ── Helper: Gumawa ng collapsible header ─────────────────
+            const createCollapsibleHeader = (type, title, subtitle, icon, color, count, isExpanded) => {
+                const header = document.createElement('div');
+                header.className = `service-collapsible-header service-collapsible-${type}`;
+                header.style.cssText = `
+                    grid-column: 1 / -1;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    padding: 10px 14px;
+                    background: ${type === 'staff' 
+                        ? 'linear-gradient(135deg, rgba(123, 160, 91, 0.12), rgba(90, 122, 63, 0.12))' 
+                        : 'linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(37, 99, 235, 0.12))'};
+                    border: 2px solid ${color};
+                    border-radius: 12px;
+                    margin-bottom: 4px;
+                    margin-top: 4px;
+                    cursor: pointer;
+                    user-select: none;
+                    transition: all 0.25s ease;
+                `;
+                
+                // Hover effect sa header
+                header.onmouseenter = () => {
+                    header.style.transform = 'translateY(-1px)';
+                    header.style.boxShadow = `0 4px 12px ${type === 'staff' 
+                        ? 'rgba(123, 160, 91, 0.2)' 
+                        : 'rgba(59, 130, 246, 0.2)'}`;
+                };
+                header.onmouseleave = () => {
+                    header.style.transform = 'translateY(0)';
+                    header.style.boxShadow = 'none';
+                };
+                
+                header.innerHTML = `
+                    <div style="
+                        width: 36px;
+                        height: 36px;
+                        border-radius: 10px;
+                        background: ${type === 'staff' 
+                            ? 'linear-gradient(135deg, #7ba05b, #5a7a3f)' 
+                            : 'linear-gradient(135deg, #3b82f6, #2563eb)'};
+                        color: #fff;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 16px;
+                        flex-shrink: 0;
+                    ">
+                        <i class="${icon}"></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="color: #2d3e1f; font-size: 14px; font-weight: 700; margin-bottom: 2px;">
+                            ${title}
+                            <span style="
+                                display: inline-block;
+                                margin-left: 8px;
+                                background: ${color};
+                                color: #fff;
+                                font-size: 10px;
+                                font-weight: 700;
+                                padding: 2px 8px;
+                                border-radius: 10px;
+                                vertical-align: middle;
+                            ">${count}</span>
+                        </div>
+                        <div style="color: #4a5a3f; font-size: 11px;">
+                            ${subtitle}
+                        </div>
+                    </div>
+                    <div class="service-collapsible-arrow" style="
+                        width: 28px;
+                        height: 28px;
+                        border-radius: 50%;
+                        background: rgba(255, 255, 255, 0.7);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: ${color};
+                        font-size: 12px;
+                        flex-shrink: 0;
+                        transition: transform 0.3s ease;
+                        transform: rotate(${isExpanded ? '180deg' : '0deg'});
+                    ">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                `;
+                
+                return header;
+            };
+            
+            // ── Helper: Gumawa ng wrapper para sa services ──────────
+            const createServicesWrapper = (type, isExpanded) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = `service-collapsible-wrapper service-wrapper-${type}`;
+                wrapper.dataset.category = type;
+                wrapper.style.cssText = `
+                    grid-column: 1 / -1;
+                    display: ${isExpanded ? 'grid' : 'none'};
+                    grid-template-columns: 1fr 1fr;
+                    gap: 10px;
+                    padding: 4px 0;
+                    animation: ${isExpanded ? 'fadeInService 0.3s ease' : 'none'};
+                `;
+                return wrapper;
+            };
+            
+            // ═══════════════════════════════════════════════════════════
+            // SECTION 1: STAFF SERVICES
+            // ═══════════════════════════════════════════════════════════
+            if (staffServices.length > 0) {
+                // Default: EXPANDED ang staff services
+                const staffHeader = createCollapsibleHeader(
+                    'staff',
+                    '<i class="fas fa-user-tie"></i> Staff Services',
+                    'Grooming, styling, and other non-medical services',
+                    'fas fa-scissors',
+                    '#7ba05b',
+                    staffServices.length,
+                    true  // ← Default expanded
+                );
+                container.appendChild(staffHeader);
+                
+                const staffWrapper = createServicesWrapper('staff', true);
+                staffServices.forEach(service => {
+                    staffWrapper.appendChild(renderServiceCheckbox(service));
+                });
+                container.appendChild(staffWrapper);
+                
+                // ── Toggle functionality ─────────────────────────────
+                staffHeader.onclick = () => {
+                    const wrapper = container.querySelector('.service-wrapper-staff');
+                    const arrow = staffHeader.querySelector('.service-collapsible-arrow');
+                    
+                    if (wrapper.style.display === 'none') {
+                        wrapper.style.display = 'grid';
+                        arrow.style.transform = 'rotate(180deg)';
+                    } else {
+                        wrapper.style.display = 'none';
+                        arrow.style.transform = 'rotate(0deg)';
+                    }
+                };
+            }
+            
+            // ═══════════════════════════════════════════════════════════
+            // SECTION 2: VETERINARIAN SERVICES
+            // ═══════════════════════════════════════════════════════════
+            if (vetServices.length > 0) {
+                // Default: COLLAPSED ang vet services (para hindi masyadong mahaba)
+                const vetHeader = createCollapsibleHeader(
+                    'vet',
+                    '<i class="fas fa-stethoscope"></i> Veterinarian Services',
+                    'Medical check-ups, vaccinations, and health services',
+                    'fas fa-user-md',
+                    '#3b82f6',
+                    vetServices.length,
+                    false  // ← Default collapsed
+                );
+                container.appendChild(vetHeader);
+                
+                const vetWrapper = createServicesWrapper('vet', false);
+                vetServices.forEach(service => {
+                    vetWrapper.appendChild(renderServiceCheckbox(service));
+                });
+                container.appendChild(vetWrapper);
+                
+                // ── Toggle functionality ─────────────────────────────
+                vetHeader.onclick = () => {
+                    const wrapper = container.querySelector('.service-wrapper-vet');
+                    const arrow = vetHeader.querySelector('.service-collapsible-arrow');
+                    
+                    if (wrapper.style.display === 'none') {
+                        wrapper.style.display = 'grid';
+                        arrow.style.transform = 'rotate(180deg)';
+                    } else {
+                        wrapper.style.display = 'none';
+                        arrow.style.transform = 'rotate(0deg)';
+                    }
+                };
+            }
+            
+            // ── Fallback: kung walang services na nahanap ─────────────
+            if (staffServices.length === 0 && vetServices.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #94a3b8;">
+                        <i class="fas fa-info-circle"></i> No services available.
+                    </div>
+                `;
+            }
+            
+            // ── Inject animation CSS kung wala pa ─────────────────────
+            if (!document.getElementById('service-collapsible-styles')) {
+                const style = document.createElement('style');
+                style.id = 'service-collapsible-styles';
+                style.textContent = `
+                    @keyframes fadeInService {
+                        from { opacity: 0; transform: translateY(-8px); }
+                        to { opacity: 1; transform: translateY(0); }
+                    }
+                    
+                    /* Mobile: 1 column lang */
+                    @media (max-width: 640px) {
+                        .service-collapsible-wrapper {
+                            grid-template-columns: 1fr !important;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
             
             updateServiceSelection();
         }
@@ -141,6 +371,86 @@ function updateServiceSelection() {
         priceDisplay.innerHTML = `<i class="fas fa-tag"></i> Total: ₱${totalPrice.toFixed(2)} <span style="color: #64748b; font-weight: 400; font-size: 12px;">(${formatDuration(totalDuration)})</span>`;
         priceDisplay.style.color = '#7ba05b';
     }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ✅ Disable Vet Services (kapag hindi available ang vet)
+// ═══════════════════════════════════════════════════════════════════
+export function disableVetServices(vetMessage) {
+    // ── Ipakita ang vet unavailable message ──────────────────
+    const msg = document.getElementById('availabilityMessage');
+    if (msg) {
+        msg.className = 'availability-unavailable';
+        msg.innerHTML = `
+            <div style="display: flex; align-items: flex-start; gap: 10px;">
+                <i class="fas fa-user-md" style="font-size: 18px; margin-top: 2px;"></i>
+                <div>
+                    <strong>Veterinarian Not Available</strong><br>
+                    <span style="font-size: 12px;">${vetMessage || 'Veterinarian is not available on this date.'}</span><br>
+                    <span style="font-size: 11px; opacity: 0.8; margin-top: 4px; display: block;">
+                        <i class="fas fa-info-circle"></i> 
+                        Vet services ay awtomatikong tinatanggal. Staff services lang ang pwede i-book sa araw na ito.
+                    </span>
+                </div>
+            </div>
+        `;
+        msg.style.display = 'block';
+    }
+    
+    // ── Auto-uncheck lahat ng vet services ────────────────
+    document.querySelectorAll('#serviceCheckboxes input[type="checkbox"]:checked').forEach(cb => {
+        if (cb.dataset.category === 'vet') {
+            cb.checked = false;
+            const label = cb.closest('label');
+            if (label) {
+                label.style.borderColor = '#e2e8f0';
+                label.style.background = '#ffffff';
+                label.style.boxShadow = 'none';
+            }
+        }
+    });
+    
+    // Update selected services count
+    updateServiceSelection();
+    
+    // ── Disable vet services (may lock icon) ──────────────
+    document.querySelectorAll('#serviceCheckboxes input[data-category="vet"]').forEach(cb => {
+        cb.disabled = true;
+        const label = cb.closest('label');
+        if (label) {
+            label.style.opacity = '0.5';
+            label.style.cursor = 'not-allowed';
+            label.title = 'Veterinarian not available on this date';
+            
+            // Idagdag ang lock icon
+            if (!label.querySelector('.vet-lock-icon')) {
+                const lockIcon = document.createElement('i');
+                lockIcon.className = 'fas fa-lock vet-lock-icon';
+                lockIcon.style.cssText = 'color: #94a387; font-size: 10px; margin-left: 6px;';
+                const infoSpan = label.querySelector('span');
+                if (infoSpan) infoSpan.appendChild(lockIcon);
+            }
+        }
+    });
+    
+    showToast('<i class="fas fa-user-md"></i> Vet services removed — veterinarian not available on this date', 'info');
+}
+
+// ── Re-enable Vet Services ────────────────────────────────────────
+export function reEnableVetServices() {
+    document.querySelectorAll('#serviceCheckboxes input[data-category="vet"]').forEach(cb => {
+        cb.disabled = false;
+        const label = cb.closest('label');
+        if (label) {
+            label.style.opacity = '1';
+            label.style.cursor = 'pointer';
+            label.title = '';
+            
+            // Remove ang lock icon
+            const lockIcon = label.querySelector('.vet-lock-icon');
+            if (lockIcon) lockIcon.remove();
+        }
+    });
 }
 
 // ── Load Pets for Booking ─────────────────────────────────────────
@@ -229,9 +539,24 @@ export function closeBookAppointmentModal() {
     document.getElementById('availabilityMessage').className = '';
     document.getElementById('availabilityMessage').textContent = '';
     
+    // ✅ I-reset ang lahat ng service checkboxes (kasama ang vet lock icons)
     const checkboxes = document.querySelectorAll('#serviceCheckboxes input[type="checkbox"]');
     checkboxes.forEach(cb => {
         cb.checked = false;
+        cb.disabled = false;
+        const label = cb.closest('label');
+        if (label) {
+            label.style.opacity = '1';
+            label.style.cursor = 'pointer';
+            label.title = '';
+            label.style.borderColor = '#e2e8f0';
+            label.style.background = '#ffffff';
+            label.style.boxShadow = 'none';
+            
+            // Remove ang lock icon kung meron
+            const lockIcon = label.querySelector('.vet-lock-icon');
+            if (lockIcon) lockIcon.remove();
+        }
     });
     updateServiceSelection();
 }
@@ -260,6 +585,40 @@ export async function submitAppointment(e) {
     if (!appointment_date || !appointment_time) {
         showToast('Please select a date and time.', 'error');
         return;
+    }
+    
+    // ═══════════════════════════════════════════════════════════════
+    // ✅ FINAL CHECK: Verify vet availability bago mag-confirm
+    // ═══════════════════════════════════════════════════════════════
+    const servicesWithCategory = [];
+    document.querySelectorAll('#serviceCheckboxes input[type="checkbox"]:checked').forEach(cb => {
+        servicesWithCategory.push({
+            name: cb.value,
+            category: cb.dataset.category || 'staff'
+        });
+    });
+    
+    const hasVetServices = servicesWithCategory.some(s => s.category === 'vet');
+    
+    if (hasVetServices) {
+        try {
+            const res = await fetch('/api/appointments/check-combined-availability', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    appointment_date: appointment_date,
+                    services: services
+                })
+            });
+            const data = await res.json();
+            
+            if (data.success && data.needs_vet && !data.vet_available) {
+                showToast(`<i class="fas fa-user-md"></i> Hindi available ang vet sa ${data.day_name}. Please remove vet services or change date.`, 'error');
+                return;
+            }
+        } catch (error) {
+            console.error('Error verifying vet availability:', error);
+        }
     }
     
     showBookingConfirmation(pet_id, services, appointment_date, appointment_time, notes);
@@ -441,9 +800,67 @@ export async function confirmBooking() {
         if (data.success) {
             closeBookingConfirmation();
             closeBookAppointmentModal();
-            showToast('Appointment booked successfully! Please wait for confirmation.', 'success');
+            
+            // ── NEW: Show custom post-booking modal ──────────────────
+            const totalAmount = data.total_price || 0;
+            const appointmentId = data.appointment_id;
+            
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.id = 'postBookingPaymentModal';
+            overlay.style.zIndex = '3000';
+            overlay.innerHTML = `
+                <div class="modal-popup" style="max-width: 450px; text-align: center; position: relative;">
+                    
+                    <div style="font-size: 64px; margin-bottom: 15px; color: #10b981;">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    
+                    <h3 style="color: #5a7a3f; font-size: 24px; margin: 0 0 10px;">Booking Successful!</h3>
+                    
+                    <p style="color: #4a5a3f; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
+                        Your appointment has been booked. Would you like to pay now to confirm it?
+                    </p>
+                    
+                    <!-- Amount Display -->
+                    <div style="background: linear-gradient(135deg, #f7fbf3, #eaf3e0); border-radius: 12px; padding: 20px; border: 1px solid #d4e5c4; margin-bottom: 20px;">
+                        <div style="color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 5px;">
+                            Total Amount
+                        </div>
+                        <div style="color: #7ba05b; font-size: 32px; font-weight: 700;">
+                            ₱${totalAmount.toFixed(2)}
+                        </div>
+                    </div>
+                    
+                    <!-- Info Notice -->
+                    <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 10px 14px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 8px; text-align: left;">
+                        <i class="fas fa-info-circle" style="color: #f59e0b; font-size: 14px; margin-top: 2px;"></i>
+                        <p style="color: #d97706; font-size: 12px; margin: 0; line-height: 1.5;">
+                            You can also pay later from <strong>"My Appointments"</strong>. Unpaid appointments can be paid anytime.
+                        </p>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="modal-buttons" style="justify-content: center;">
+                        <button class="modal-btn modal-btn-cancel" 
+                                onclick="window.skipPostBookingPayment()" 
+                                style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                            <i class="fas fa-clock"></i> Pay Later
+                        </button>
+                        <button class="modal-btn modal-btn-submit" 
+                                onclick="window.payAfterBooking(${appointmentId})"
+                                style="flex: 1; background: linear-gradient(135deg, #f59e0b, #d97706); display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                            <i class="fas fa-credit-card"></i> Pay Now
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            // Reload appointments in background
             loadAppointments();
-            switchSection('appointments');
+            
         } else {
             showToast(data.message || 'Error booking appointment.', 'error');
             if (data.slot_full || data.daily_full || data.day_closed) {
@@ -458,6 +875,46 @@ export async function confirmBooking() {
     }
 }
 
+// ── Skip Post-Booking Payment ─────────────────────────────────────
+export function skipPostBookingPayment() {
+    const modal = document.getElementById('postBookingPaymentModal');
+    if (modal) modal.remove();
+    
+    showToast('Appointment booked! You can pay later from My Appointments.', 'success');
+    switchSection('appointments');
+}
+
+// ── Pay After Booking ──────────────────────────────────────────────
+export async function payAfterBooking(appointmentId) {
+    const modal = document.getElementById('postBookingPaymentModal');
+    if (modal) modal.remove();
+    
+    showToast('Creating payment link...', 'info');
+    
+    try {
+        const res = await fetch(`/api/payment/create-invoice/${appointmentId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await res.json();
+        
+        if (data.success && data.invoice_url) {
+            showToast('Redirecting to payment page...', 'success');
+            setTimeout(() => {
+                window.location.href = data.invoice_url;
+            }, 800);
+        } else {
+            showToast(data.message || 'Error creating payment link.', 'error');
+            switchSection('appointments');
+        }
+    } catch (error) {
+        console.error('Error creating payment:', error);
+        showToast('Something went wrong. Please try again.', 'error');
+        switchSection('appointments');
+    }
+}
+
 // ── Make functions globally available ──────────────────────────────
 window.showBookAppointmentModal = showBookAppointmentModal;
 window.closeBookAppointmentModal = closeBookAppointmentModal;
@@ -465,3 +922,9 @@ window.submitAppointment = submitAppointment;
 window.showBookingConfirmation = showBookingConfirmation;
 window.closeBookingConfirmation = closeBookingConfirmation;
 window.confirmBooking = confirmBooking;
+window.skipPostBookingPayment = skipPostBookingPayment;
+window.payAfterBooking = payAfterBooking;
+
+// ✅ Vet availability functions
+window.disableVetServices = disableVetServices;
+window.reEnableVetServices = reEnableVetServices;

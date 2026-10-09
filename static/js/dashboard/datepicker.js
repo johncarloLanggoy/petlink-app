@@ -125,8 +125,46 @@ async function checkMonthAvailability() {
     }
 }
 
+// ✅ NEW: Get selected services from modal
+function getSelectedServicesList() {
+    const list = [];
+    document.querySelectorAll('#serviceCheckboxes input[type="checkbox"]:checked').forEach(cb => {
+        list.push({
+            name: cb.value,
+            category: cb.dataset.category || 'staff'
+        });
+    });
+    return list;
+}
+
+// ✅ NEW: Check vet availability via API
+async function checkVetAvailabilityAPI(dateStr) {
+    const services = getSelectedServicesList();
+    const hasVet = services.some(s => s.category === 'vet');
+    
+    if (!hasVet) {
+        return { needs_vet: false, vet_available: true, vet_message: '' };
+    }
+    
+    try {
+        const res = await fetch('/api/appointments/check-combined-availability', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                appointment_date: dateStr,
+                services: services.map(s => s.name)
+            })
+        });
+        const data = await res.json();
+        return data;
+    } catch (error) {
+        console.error('Error checking vet availability:', error);
+        return { needs_vet: true, vet_available: true, vet_message: '' };
+    }
+}
+
 // ── Select Date ────────────────────────────────────────────────────
-export function selectDate(dateStr, autoJump = true) {
+export async function selectDate(dateStr, autoJump = true) {
     const grid = document.getElementById('datePickerGrid');
     const cells = grid.querySelectorAll('.day-cell');
     
@@ -166,7 +204,7 @@ export function selectDate(dateStr, autoJump = true) {
         `Available slots for ${localDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}`;
     
     // ✅ I-set ang selectedDateDisplay at loadTimeSlots with autoJump
-    loadTimeSlots(dateStr, autoJump);
+    await loadTimeSlots(dateStr, autoJump);
 }
 
 // ── Load Time Slots ────────────────────────────────────────────────
@@ -181,6 +219,46 @@ export async function loadTimeSlots(dateStr, autoJump = true) {
     msg.className = '';
     
     try {
+        // ═══════════════════════════════════════════════════════════
+        // ✅ STEP 1: CHECK VET AVAILABILITY MUNA
+        // ═══════════════════════════════════════════════════════════
+        const vetCheck = await checkVetAvailabilityAPI(dateStr);
+        const vetUnavailable = vetCheck.needs_vet && !vetCheck.vet_available;
+        
+        // Kung vet unavailable, i-disable ang vet services at ipakita ang message
+        // PERO HINDI I-DISABLE ANG TIME SLOTS
+        if (vetUnavailable) {
+            // Ipakita ang message
+            msg.className = 'availability-unavailable';
+            msg.innerHTML = `
+                <div style="display: flex; align-items: flex-start; gap: 10px;">
+                    <i class="fas fa-user-md" style="font-size: 18px; margin-top: 2px;"></i>
+                    <div>
+                        <strong>Veterinarian Not Available</strong><br>
+                        <span style="font-size: 12px;">${vetCheck.vet_message || 'Veterinarian is not available on this date.'}</span><br>
+                        <span style="font-size: 11px; opacity: 0.8; margin-top: 4px; display: block;">
+                            <i class="fas fa-info-circle"></i> 
+                            Vet services ay awtomatikong tinatanggal. Staff services lang ang pwede i-book sa araw na ito.
+                        </span>
+                    </div>
+                </div>
+            `;
+            msg.style.display = 'block';
+            
+            // I-disable at i-uncheck ang vet services
+            if (typeof window.disableVetServices === 'function') {
+                window.disableVetServices(vetCheck.vet_message);
+            }
+        } else {
+            // Kung available ang vet, i-enable muli ang vet services
+            if (typeof window.reEnableVetServices === 'function') {
+                window.reEnableVetServices();
+            }
+        }
+        
+        // ═══════════════════════════════════════════════════════════
+        // ✅ STEP 2: FETCH BOOKED SLOTS AT I-RENDER PA RIN ANG TIME SLOTS
+        // ═══════════════════════════════════════════════════════════
         const data = await fetchBookedSlots(dateStr);
         
         if (!data.success) {
@@ -261,6 +339,10 @@ export async function loadTimeSlots(dateStr, autoJump = true) {
             btn.className = 'time-slot-btn';
             btn.dataset.time = time;
             
+            // ═══════════════════════════════════════════════════════
+            // ✅ HINDI NA I-DISABLE ANG TIME SLOTS KAHIT VET UNAVAILABLE
+            // ✅ Normal pa rin ang pag-render ng time slots
+            // ═══════════════════════════════════════════════════════
             if (isAvailable && !isFull && !isPastTime) {
                 btn.classList.add('available');
                 availableCount++;
@@ -296,12 +378,16 @@ export async function loadTimeSlots(dateStr, autoJump = true) {
             grid.appendChild(btn);
         }
         
+        // ═══════════════════════════════════════════════════════════
+        // ✅ UPDATE LABELS
+        // ═══════════════════════════════════════════════════════════
         const remainingSlots = dailyMax - dailyBooked;
         document.getElementById('slotCountLabel').textContent = 
             `${remainingSlots} slot${remainingSlots !== 1 ? 's' : ''} remaining today (${availableCount} time slots available)`;
         
         // ✅ CASE 3: Walang available time slots
-        if (availableCount === 0) {
+        // PERO kung vet unavailable, huwag i-override ang vet message
+        if (availableCount === 0 && !vetUnavailable) {
             msg.className = 'availability-unavailable';
             msg.textContent = `❌ No available time slots on ${dayName}. Please choose another day.`;
             msg.style.display = 'block';
@@ -311,11 +397,13 @@ export async function loadTimeSlots(dateStr, autoJump = true) {
                 msg.innerHTML = `❌ No available time slots. <span style="color: #38bdf8;">Finding next available date...</span>`;
                 await jumpToNextAvailableDate(dateStr);
             }
-        } else {
+        } else if (!vetUnavailable) {
             msg.className = 'availability-available';
             msg.textContent = `✅ ${availableCount} time slot${availableCount !== 1 ? 's' : ''} available on ${dayName} (${dailyBooked}/${dailyMax} booked today)`;
             msg.style.display = 'block';
         }
+        // ✅ KUNG vetUnavailable, hindi na natin i-override ang message
+        // Nananatili ang vet unavailable message sa itaas
         
         cachedAvailability = data;
         
@@ -380,8 +468,8 @@ async function jumpToNextAvailableDate(currentDateStr) {
                         renderDatePicker();
                         
                         // I-select ang date (with auto-jump disabled para hindi mag-loop)
-                        setTimeout(() => {
-                            selectDate(dateStr, false);
+                        setTimeout(async () => {
+                            await selectDate(dateStr, false);
                             
                             // ✅ Ipakita ang notification
                             const msg = document.getElementById('availabilityMessage');
@@ -465,7 +553,7 @@ export function selectToday() {
     currentYear = today.getFullYear();
     renderDatePicker();
     
-    setTimeout(() => {
+    setTimeout(async () => {
         const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
         const cells = document.querySelectorAll('.day-cell');
         for (const cell of cells) {

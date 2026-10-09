@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile Settings - PetLink</title>
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='images/logo.jpg') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -52,6 +54,50 @@
             display: flex;
             align-items: center;
             gap: 16px;
+        }
+        
+        /* ── Logo Section ──────────────────────────────────────── */
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            margin-right: 12px;
+            padding-right: 20px;
+            border-right: 1px solid var(--border);
+        }
+        
+        .header-logo img {
+            width: 42px;
+            height: 42px;
+            object-fit: contain;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+        
+        .header-logo:hover img {
+            transform: scale(1.08) rotate(5deg);
+        }
+        
+        .header-logo-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+        
+        .header-logo-text .brand-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: 0.3px;
+        }
+        
+        .header-logo-text .brand-sub {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 500;
         }
         
         .back-btn {
@@ -340,12 +386,58 @@
         .toast.warning { background: #d4a017; }
         
         /* ── Responsive ────────────────────────────────────────── */
+        @media (max-width: 768px) {
+            .header-logo-text {
+                display: none;
+            }
+            
+            .header-logo {
+                margin-right: 4px;
+                padding-right: 12px;
+            }
+        }
+        
         @media (max-width: 640px) {
             .form-row { grid-template-columns: 1fr; }
             .profile-avatar-section { flex-direction: column; text-align: center; }
             .profile-header { padding: 16px; }
             .container { padding: 20px 16px 60px; }
             .profile-card { padding: 20px; }
+            
+            .header-logo {
+                border-right: none;
+                padding-right: 0;
+                margin-right: 0;
+            }
+            
+            .header-logo img {
+                width: 36px;
+                height: 36px;
+            }
+            
+            .header-title h1 {
+                font-size: 17px;
+            }
+            
+            .header-title p {
+                font-size: 11px;
+            }
+            
+            .back-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header-title p {
+                display: none;
+            }
+            
+            .header-title h1 {
+                font-size: 15px;
+            }
         }
         
         /* ── Profile Avatar Camera Icon ──────────────────────── */
@@ -451,9 +543,18 @@
     <!-- ── Header ─────────────────────────────────────────────── -->
     <div class="profile-header">
         <div class="header-left">
-            <a href="/dashboard" class="back-btn">←</a>
+            <!-- ── PetLink Logo ─────────────────────────────── -->
+            <a href="/" class="header-logo" title="Go to Homepage">
+                <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="PetLink Logo">
+                <div class="header-logo-text">
+                    <span class="brand-name">Petlink</span>
+                    <span class="brand-sub">Serrano St.</span>
+                </div>
+            </a>
+            
+            <a href="/dashboard" class="back-btn" title="Back to Dashboard"><i class="fas fa-arrow-left"></i></a>
             <div class="header-title">
-                <h1>⚙️ Profile Settings</h1>
+                <h1><i class="fas fa-cog"></i> Profile Settings</h1>
                 <p>Manage your account information and preferences</p>
             </div>
         </div>
@@ -471,7 +572,7 @@
                         <span id="avatarInitials">{{ fullname[0].upper() if fullname else 'U' }}</span>
                     {% endif %}
                     <button type="button" class="avatar-camera-btn" onclick="document.getElementById('profileImageInput').click()" title="Change profile picture">
-                        📷
+                        <i class="fas fa-camera"></i>
                     </button>
                 </div>
                 <input type="file" id="profileImageInput" accept="image/*" style="display: none;" onchange="uploadProfileImage(event)">
@@ -483,19 +584,19 @@
             </div>
 
             <!-- ── Personal Information Form ─────────────────── -->
-            <div class="section-title">👤 Personal Information</div>
+            <div class="section-title"><i class="fas fa-user"></i> Personal Information</div>
             
             {% if not name_change_available %}
             <!-- ── Cooldown Warning ──────────────────────────── -->
             <div class="cooldown-warning">
-                <span class="icon">🔒</span>
+                <span class="icon"><i class="fas fa-lock"></i></span>
                 <div>
                     <strong>Name change is locked</strong>
                     You recently changed your name. You can change it again after 
                     <strong>{{ days_remaining }} more day{{ 's' if days_remaining != 1 else '' }}</strong>
                     (available on {{ next_change_date }}).
                     <div class="cooldown-info">
-                        ℹ️ You can still update your phone number and address.
+                        <i class="fas fa-info-circle"></i> You can still update your phone number and address.
                     </div>
                 </div>
             </div>
@@ -510,10 +611,10 @@
                                {% if not name_change_available %}title="Name change is locked for {{ days_remaining }} more day(s)"{% endif %}>
                         {% if not name_change_available %}
                         <small style="color: #c0392b; font-weight: 600;">
-                            🔒 Locked — available on {{ next_change_date }}
+                            <i class="fas fa-lock"></i> Locked — available on {{ next_change_date }}
                         </small>
                         {% else %}
-                        <small>⚠️ You can only change your name once every 7 days</small>
+                        <small><i class="fas fa-exclamation-triangle"></i> You can only change your name once every 7 days</small>
                         {% endif %}
                     </div>
                     <div class="form-group">
@@ -533,14 +634,14 @@
                     </div>
                 </div>
                 <button type="submit" class="btn btn-primary" id="saveProfileBtn">
-                    💾 Save Changes
+                    <i class="fas fa-save"></i> Save Changes
                 </button>
             </form>
         </div>
 
         <!-- ── Change Password Card ──────────────────────────── -->
         <div class="profile-card">
-            <div class="section-title">🔒 Change Password</div>
+            <div class="section-title"><i class="fas fa-lock"></i> Change Password</div>
             <form id="passwordForm">
                 <div class="form-group">
                     <label for="current_password">Current Password</label>
@@ -558,7 +659,7 @@
                     </div>
                 </div>
                 <button type="submit" class="btn btn-primary">
-                    🔑 Update Password
+                    <i class="fas fa-key"></i> Update Password
                 </button>
             </form>
         </div>
@@ -578,7 +679,12 @@
         // ✅ ITO YUNG NAWALA — IDINAGDAG KO NA
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
-            toast.textContent = (type === 'success' ? '✅ ' : type === 'warning' ? '⚠️ ' : '❌ ') + message;
+            const iconMap = {
+                success: '<i class="fas fa-check-circle"></i> ',
+                warning: '<i class="fas fa-exclamation-triangle"></i> ',
+                error: '<i class="fas fa-times-circle"></i> '
+            };
+            toast.innerHTML = (iconMap[type] || '') + message;
             toast.className = 'toast ' + type;
             setTimeout(() => toast.classList.add('show'), 10);
             setTimeout(() => toast.classList.remove('show'), 4000);
