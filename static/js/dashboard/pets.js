@@ -2464,6 +2464,39 @@ async function showMyPetMedicalRecords(petId) {
                 const treatment = record.treatment || '';
                 const prescription = record.prescription || '';
                 
+                // ═══════════════════════════════════════════════════════════════
+                // ✅ AYUSIN: I-parse ang notes para ihiwalay ang Service at Additional Notes
+                // ── Kahit walang service, lalabas pa rin ang Additional Notes
+                // ═══════════════════════════════════════════════════════════════
+                let rawNotes = (record.notes || '').trim();
+                let serviceName = '';
+                let additionalNotes = '';
+
+                // ── I-extract ang [Service: ...] tag ─────────────────────────
+                const serviceMatch = rawNotes.match(/\[Service:\s*([^\]]+)\]/);
+                if (serviceMatch) {
+                    serviceName = serviceMatch[1].trim();
+                    // Alisin ang service tag sa notes
+                    additionalNotes = rawNotes.replace(/\[Service:\s*[^\]]+\]/g, '').trim();
+                } else {
+                    // Walang service tag — buong notes ay additional notes
+                    additionalNotes = rawNotes;
+                }
+
+                // ── Linisin ang leading/trailing whitespace at stray separators
+                additionalNotes = additionalNotes.replace(/^[\s|,;-]+|[\s|,;-]+$/g, '').trim();
+
+                // ── Skip kung ang "notes" ay placeholder lang o duplicate ng ibang fields
+                const notesLower = additionalNotes.toLowerCase();
+                if (notesLower === '' || 
+                    notesLower === 'none' || 
+                    notesLower === 'n/a' || 
+                    notesLower === 'null' || 
+                    notesLower === 'undefined' ||
+                    notesLower === '-') {
+                    additionalNotes = '';
+                }
+
                 const statusColors = {
                     'active': { bg: 'rgba(123, 160, 91, 0.15)', color: '#5a7a3f', label: 'Active' },
                     'resolved': { bg: 'rgba(16, 185, 129, 0.15)', color: '#10b981', label: 'Resolved' },
@@ -2502,6 +2535,25 @@ async function showMyPetMedicalRecords(petId) {
                                     <i class="fas fa-prescription-bottle-medical" style="color: #7ba05b;"></i> Prescription
                                 </div>
                                 <div style="color: #2d3e1f; font-size: 13px;">${prescription}</div>
+                            </div>
+                        ` : ''}
+                        
+                        ${serviceName ? `
+                            <div style="background: #ffffff; border-radius: 8px; padding: 10px 12px; border: 1px solid #d4e5c4; margin-top: 8px;">
+                                <div style="color: #94a387; font-size: 11px; text-transform: uppercase; margin-bottom: 3px; font-weight: 600;">
+                                    <i class="fas fa-scissors" style="color: #7ba05b;"></i> Service
+                                </div>
+                                <div style="color: #2d3e1f; font-size: 13px;">${serviceName}</div>
+                            </div>
+                        ` : ''}
+                        
+                        <!-- ✅ ADDITIONAL NOTES SECTION — Laging may section (optional fallback) -->
+                        ${additionalNotes ? `
+                            <div style="background: #ffffff; border-radius: 8px; padding: 10px 12px; border: 1px solid #d4e5c4; margin-top: 8px;">
+                                <div style="color: #94a387; font-size: 11px; text-transform: uppercase; margin-bottom: 3px; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                                    <i class="fas fa-pencil-alt" style="color: #7ba05b;"></i> Additional Notes
+                                </div>
+                                <div style="color: #2d3e1f; font-size: 13px; line-height: 1.5; word-break: break-word; white-space: pre-wrap;">${additionalNotes}</div>
                             </div>
                         ` : ''}
                         

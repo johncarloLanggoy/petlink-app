@@ -490,81 +490,54 @@ def init_db():
         )
     """)
 
-    # ── Add default services ────────────────────────────────────────
+        # ── Add default services ────────────────────────────────────────
     c.execute("SELECT id FROM services LIMIT 1")
     if not c.fetchone():
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
         # ═══════════════════════════════════════════════════════════════
-        # ✅ BAGONG DEFAULT SERVICES — MAY service_category NA
+        # ✅ BAGONG DEFAULT SERVICES (Pet Express Pricing & Durations)
         # ═══════════════════════════════════════════════════════════════
         # Format: (name, description, price, duration, is_active, service_category, created_at)
         
         default_services = [
             # ═══════════════════════════════════════════════════════════
-            # ── STAFF SERVICES (Normal/Grooming Services) ──────────────
+            # ── STAFF SERVICES (Grooming & Wellness) ───────────────────
             # ═══════════════════════════════════════════════════════════
-            ("Bath & Brush", "Basic bath and brush service for dogs and cats", 35.00, 45, 1, "staff", now),
-            ("Nail Trim", "Professional nail trimming service for dogs and cats", 15.00, 20, 1, "staff", now),
-            ("De-shedding", "Remove loose fur to reduce shedding", 50.00, 60, 1, "staff", now),
-            ("Full Grooming", "Complete grooming service including bath, haircut, nail trim, and ear cleaning", 65.00, 90, 1, "staff", now),
-            ("Creative Styling", "Creative grooming and styling", 85.00, 120, 1, "staff", now),
-            ("Ear Cleaning", "Professional ear cleaning for dogs and cats", 20.00, 20, 1, "staff", now),
-            ("Teeth Cleaning", "Dental cleaning for your pet", 25.00, 30, 1, "staff", now),
-            ("Flea & Tick Treatment", "Flea and tick removal and prevention treatment", 45.00, 40, 1, "staff", now),
-            ("Cat Grooming", "Specialized grooming service for cats", 55.00, 60, 1, "staff", now),
-            ("Dog Grooming", "Specialized grooming service for dogs", 60.00, 75, 1, "staff", now),
+            ("Bath & Brush", "Basic bath and brush service for dogs and cats", 350.00, 45, 1, "staff", now),
+            ("Nail Trim", "Professional nail trimming service for dogs and cats", 150.00, 20, 1, "staff", now),
+            ("De-shedding", "Remove loose fur to reduce shedding", 500.00, 60, 1, "staff", now),
+            ("Full Grooming", "Complete grooming service (Small Breed Base)", 700.00, 90, 1, "staff", now),
+            ("Ear Cleaning", "Professional ear cleaning for dogs and cats", 200.00, 20, 1, "staff", now),
+            ("Teeth Cleaning", "Dental cleaning for your pet", 300.00, 30, 1, "staff", now),
+            ("Flea & Tick Treatment", "Flea and tick removal and prevention treatment", 450.00, 40, 1, "staff", now),
             
             # ═══════════════════════════════════════════════════════════
-            # ── VET SERVICES (Medical Services for Dogs & Cats) ────────
+            # ── GENERAL VET SERVICES ───────────────────────────────────
+            # ═══════════════════════════════════════════════════════════
+            ("Vaccination", "Base price for vaccination service", 800.00, 30, 1, "vet", now),
+            ("General Checkup", "Complete health examination (Vet Consultation)", 500.00, 45, 1, "vet", now),
+            ("Deworming", "Regular deworming treatment (6-10kg base)", 300.00, 20, 1, "vet", now),
+            ("Sick Pet Consultation", "Consultation for pets showing signs of illness", 600.00, 45, 1, "vet", now),
+            ("Wound Treatment", "Wound cleaning and dressing", 400.00, 30, 1, "vet", now),
+            
+            # ═══════════════════════════════════════════════════════════
+            # ── DISEASE TREATMENTS & MANAGEMENT ────────────────────────
             # ═══════════════════════════════════════════════════════════
             
-            # ── General Vet Services ───────────────────────────────────
-            ("Vaccination", "Pet vaccination service for dogs and cats", 40.00, 30, 1, "vet", now),
-            ("Health Check-up", "Complete health examination for dogs and cats", 50.00, 45, 1, "vet", now),
-            ("Deworming", "Regular deworming treatment for dogs and cats", 30.00, 20, 1, "vet", now),
-            ("Consultation", "Veterinary consultation and advice", 35.00, 30, 1, "vet", now),
+            # ── DOG-SPECIFIC DISEASES ──────────────────────────────────
+            ("Canine Distemper with Respiratory Complications (Dog)", "Treatment for Canine Distemper (Respiratory)", 1500.00, 45, 1, "vet_disease", now),
+            ("Canine Distemper with Gastrointestinal Complications (Dog)", "Treatment for Canine Distemper (Gastrointestinal)", 1800.00, 60, 1, "vet_disease", now),
+            ("Canine Distemper with Neurological Complications (Dog)", "Treatment for Canine Distemper (Neurological)", 2500.00, 90, 1, "vet_disease", now),
+            ("Severe Canine Distemper (Dog)", "Intensive treatment for Severe Canine Distemper", 2500.00, 90, 1, "vet_disease", now),
+            ("Canine Distemper with Secondary Pneumonia (Dog)", "Treatment for Canine Distemper with Pneumonia", 1800.00, 90, 1, "vet_disease", now),
             
-            # ── DOG-SPECIFIC VET SERVICES ──────────────────────────────
-            ("Dog Vaccination (Anti-Rabies)", "Anti-rabies vaccination for dogs", 45.00, 30, 1, "vet", now),
-            ("Dog Vaccination (5-in-1)", "5-in-1 vaccine for dogs (Distemper, Hepatitis, Parvovirus, Parainfluenza, Leptospirosis)", 65.00, 30, 1, "vet", now),
-            ("Dog Vaccination (Kennel Cough)", "Bordetella vaccine for dogs to prevent kennel cough", 50.00, 25, 1, "vet", now),
-            ("Dog Heartworm Test", "Heartworm antigen test for dogs", 55.00, 20, 1, "vet", now),
-            ("Dog Heartworm Prevention", "Monthly heartworm prevention treatment for dogs", 40.00, 15, 1, "vet", now),
-            ("Dog Flea & Tick Treatment", "Medicated flea and tick treatment for dogs", 50.00, 30, 1, "vet", now),
-            ("Dog Dental Check-up", "Complete dental examination for dogs", 45.00, 30, 1, "vet", now),
-            ("Dog Skin Allergy Test", "Skin allergy testing for dogs", 85.00, 45, 1, "vet", now),
-            ("Dog Blood Test (CBC)", "Complete blood count test for dogs", 75.00, 30, 1, "vet", now),
-            ("Dog X-Ray", "X-ray imaging for dogs", 120.00, 45, 1, "vet", now),
-            ("Dog Surgery (Minor)", "Minor surgical procedure for dogs", 150.00, 90, 1, "vet", now),
-            ("Dog Surgery (Major)", "Major surgical procedure for dogs", 350.00, 180, 1, "vet", now),
-            ("Dog Spay/Neuter", "Spaying or neutering procedure for dogs", 200.00, 120, 1, "vet", now),
-            ("Dog Senior Wellness", "Comprehensive health check for senior dogs", 90.00, 60, 1, "vet", now),
-            
-            # ── CAT-SPECIFIC VET SERVICES ──────────────────────────────
-            ("Cat Vaccination (Anti-Rabies)", "Anti-rabies vaccination for cats", 45.00, 30, 1, "vet", now),
-            ("Cat Vaccination (4-in-1)", "4-in-1 vaccine for cats (FVRCP - Feline Viral Rhinotracheitis, Calicivirus, Panleukopenia)", 65.00, 30, 1, "vet", now),
-            ("Cat Vaccination (FeLV)", "Feline Leukemia Virus vaccine for cats", 70.00, 30, 1, "vet", now),
-            ("Cat Flea & Tick Treatment", "Medicated flea and tick treatment for cats", 45.00, 25, 1, "vet", now),
-            ("Cat Dental Check-up", "Complete dental examination for cats", 45.00, 30, 1, "vet", now),
-            ("Cat Skin Allergy Test", "Skin allergy testing for cats", 85.00, 45, 1, "vet", now),
-            ("Cat Blood Test (CBC)", "Complete blood count test for cats", 75.00, 30, 1, "vet", now),
-            ("Cat X-Ray", "X-ray imaging for cats", 120.00, 45, 1, "vet", now),
-            ("Cat Surgery (Minor)", "Minor surgical procedure for cats", 150.00, 90, 1, "vet", now),
-            ("Cat Surgery (Major)", "Major surgical procedure for cats", 350.00, 180, 1, "vet", now),
-            ("Cat Spay/Neuter", "Spaying or neutering procedure for cats", 180.00, 120, 1, "vet", now),
-            ("Cat Senior Wellness", "Comprehensive health check for senior cats", 90.00, 60, 1, "vet", now),
-            
-            # ── GENERAL MEDICAL SERVICES ───────────────────────────────
-            ("Emergency Consultation", "Emergency veterinary consultation", 80.00, 45, 1, "vet", now),
-            ("Follow-up Consultation", "Follow-up consultation for ongoing treatment", 25.00, 20, 1, "vet", now),
-            ("IV Fluid Therapy", "Intravenous fluid therapy for dehydration", 100.00, 60, 1, "vet", now),
-            ("Wound Dressing", "Wound cleaning and dressing", 60.00, 30, 1, "vet", now),
-            ("Ear Infection Treatment", "Treatment for ear infections", 55.00, 30, 1, "vet", now),
-            ("Eye Infection Treatment", "Treatment for eye infections", 55.00, 30, 1, "vet", now),
-            ("Skin Infection Treatment", "Treatment for skin infections", 65.00, 40, 1, "vet", now),
-            ("Microchipping", "Pet microchipping for identification", 50.00, 20, 1, "vet", now),
-            ("Health Certificate", "Health certificate for travel or adoption", 40.00, 20, 1, "vet", now),
+            # ── CAT-SPECIFIC DISEASES ──────────────────────────────────
+            ("Severe Feline Panleukopenia (Cat)", "Intensive treatment for Severe Feline Panleukopenia", 2500.00, 90, 1, "vet_disease", now),
+            ("Feline Panleukopenia with Dehydration (Cat)", "Treatment for Panleukopenia with Dehydration", 1800.00, 45, 1, "vet_disease", now),
+            ("Feline Panleukopenia with Secondary Infection (Cat)", "Treatment for Panleukopenia with Secondary Infection", 1800.00, 60, 1, "vet_disease", now),
+            ("Feline Panleukopenia with Sepsis (Cat)", "Intensive treatment for Panleukopenia with Sepsis", 2500.00, 90, 1, "vet_disease", now),
+            ("Feline Panleukopenia in Neonatal Kittens (Cat)", "Specialized treatment for Panleukopenia in Kittens", 1600.00, 45, 1, "vet_disease", now),
         ]
         
         for service in default_services:
@@ -572,7 +545,6 @@ def init_db():
                 INSERT INTO services (name, description, price, duration, is_active, service_category, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             """, service)
-
     # Login attempts table
     c.execute("""
         CREATE TABLE IF NOT EXISTS login_attempts (
@@ -3764,12 +3736,15 @@ def create_medical_record():
     vet_email = request.current_user.get("sub")
     
     pet_id = data.get("pet_id")
-    appointment_id = data.get("appointment_id")  # ✅ BAGONG FIELD
+    appointment_id = data.get("appointment_id")
     visit_date = data.get("visit_date", "").strip()
     diagnosis = data.get("diagnosis", "").strip()
     treatment = data.get("treatment", "").strip()
     prescription = data.get("prescription", "").strip()
     notes = data.get("notes", "").strip()
+    
+    # ✅ Kunin ang Service mula sa frontend (kung meron)
+    service_name = data.get("service", "").strip()
     
     if not pet_id or not visit_date or not diagnosis:
         return jsonify({"success": False, "message": "Pet, visit date, and diagnosis are required."})
@@ -3780,11 +3755,70 @@ def create_medical_record():
         conn.close()
         return jsonify({"success": False, "message": "Pet not found."})
     
+    # ✅ I-save ang Service sa notes pero may malinaw na tag
+    final_notes = notes
+    if service_name:
+        final_notes = f"[Service: {service_name}] {notes}".strip()
+    
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     conn.execute("""
         INSERT INTO medical_records (pet_id, appointment_id, vet_email, visit_date, diagnosis, treatment, prescription, notes, status, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)
-    """, (pet_id, appointment_id, vet_email, visit_date, diagnosis, treatment, prescription, notes, now, now))
+    """, (pet_id, appointment_id, vet_email, visit_date, diagnosis, treatment, prescription, final_notes, now, now))
+    
+    # ═══════════════════════════════════════════════════════════════
+    # ✅ BAGONG CODE: I-sync ang Allergies mula sa diagnosis papuntang pets.allergies
+    #    — Para lumabas ang vet-added allergies sa pet profile
+    # ═══════════════════════════════════════════════════════════════
+    try:
+        # Hanapin ang "Allergies: ..." sa loob ng diagnosis string
+        # Example diagnosis: "Canine Distemper | Allergies: Chicken, Beef"
+        allergy_marker = "Allergies:"
+        if allergy_marker.lower() in diagnosis.lower():
+            # Kunin ang index ng "Allergies:"
+            idx = diagnosis.lower().find(allergy_marker.lower())
+            # Kunin ang allergies portion (pagkatapos ng "Allergies:")
+            allergies_part = diagnosis[idx + len(allergy_marker):].strip()
+            # Kung may pipe separator ( | ), kunin lang hanggang doon
+            if "|" in allergies_part:
+                allergies_part = allergies_part.split("|")[0].strip()
+            # Kunin din hanggang dulo lang (walang ibang markers)
+            if allergies_part:
+                # Kunin ang kasalukuyang allergies ng pet
+                existing_pet = conn.execute(
+                    "SELECT allergies FROM pets WHERE id = ?",
+                    (pet_id,)
+                ).fetchone()
+                
+                existing_allergies = ""
+                if existing_pet and existing_pet["allergies"]:
+                    existing_allergies = existing_pet["allergies"].strip()
+                
+                # Pagsamahin — i-merge at alisin ang duplicates
+                if existing_allergies and existing_allergies.lower() not in ("", "none", "n/a"):
+                    existing_list = [a.strip() for a in existing_allergies.split(",") if a.strip()]
+                else:
+                    existing_list = []
+                
+                new_list = [a.strip() for a in allergies_part.split(",") if a.strip()]
+                
+                # Merge with case-insensitive duplicate check
+                merged = list(existing_list)
+                for allergy in new_list:
+                    if not any(a.lower() == allergy.lower() for a in merged):
+                        merged.append(allergy)
+                
+                if merged:
+                    merged_str = ", ".join(merged)
+                    conn.execute(
+                        "UPDATE pets SET allergies = ?, updated_at = ? WHERE id = ?",
+                        (merged_str, now, pet_id)
+                    )
+                    print(f"[INFO] Synced allergies to pet {pet_id}: {merged_str}")
+    except Exception as e:
+        # Huwag i-block ang record saving kung mag-fail ang sync
+        print(f"[WARNING] Could not sync allergies to pet: {e}")
+    
     conn.commit()
     conn.close()
     
@@ -3983,6 +4017,74 @@ def get_pet_full_details_for_vet(pet_id):
             "message": f"Server error: {str(e)}"
         }), 500
 
+# ── GET TODAY'S VET PATIENTS (UPDATED) ─────────────────────────────
+@app.route('/api/vet/today-patients', methods=["GET"])
+@role_required("vet", "admin")
+def get_today_vet_patients():
+    """Get all confirmed appointments for today that have a veterinary service AND NO MEDICAL RECORD YET."""
+    conn = get_db()
+    
+    try:
+        # Use the server's current date
+        today_date = datetime.now().strftime('%Y-%m-%d')
+        
+        # 1. Kunin lahat ng confirmed appointments ngayong araw
+        all_today_appointments = conn.execute("""
+            SELECT a.*, p.name as pet_name, p.pet_type, p.breed, p.pet_image,
+                   u.email as customer_email, u.fullname as customer_name
+            FROM appointments a
+            JOIN pets p ON a.pet_id = p.id
+            JOIN users u ON a.customer_email = u.email
+            WHERE a.appointment_date = ? AND a.status = 'confirmed'
+            ORDER BY a.appointment_time ASC
+        """, (today_date,)).fetchall()
+
+        # 2. Kunin ang listahan ng mga appointments na may medical record na
+        # (Ito ang mag-filter out sa mga tapos nang ma-check up)
+        completed_appointments = conn.execute(
+            "SELECT DISTINCT appointment_id FROM medical_records WHERE appointment_id IS NOT NULL"
+        ).fetchall()
+        completed_ids = {row['appointment_id'] for row in completed_appointments}
+
+        # 3. Kunin ang lahat ng vet service names para sa filtering
+        vet_service_names = {row['name'] for row in conn.execute("SELECT name FROM services WHERE service_category IN ('vet', 'vet_disease')").fetchall()}
+
+        vet_appointments = []
+        for app in all_today_appointments:
+            # ✅ SKIP kung may medical record na (Completed na)
+            if app['id'] in completed_ids:
+                continue
+
+            try:
+                services = json.loads(app['services'])
+                # Check kung may vet service
+                if any(service_name in vet_service_names for service_name in services):
+                    app_dict = dict(app)
+                    app_dict['services'] = services
+                    
+                    # ✅ I-parse ang service_details para malaman ng frontend kung alin ang vet
+                    service_details = []
+                    for svc_name in services:
+                        cat_row = conn.execute("SELECT service_category FROM services WHERE name = ?", (svc_name,)).fetchone()
+                        category = cat_row['service_category'] if cat_row else 'staff'
+                        service_details.append({'name': svc_name, 'category': category})
+                    
+                    app_dict['service_details'] = service_details
+                    vet_appointments.append(app_dict)
+            except (json.JSONDecodeError, TypeError):
+                continue
+
+        conn.close()
+        return jsonify({"success": True, "appointments": vet_appointments})
+
+    except Exception as e:
+        conn.close()
+        print(f"[ERROR] get_today_vet_patients: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "message": f"Server error: {str(e)}"}), 500
+
+
 # ── ML RECOMMENDATIONS ROUTES ──────────────────────────────────────────
 @app.route('/api/ml-recommendations')
 @role_required("vet", "admin")
@@ -4083,6 +4185,7 @@ def check_availability():
     data = request.get_json()
     appointment_date = data.get("appointment_date", "").strip()
     appointment_time = data.get("appointment_time", "").strip()
+    services = data.get("services", [])
     
     if not appointment_date or not appointment_time:
         return jsonify({"success": False, "message": "Date and time are required."})
@@ -4099,11 +4202,9 @@ def check_availability():
     if date_closure:
         conn.close()
         return jsonify({
-            "success": False, 
-            "available": False,
+            "success": False, "available": False,
             "message": f"The clinic is closed on {appointment_date}. Reason: {date_closure['reason']}",
-            "date_closed": True,
-            "closure_reason": date_closure["reason"]
+            "date_closed": True, "closure_reason": date_closure["reason"]
         })
     
     # ── CHECK STAFF AVAILABILITY ──────────────────────────────────────
@@ -4119,17 +4220,14 @@ def check_availability():
     if not availability or availability["is_available"] == 0:
         conn.close()
         return jsonify({
-            "success": False, 
-            "available": False,
+            "success": False, "available": False,
             "message": f"The clinic is closed on {day_name}. Please choose another day.",
-            "day_closed": True,
-            "day_name": day_name
+            "day_closed": True, "day_name": day_name
         })
     
     # ── CHECK DAILY MAX CAPACITY ──────────────────────────────────────
     daily_max = availability["max_slots_per_day"]
     
-    # Check if there's a specific date override for max slots
     date_override = conn.execute("""
         SELECT max_slots_per_day FROM date_overrides 
         WHERE staff_email = ? AND override_date = ?
@@ -4146,16 +4244,57 @@ def check_availability():
     if daily_count >= daily_max:
         conn.close()
         return jsonify({
-            "success": False,
-            "available": False,
+            "success": False, "available": False,
             "message": f"Sorry, this day is fully booked. Max {daily_max} appointments per day.",
-            "daily_full": True,
-            "day_name": day_name,
-            "daily_booked": daily_count,
-            "daily_max": daily_max
+            "daily_full": True, "day_name": day_name
         })
     
-    # ── CHECK TIME SLOT MAX CAPACITY ──────────────────────────────────
+    # ── CALCULATE TOTAL DURATION (For Overlap Check) ──────────────────
+    total_duration = 30 # default
+    if services:
+        placeholders = ','.join(['?' for _ in services])
+        service_rows = conn.execute(
+            f"SELECT duration FROM services WHERE name IN ({placeholders}) AND is_active = 1",
+            services
+        ).fetchall()
+        if service_rows:
+            total_duration = sum(s["duration"] for s in service_rows)
+    
+    start_hour, start_min = map(int, appointment_time.split(':'))
+    start_time_in_mins = (start_hour * 60) + start_min
+    end_time_in_mins = start_time_in_mins + total_duration
+
+    existing_appointments = conn.execute(
+        "SELECT appointment_time, services FROM appointments WHERE appointment_date = ? AND status != 'cancelled'",
+        (appointment_date,)
+    ).fetchall()
+    
+    for appt in existing_appointments:
+        appt_time = appt["appointment_time"]
+        appt_duration = 30
+        try:
+            appt_services = json.loads(appt["services"])
+            if appt_services:
+                appt_ph = ','.join(['?' for _ in appt_services])
+                appt_sr = conn.execute(f"SELECT duration FROM services WHERE name IN ({appt_ph})", appt_services).fetchall()
+                appt_duration = sum(s["duration"] for s in appt_sr)
+        except: pass
+        
+        if appt_duration == 0: appt_duration = 30
+
+        appt_hour, appt_min = map(int, appt_time.split(':'))
+        appt_start_in_mins = (appt_hour * 60) + appt_min
+        appt_end_in_mins = appt_start_in_mins + appt_duration
+
+        if start_time_in_mins < appt_end_in_mins and end_time_in_mins > appt_start_in_mins:
+            conn.close()
+            return jsonify({
+                "success": False, "available": False,
+                "message": f"Sorry, this time slot overlaps with an existing appointment at {appt_time}.",
+                "slot_full": True, "day_name": day_name
+            })
+    
+    # ── CHECK TIME SLOT MAX CAPACITY (Legacy) ─────────────────────────
     time_slot_setting = conn.execute("""
         SELECT max_slots, is_active 
         FROM staff_time_slots 
@@ -4165,16 +4304,12 @@ def check_availability():
     if time_slot_setting and time_slot_setting["is_active"] == 0:
         conn.close()
         return jsonify({
-            "success": False,
-            "available": False,
+            "success": False, "available": False,
             "message": f"This time slot is not available on {day_name}. Please choose another time.",
-            "time_slot_inactive": True,
-            "day_name": day_name
+            "time_slot_inactive": True, "day_name": day_name
         })
     
     max_per_slot = time_slot_setting["max_slots"] if time_slot_setting else 1
-    
-    # ── CHECK TIME SLOT CAPACITY ──────────────────────────────────────
     slot_count = conn.execute(
         "SELECT COUNT(*) as count FROM appointments WHERE appointment_date = ? AND appointment_time = ? AND status != 'cancelled'",
         (appointment_date, appointment_time)
@@ -4183,22 +4318,17 @@ def check_availability():
     if slot_count >= max_per_slot:
         conn.close()
         return jsonify({
-            "success": False,
-            "available": False,
+            "success": False, "available": False,
             "message": f"Sorry, this time slot is fully booked. Max {max_per_slot} per slot.",
-            "slot_full": True,
-            "day_name": day_name
+            "slot_full": True, "day_name": day_name
         })
     
     conn.close()
     
     return jsonify({
-        "success": True,
-        "available": True,
-        "booked": slot_count,
-        "max_capacity": max_per_slot,
-        "daily_booked": daily_count,
-        "daily_max": daily_max,
+        "success": True, "available": True,
+        "booked": slot_count, "max_capacity": max_per_slot,
+        "daily_booked": daily_count, "daily_max": daily_max,
         "day_name": day_name
     })
 
@@ -4321,8 +4451,6 @@ def get_booked_slots(date):
     day_of_week = date_obj.weekday()  # 0=Monday, 1=Tuesday, 2=Wednesday...
     day_name = get_day_name(day_of_week)
     
-    print(f"[DEBUG] Date: {date}, Day Index: {day_of_week}, Day Name: {day_name}")
-    
     staff_email = "staff@petlink.com"
     
     # ── CHECK IF SPECIFIC DATE IS CLOSED ────────────────────────────
@@ -4334,11 +4462,8 @@ def get_booked_slots(date):
     if date_closure:
         conn.close()
         return jsonify({
-            "success": True,
-            "slots": {},
-            "day_available": False,
-            "is_date_closed": True,
-            "closure_reason": date_closure["reason"],
+            "success": True, "slots": {}, "day_available": False,
+            "is_date_closed": True, "closure_reason": date_closure["reason"],
             "day_name": day_name,
             "message": f"Clinic is closed on {date} - {date_closure['reason']}"
         })
@@ -4377,20 +4502,11 @@ def get_booked_slots(date):
         WHERE staff_email = ? AND day_of_week = ?
     """, (staff_email, day_of_week)).fetchall()
     
-    # ── GET BOOKED SLOTS ──────────────────────────────────────────────
-    booked_slots = conn.execute("""
-        SELECT appointment_time, COUNT(*) as count 
-        FROM appointments 
-        WHERE appointment_date = ? AND status != 'cancelled'
-        GROUP BY appointment_time
-    """, (date,)).fetchall()
-    
-    conn.close()
-    
-    # ── BUILD RESPONSE ─────────────────────────────────────────────────
-    booked_dict = {}
-    for slot in booked_slots:
-        booked_dict[slot["appointment_time"]] = slot["count"]
+    # ── GET EXISTING APPOINTMENTS FOR OVERLAP CHECK ──────────────────
+    existing_appointments = conn.execute(
+        "SELECT appointment_time, services FROM appointments WHERE appointment_date = ? AND status != 'cancelled'",
+        (date,)
+    ).fetchall()
     
     # All possible time slots
     all_time_slots = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", 
@@ -4399,11 +4515,43 @@ def get_booked_slots(date):
     
     result = {}
     for time_slot in all_time_slots:
-        slot_setting = next((s for s in time_slot_settings if s["time_slot"] == time_slot), None)
-        is_active = slot_setting["is_active"] == 1 if slot_setting else True
-        max_per_slot = slot_setting["max_slots"] if slot_setting else 1
+        booked = 0
+        slot_hour, slot_min = map(int, time_slot.split(':'))
+        slot_start_in_mins = (slot_hour * 60) + slot_min
+        slot_end_in_mins = slot_start_in_mins + 30 
+
+        is_blocked = False
+        for appt in existing_appointments:
+            appt_time = appt["appointment_time"]
+            appt_duration = 30
+            try:
+                appt_services = json.loads(appt["services"])
+                if appt_services:
+                    appt_ph = ','.join(['?' for _ in appt_services])
+                    appt_sr = conn.execute(f"SELECT duration FROM services WHERE name IN ({appt_ph})", appt_services).fetchall()
+                    appt_duration = sum(s["duration"] for s in appt_sr)
+            except: pass
+            
+            if appt_duration == 0: appt_duration = 30
+
+            appt_hour, appt_min = map(int, appt_time.split(':'))
+            appt_start_in_mins = (appt_hour * 60) + appt_min
+            appt_end_in_mins = appt_start_in_mins + appt_duration
+
+            # ✅ Overlap check: Kung sasalpok, i-block ang slot
+            if slot_start_in_mins < appt_end_in_mins and slot_end_in_mins > appt_start_in_mins:
+                is_blocked = True
+                break
         
-        booked = booked_dict.get(time_slot, 0)
+        slot_setting = next((s for s in time_slot_settings if s["time_slot"] == time_slot), None)
+        
+        if is_blocked:
+            booked = 1
+            max_per_slot = 0
+            is_active = 0
+        else:
+            is_active = slot_setting["is_active"] == 1 if slot_setting else True
+            max_per_slot = slot_setting["max_slots"] if slot_setting else 1
         
         result[time_slot] = {
             "booked": booked,
@@ -4415,6 +4563,8 @@ def get_booked_slots(date):
             "daily_max": daily_max,
             "is_daily_full": is_daily_full
         }
+    
+    conn.close()
     
     return jsonify({
         "success": True, 
@@ -4629,38 +4779,6 @@ def create_appointment():
             "day_name": day_name
         })
     
-    # ── CHECK TIME SLOT CAPACITY ──────────────────────────────────────
-    time_slot_setting = conn.execute("""
-        SELECT max_slots, is_active 
-        FROM staff_time_slots 
-        WHERE staff_email = ? AND day_of_week = ? AND time_slot = ?
-    """, (staff_email, day_of_week, appointment_time)).fetchone()
-    
-    if time_slot_setting and time_slot_setting["is_active"] == 0:
-        conn.close()
-        return jsonify({
-            "success": False,
-            "message": f"This time slot is not available on {day_name}. Please choose another time.",
-            "time_slot_inactive": True,
-            "day_name": day_name
-        })
-    
-    max_per_slot = time_slot_setting["max_slots"] if time_slot_setting else 1
-    
-    slot_count = conn.execute(
-        "SELECT COUNT(*) as count FROM appointments WHERE appointment_date = ? AND appointment_time = ? AND status != 'cancelled'",
-        (appointment_date, appointment_time)
-    ).fetchone()["count"]
-    
-    if slot_count >= max_per_slot:
-        conn.close()
-        return jsonify({
-            "success": False, 
-            "message": f"Sorry, this time slot is fully booked. Max {max_per_slot} per slot.",
-            "slot_full": True,
-            "day_name": day_name
-        })
-    
     # ── GET PET WITH NAME ──────────────────────────────────────────────
     pet = conn.execute(
         "SELECT id, name FROM pets WHERE id = ? AND customer_email = ?",
@@ -4685,6 +4803,73 @@ def create_appointment():
     # ── CALCULATE TOTAL PRICE AND DURATION ────────────────────────────
     total_price = sum(s["price"] for s in valid_services)
     total_duration = sum(s["duration"] for s in valid_services)
+    
+    # ✅ DYNAMIC BLOCKING CHECK
+    start_hour, start_min = map(int, appointment_time.split(':'))
+    start_time_in_mins = (start_hour * 60) + start_min
+    end_time_in_mins = start_time_in_mins + total_duration
+
+    existing_appointments = conn.execute(
+        "SELECT appointment_time, services FROM appointments WHERE appointment_date = ? AND status != 'cancelled'",
+        (appointment_date,)
+    ).fetchall()
+    
+    for appt in existing_appointments:
+        appt_time = appt["appointment_time"]
+        appt_duration = 30
+        try:
+            appt_services = json.loads(appt["services"])
+            if appt_services:
+                appt_ph = ','.join(['?' for _ in appt_services])
+                appt_sr = conn.execute(f"SELECT duration FROM services WHERE name IN ({appt_ph})", appt_services).fetchall()
+                appt_duration = sum(s["duration"] for s in appt_sr)
+        except: pass
+        
+        if appt_duration == 0: appt_duration = 30
+
+        appt_hour, appt_min = map(int, appt_time.split(':'))
+        appt_start_in_mins = (appt_hour * 60) + appt_min
+        appt_end_in_mins = appt_start_in_mins + appt_duration
+
+        if start_time_in_mins < appt_end_in_mins and end_time_in_mins > appt_start_in_mins:
+            conn.close()
+            return jsonify({
+                "success": False, 
+                "message": f"Sorry, this time slot overlaps with another appointment scheduled at {appt_time}.",
+                "slot_full": True,
+                "day_name": day_name
+            })
+    
+    # ── CHECK TIME SLOT MAX CAPACITY (Legacy check) ───────────────────
+    time_slot_setting = conn.execute("""
+        SELECT max_slots, is_active 
+        FROM staff_time_slots 
+        WHERE staff_email = ? AND day_of_week = ? AND time_slot = ?
+    """, (staff_email, day_of_week, appointment_time)).fetchone()
+    
+    if time_slot_setting and time_slot_setting["is_active"] == 0:
+        conn.close()
+        return jsonify({
+            "success": False,
+            "message": f"This time slot is not available on {day_name}. Please choose another time.",
+            "time_slot_inactive": True,
+            "day_name": day_name
+        })
+        
+    max_per_slot = time_slot_setting["max_slots"] if time_slot_setting else 1
+    slot_count = conn.execute(
+        "SELECT COUNT(*) as count FROM appointments WHERE appointment_date = ? AND appointment_time = ? AND status != 'cancelled'",
+        (appointment_date, appointment_time)
+    ).fetchone()["count"]
+    
+    if slot_count >= max_per_slot:
+        conn.close()
+        return jsonify({
+            "success": False, 
+            "message": f"Sorry, this time slot is fully booked. Max {max_per_slot} per slot.",
+            "slot_full": True,
+            "day_name": day_name
+        })
     
     # ── SAVE AS JSON ──────────────────────────────────────────────────
     services_json = json.dumps(services)

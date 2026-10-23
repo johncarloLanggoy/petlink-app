@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════
-// VET PANEL - COMPLETE JAVASCRIPT
+// VET PANEL - COMPLETE JAVASCRIPT (UPDATED & FIXED)
 // ═══════════════════════════════════════════════════════════════════
 
 let vetCurrentCustomer = null;
@@ -11,6 +11,855 @@ let currentPetFilter = null;
 let allPetsCache = [];
 let currentVetRecommendationId = null;
 let currentVetRecommendationPetId = null;
+
+// ═══════════════════════════════════════════════════════════════════
+// ✅ DATA LISTS PARA SA DIAGNOSIS (MAY GROUPING NA)
+// ═══════════════════════════════════════════════════════════════════
+
+const ALLERGY_OPTIONS = {
+    Dog: [
+        'Chicken', 'Beef', 'Pork', 'Lamb', 'Fish', 'Salmon', 'Tuna',
+        'Eggs', 'Dairy', 'Cheese', 'Milk',
+        'Wheat', 'Corn', 'Soy', 'Grain', 'Rice', 'Barley', 'Oats',
+        'Beet Pulp', 'Peanut Butter', 'Liver', 'Turkey', 'Duck',
+        'Venison', 'Rabbit', 'Kangaroo', 'Bison',
+        'Pollen', 'Dust Mites', 'Fleas', 'Tick Saliva',
+        'Grass', 'Weeds', 'Tree Pollen', 'Ragweed',
+        'Mold Spores', 'Dander', 'Cockroach',
+        'Latex', 'Plastic', 'Nylon', 'Wool', 'Cotton',
+        'Leather', 'Rubber', 'Metal (Nickel)', 'Dyes',
+        'Certain Medications', 'Antibiotics', 'Vaccines',
+        'Shampoo/Conditioner', 'Perfume', 'Flea Treatment',
+        'Heartworm Medication', 'Anesthesia',
+        'Bee Stings', 'Wasp Stings', 'Ant Bites', 'Spider Bites',
+        'Mosquito Bites', 'Flea Bites',
+        'Storage Mites', 'Household Cleaners', 'Air Fresheners',
+        'Cigarette Smoke', 'Candles', 'Insecticides'
+    ],
+    Cat: [
+        'Chicken', 'Beef', 'Pork', 'Lamb', 'Fish', 'Tuna', 'Salmon',
+        'Eggs', 'Dairy', 'Cheese', 'Milk',
+        'Wheat', 'Corn', 'Soy', 'Grain', 'Rice', 'Barley', 'Oats',
+        'Turkey', 'Duck', 'Venison', 'Rabbit',
+        'Pollen', 'Dust Mites', 'Fleas', 'Grass',
+        'Tree Pollen', 'Ragweed', 'Weeds',
+        'Mold Spores', 'Dander', 'Cockroach',
+        'Latex', 'Plastic', 'Wool', 'Cotton',
+        'Leather', 'Rubber', 'Metal (Nickel)', 'Dyes',
+        'Certain Medications', 'Antibiotics', 'Vaccines',
+        'Shampoo/Conditioner', 'Perfume', 'Flea Treatment',
+        'Heartworm Medication', 'Anesthesia',
+        'Cat Litter (Clay)', 'Cat Litter (Clumping)', 'Cat Litter (Crystal)',
+        'Household Cleaners', 'Air Fresheners',
+        'Bee Stings', 'Wasp Stings', 'Ant Bites', 'Spider Bites',
+        'Mosquito Bites', 'Flea Bites',
+        'Cigarette Smoke', 'Candles', 'Insecticides', 'Storage Mites'
+    ]
+};
+
+const DIAGNOSIS_OPTIONS = {
+    Dog: {
+        "Severe / Distemper Cases": [
+            'Canine Distemper',
+            'Canine Parvovirus',
+            'Canine Infectious Hepatitis',
+            'Canine Leptospirosis',
+            'Severe Canine Distemper',
+            'Canine Distemper with Respiratory Complications',
+            'Canine Distemper with Gastrointestinal Complications',
+            'Canine Distemper with Neurological Complications',
+            'Canine Distemper with Secondary Pneumonia'
+        ],
+        "Common Diseases & Conditions": [
+            'Canine Kennel Cough', 
+            'Canine Influenza', 
+            'Canine Coronavirus', 
+            'Canine Heartworm Disease',
+            'Canine Lyme Disease', 
+            'Canine Ehrlichiosis', 
+            'Canine Anaplasmosis', 
+            'Canine Babesiosis',
+            'Canine Brucellosis', 
+            'Canine Rabies', 
+            'Canine Fungal Infection',
+            'Canine Bacterial Infection', 
+            'Canine Viral Infection', 
+            'Canine Skin Allergy', 
+            'Canine Food Allergy',
+            'Canine Atopic Dermatitis', 
+            'Canine Arthritis', 
+            'Canine Hip Dysplasia', 
+            'Canine Elbow Dysplasia',
+            'Canine Cruciate Ligament Rupture', 
+            'Canine Patellar Luxation', 
+            'Canine Obesity', 
+            'Canine Diabetes Mellitus',
+            'Canine Cushing\'s Disease', 
+            'Canine Addison\'s Disease', 
+            'Canine Hypothyroidism', 
+            'Canine Hyperthyroidism',
+            'Canine Pancreatitis', 
+            'Canine Inflammatory Bowel Disease', 
+            'Canine Gastric Dilatation-Volvulus (Bloat)',
+            'Canine Kidney Disease', 
+            'Canine Liver Disease', 
+            'Canine Heart Disease', 
+            'Canine Epilepsy',
+            'Canine Cognitive Dysfunction', 
+            'Canine Dental Disease', 
+            'Canine Periodontal Disease',
+            'Canine Ear Infection', 
+            'Canine Eye Infection', 
+            'Canine Conjunctivitis', 
+            'Canine Cataracts',
+            'Canine Glaucoma', 
+            'Canine Corneal Ulcer', 
+            'Canine Pneumonia', 
+            'Canine Bronchitis',
+            'Canine Asthma', 
+            'Canine Tracheal Collapse', 
+            'Canine Anal Gland Infection', 
+            'Canine Hot Spot',
+            'Canine Mange', 
+            'Canine Ringworm', 
+            'Canine Flea Infestation', 
+            'Canine Tick Infestation',
+            'Canine Worm Infestation', 
+            'Canine Coccidiosis', 
+            'Canine Giardiasis'
+        ]
+    },
+    Cat: {
+        "Severe / Distemper Cases": [
+            'Feline Panleukopenia',
+            'Severe Feline Panleukopenia',
+            'Feline Panleukopenia with Dehydration',
+            'Feline Panleukopenia with Secondary Infection',
+            'Feline Panleukopenia with Sepsis',
+            'Feline Panleukopenia in Neonatal Kittens',
+            'Feline Infectious Peritonitis (FIP)',
+            'Feline Leukemia Virus (FeLV)',
+            'Feline Immunodeficiency Virus (FIV)'
+        ],
+        "Common Diseases & Conditions": [
+            'Feline Herpesvirus', 
+            'Feline Calicivirus', 
+            'Feline Chlamydiosis',
+            'Feline Mycoplasmosis', 
+            'Feline Bordetellosis', 
+            'Feline Rabies', 
+            'Feline Fungal Infection',
+            'Feline Bacterial Infection', 
+            'Feline Viral Infection', 
+            'Feline Skin Allergy', 
+            'Feline Food Allergy',
+            'Feline Atopic Dermatitis', 
+            'Feline Arthritis', 
+            'Feline Hip Dysplasia', 
+            'Feline Obesity',
+            'Feline Diabetes Mellitus', 
+            'Feline Hyperthyroidism', 
+            'Feline Hypothyroidism', 
+            'Feline Pancreatitis',
+            'Feline Inflammatory Bowel Disease', 
+            'Feline Kidney Disease', 
+            'Feline Liver Disease',
+            'Feline Heart Disease', 
+            'Feline Hypertrophic Cardiomyopathy (HCM)', 
+            'Feline Epilepsy',
+            'Feline Cognitive Dysfunction', 
+            'Feline Dental Disease', 
+            'Feline Periodontal Disease',
+            'Feline Stomatitis', 
+            'Feline Ear Infection', 
+            'Feline Eye Infection', 
+            'Feline Conjunctivitis',
+            'Feline Cataracts', 
+            'Feline Glaucoma', 
+            'Feline Corneal Ulcer', 
+            'Feline Pneumonia',
+            'Feline Bronchitis', 
+            'Feline Asthma', 
+            'Feline Lower Urinary Tract Disease (FLUTD)',
+            'Feline Urinary Blockage', 
+            'Feline Anal Gland Infection', 
+            'Feline Hot Spot', 
+            'Feline Mange',
+            'Feline Ringworm', 
+            'Feline Flea Infestation', 
+            'Feline Tick Infestation', 
+            'Feline Worm Infestation',
+            'Feline Coccidiosis', 
+            'Feline Giardiasis', 
+            'Feline Toxoplasmosis'
+        ]
+    }
+};
+// ── Helper: Get Selected Values from Multi-Select ──────────────────
+function getSelectedValues(selectId) {
+    const select = document.getElementById(selectId);
+    if (!select) return [];
+    return Array.from(select.selectedOptions).map(opt => opt.value);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ✅ UPDATED: CUSTOM MULTI-SELECT DROPDOWN LOGIC
+// ═══════════════════════════════════════════════════════════════════
+
+let selectedDiagnosisValues = [];
+let selectedAllergiesValues = [];
+
+function toggleDiagnosisDropdown() {
+    const chk = document.getElementById('chkDiagnosis');
+    const container = document.getElementById('diagnosisDropdownContainer');
+    
+    if (!chk || !container) return;
+    
+    if (chk.checked) {
+        container.style.display = 'block';
+        
+        // ✅ BAGONG CODE: I-load ang options kung walang laman
+        const diagContainer = document.getElementById('diagnosisOptionsContainer');
+        if (diagContainer && diagContainer.children.length === 0) {
+            const selectedPetId = document.getElementById('recordPet').value;
+            
+            if (selectedPetId) {
+                loadDropdownOptionsForPet(selectedPetId);
+            } else {
+                // Walang napiling pet — i-load ang default (Dog) options
+                loadDefaultDiagnosisOptions();
+            }
+        }
+    } else {
+        container.style.display = 'none';
+        // I-clear ang selections kapag inuncheck
+        selectedDiagnosisValues = [];
+        updateCustomDropdownLabel('diagnosis');
+    }
+}
+
+function toggleAllergiesDropdown() {
+    const chk = document.getElementById('chkAllergies');
+    const container = document.getElementById('allergiesDropdownContainer');
+    
+    if (!chk || !container) return;
+    
+    if (chk.checked) {
+        container.style.display = 'block';
+        
+        // ✅ BAGONG CODE: I-load ang options kung walang laman
+        const allergyContainer = document.getElementById('allergiesOptionsContainer');
+        if (allergyContainer && allergyContainer.children.length === 0) {
+            const selectedPetId = document.getElementById('recordPet').value;
+            
+            if (selectedPetId) {
+                loadDropdownOptionsForPet(selectedPetId);
+            } else {
+                // Walang napiling pet — i-load ang default (Dog) options
+                loadDefaultAllergyOptions();
+            }
+        }
+    } else {
+        container.style.display = 'none';
+        // I-clear ang selections kapag inuncheck
+        selectedAllergiesValues = [];
+        updateCustomDropdownLabel('allergies');
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ✅ NEW: I-load ang default (Dog) options kung walang napiling pet
+// ═══════════════════════════════════════════════════════════════════
+function loadDefaultDiagnosisOptions() {
+    const container = document.getElementById('diagnosisOptionsContainer');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    // ✅ Notice: Pumili muna ng pet
+    const notice = document.createElement('div');
+    notice.style.cssText = `
+        padding: 12px 14px;
+        background: rgba(245, 158, 11, 0.08);
+        border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+        color: #d97706;
+        font-size: 11px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    `;
+    notice.innerHTML = `
+        <i class="fas fa-info-circle"></i>
+        <span>Pumili muna ng <strong>Pet</strong> para sa tamang listahan. Ito ay default (Dog) options.</span>
+    `;
+    container.appendChild(notice);
+    
+    // ── Others input ─────────────────────────────────────────────
+    const othersWrapper = document.createElement('div');
+    othersWrapper.style.cssText = `
+        padding: 10px 14px;
+        background: #ffffff;
+        border-bottom: 2px solid #eaf3e0;
+        position: sticky;
+        top: 45px;
+        z-index: 10;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    `;
+    
+    const othersLabel = document.createElement('div');
+    othersLabel.style.cssText = `font-size: 10px; font-weight: 700; color: #5a7a3f; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;`;
+    othersLabel.innerHTML = `<i class="fas fa-plus-circle" style="color: #7ba05b;"></i> Others (Custom Input)`;
+    othersWrapper.appendChild(othersLabel);
+    
+    const inputGroup = document.createElement('div');
+    inputGroup.style.cssText = `display: flex; gap: 6px;`;
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = 'customDiagnosisInput';
+    input.placeholder = 'Type custom diagnosis here...';
+    input.style.cssText = `flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid #d4e5c4; background: #f7fbf3; font-size: 12px; outline: none; font-family: 'Poppins', sans-serif;`;
+    input.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addCustomDiagnosis();
+        }
+    };
+    
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.innerHTML = '<i class="fas fa-plus"></i>';
+    btn.style.cssText = `padding: 0 14px; background: #7ba05b; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 12px; transition: all 0.2s ease;`;
+    btn.onclick = (e) => {
+        e.stopPropagation();
+        addCustomDiagnosis();
+    };
+    
+    inputGroup.appendChild(input);
+    inputGroup.appendChild(btn);
+    othersWrapper.appendChild(inputGroup);
+    container.appendChild(othersWrapper);
+    
+    // ── Default Dog diagnosis options ────────────────────────────
+    const groups = DIAGNOSIS_OPTIONS['Dog'];
+    
+    Object.keys(groups).forEach(groupName => {
+        const header = document.createElement('div');
+        header.style.cssText = `
+            padding: 8px 14px; 
+            font-size: 11px; 
+            font-weight: 700; 
+            color: #5a7a3f; 
+            background: rgba(123, 160, 91, 0.1); 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px;
+            border-top: 1px solid #eaf3e0;
+            margin-top: 4px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        `;
+        if (groupName.includes('Severe') || groupName.includes('Distemper')) {
+            header.style.background = 'rgba(239, 68, 68, 0.08)';
+            header.style.color = '#ef4444';
+            header.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${groupName}`;
+        } else {
+            header.innerHTML = `<i class="fas fa-check-circle"></i> ${groupName}`;
+        }
+        
+        groups[groupName].forEach(opt => {
+            const div = document.createElement('div');
+            div.className = 'custom-select-option';
+            div.dataset.value = opt;
+            div.style.paddingLeft = '20px';
+            div.innerHTML = `<span style="width: 16px; display: inline-flex; justify-content: center; color: #7ba05b;"><i class="fas fa-check" style="opacity: 0; font-size: 10px;"></i></span> ${opt}`;
+            
+            if (selectedDiagnosisValues.includes(opt)) {
+                div.classList.add('selected');
+                div.style.background = 'rgba(123, 160, 91, 0.12)';
+                div.querySelector('i').style.opacity = '1';
+            }
+            
+            div.onclick = (e) => handleCustomOptionClick(e, 'diagnosis', opt);
+            container.appendChild(div);
+        });
+    });
+}
+
+function loadDefaultAllergyOptions() {
+    const container = document.getElementById('allergiesOptionsContainer');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    // ✅ Notice
+    const notice = document.createElement('div');
+    notice.style.cssText = `
+        padding: 12px 14px;
+        background: rgba(245, 158, 11, 0.08);
+        border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+        color: #d97706;
+        font-size: 11px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    `;
+    notice.innerHTML = `
+        <i class="fas fa-info-circle"></i>
+        <span>Pumili muna ng <strong>Pet</strong> para sa tamang listahan. Ito ay default (Dog) options.</span>
+    `;
+    container.appendChild(notice);
+    
+    // ── Others input ─────────────────────────────────────────────
+    const othersWrapper = document.createElement('div');
+    othersWrapper.style.cssText = `
+        padding: 10px 14px;
+        background: #ffffff;
+        border-bottom: 2px solid #eaf3e0;
+        position: sticky;
+        top: 45px;
+        z-index: 10;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    `;
+    
+    const othersLabel = document.createElement('div');
+    othersLabel.style.cssText = `font-size: 10px; font-weight: 700; color: #5a7a3f; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;`;
+    othersLabel.innerHTML = `<i class="fas fa-plus-circle" style="color: #7ba05b;"></i> Others (Custom Input)`;
+    othersWrapper.appendChild(othersLabel);
+    
+    const inputGroup = document.createElement('div');
+    inputGroup.style.cssText = `display: flex; gap: 6px;`;
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = 'customAllergiesInput';
+    input.placeholder = 'Type custom allergy here...';
+    input.style.cssText = `flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid #d4e5c4; background: #f7fbf3; font-size: 12px; outline: none; font-family: 'Poppins', sans-serif;`;
+    input.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addCustomAllergy();
+        }
+    };
+    
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.innerHTML = '<i class="fas fa-plus"></i>';
+    btn.style.cssText = `padding: 0 14px; background: #7ba05b; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 12px; transition: all 0.2s ease;`;
+    btn.onclick = (e) => {
+        e.stopPropagation();
+        addCustomAllergy();
+    };
+    
+    inputGroup.appendChild(input);
+    inputGroup.appendChild(btn);
+    othersWrapper.appendChild(inputGroup);
+    container.appendChild(othersWrapper);
+    
+    // ── Default Dog allergy options ──────────────────────────────
+    const options = ALLERGY_OPTIONS['Dog'];
+    
+    options.forEach(opt => {
+        const div = document.createElement('div');
+        div.className = 'custom-select-option';
+        div.dataset.value = opt;
+        div.innerHTML = `<span style="width: 16px; display: inline-flex; justify-content: center; color: #7ba05b;"><i class="fas fa-check" style="opacity: 0; font-size: 10px;"></i></span> ${opt}`;
+        
+        if (selectedAllergiesValues.includes(opt)) {
+            div.classList.add('selected');
+            div.style.background = 'rgba(123, 160, 91, 0.12)';
+            div.querySelector('i').style.opacity = '1';
+        }
+        
+        div.onclick = (e) => handleCustomOptionClick(e, 'allergies', opt);
+        container.appendChild(div);
+    });
+}
+
+// ── Custom Dropdown Toggle ─────────────────────────────────────────
+function toggleCustomDropdown(event, type) {
+    if (event) event.stopPropagation();
+    const dropdown = document.getElementById(`${type}CustomSelect`);
+    if (!dropdown) return;
+    dropdown.classList.toggle('open');
+}
+
+// ── Handle Option Click (Multi-select) ─────────────────────────────
+function handleCustomOptionClick(event, type, value) {
+    event.stopPropagation(); // Para hindi mag-close ang dropdown
+    
+    let selectedArray = type === 'diagnosis' ? selectedDiagnosisValues : selectedAllergiesValues;
+    const index = selectedArray.indexOf(value);
+    
+    if (index > -1) {
+        selectedArray.splice(index, 1);
+    } else {
+        selectedArray.push(value);
+    }
+    
+    if (type === 'diagnosis') {
+        selectedDiagnosisValues = selectedArray;
+    } else {
+        selectedAllergiesValues = selectedArray;
+    }
+    
+    updateCustomDropdownLabel(type);
+    
+    // I-update ang UI ng options (checkmark)
+    const container = document.getElementById(`${type}OptionsContainer`);
+    if (container) {
+        const options = container.querySelectorAll('.custom-select-option');
+        options.forEach(opt => {
+            const optValue = opt.dataset.value;
+            const icon = opt.querySelector('i');
+            
+            if (selectedArray.includes(optValue)) {
+                opt.classList.add('selected');
+                opt.style.background = 'rgba(123, 160, 91, 0.12)';
+                if (icon) icon.style.opacity = '1';
+            } else {
+                opt.classList.remove('selected');
+                opt.style.background = 'transparent';
+                if (icon) icon.style.opacity = '0';
+            }
+        });
+    }
+}
+
+// ── Update Label (Select Diagnosis... / 3 selected) ────────────────
+function updateCustomDropdownLabel(type) {
+    const selectedArray = type === 'diagnosis' ? selectedDiagnosisValues : selectedAllergiesValues;
+    const labelEl = document.getElementById(`${type}SelectLabel`);
+    
+    if (!labelEl) return;
+    
+    if (selectedArray.length === 0) {
+        labelEl.textContent = type === 'diagnosis' ? 'Select Diagnosis...' : 'Select Allergies...';
+        labelEl.style.color = '#64748b';
+    } else if (selectedArray.length === 1) {
+        labelEl.textContent = selectedArray[0];
+        labelEl.style.color = '#2d3e1f';
+    } else {
+        labelEl.textContent = `${selectedArray.length} selected`;
+        labelEl.style.color = '#2d3e1f';
+    }
+}
+
+// ── Isara ang dropdown kapag clinick sa labas ──────────────────────
+document.addEventListener('click', function(e) {
+    const diagSelect = document.getElementById('diagnosisCustomSelect');
+    const allergySelect = document.getElementById('allergiesCustomSelect');
+    
+    if (diagSelect && !diagSelect.contains(e.target)) {
+        diagSelect.classList.remove('open');
+    }
+    if (allergySelect && !allergySelect.contains(e.target)) {
+        allergySelect.classList.remove('open');
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// ✅ UPDATED: LOAD DROPDOWN OPTIONS BASE SA PET TYPE (MAY GROUPING)
+// ═══════════════════════════════════════════════════════════════════
+
+function loadDropdownOptionsForPet(petId) {
+    const pet = (window._allPets || allPetsCache || []).find(p => p.id === petId);
+    if (!pet) return;
+    
+    const petType = pet.pet_type || 'Dog'; 
+    
+    // ═══════════════════════════════════════════════════════════════
+    // ── HELPER: Gumawa ng "Others" input field ───────────────────
+    // ═══════════════════════════════════════════════════════════════
+    const createOthersInput = (type) => {
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = `
+            padding: 10px 14px;
+            background: #ffffff;
+            border-bottom: 2px solid #eaf3e0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        `;
+        
+        const label = document.createElement('div');
+        label.style.cssText = `
+            font-size: 10px;
+            font-weight: 700;
+            color: #5a7a3f;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        `;
+        label.innerHTML = `<i class="fas fa-plus-circle" style="color: #7ba05b;"></i> Others (Custom Input)`;
+        wrapper.appendChild(label);
+        
+        const inputGroup = document.createElement('div');
+        inputGroup.style.cssText = `display: flex; gap: 6px;`;
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.id = `custom${type.charAt(0).toUpperCase() + type.slice(1)}Input`;
+        input.placeholder = `Type custom ${type} here...`;
+        input.style.cssText = `
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #d4e5c4;
+            background: #f7fbf3;
+            font-size: 12px;
+            outline: none;
+            font-family: 'Poppins', sans-serif;
+        `;
+        
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.innerHTML = '<i class="fas fa-plus"></i>';
+        btn.style.cssText = `
+            padding: 0 14px;
+            background: #7ba05b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        `;
+        btn.onmouseover = () => btn.style.background = '#5a7a3f';
+        btn.onmouseout = () => btn.style.background = '#7ba05b';
+        
+        // ── Event Handler: Enter key ─────────────────────────────
+        input.onkeydown = (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (type === 'diagnosis') addCustomDiagnosis();
+                else addCustomAllergy();
+            }
+        };
+        
+        // ── Event Handler: Button Click ──────────────────────────
+        btn.onclick = (e) => {
+            e.stopPropagation();
+            if (type === 'diagnosis') addCustomDiagnosis();
+            else addCustomAllergy();
+        };
+        
+        inputGroup.appendChild(input);
+        inputGroup.appendChild(btn);
+        wrapper.appendChild(inputGroup);
+        
+        return wrapper;
+    };
+    
+    // ═══════════════════════════════════════════════════════════════
+    // ── Load Diagnosis Options (With Groups + Others) ────────────
+    // ═══════════════════════════════════════════════════════════════
+    const diagnosisContainer = document.getElementById('diagnosisOptionsContainer');
+    if (diagnosisContainer) {
+        diagnosisContainer.innerHTML = '';
+        
+        // ✅ 1. ILAGAY ANG "OTHERS" INPUT SA PINAKATAAS
+        diagnosisContainer.appendChild(createOthersInput('diagnosis'));
+        
+        const groups = DIAGNOSIS_OPTIONS[petType] || DIAGNOSIS_OPTIONS['Dog'];
+        
+        // 2. I-loop ang bawat category (Severe Cases, Common Diseases)
+        Object.keys(groups).forEach(groupName => {
+            const header = document.createElement('div');
+            header.style.cssText = `
+                padding: 8px 14px; 
+                font-size: 11px; 
+                font-weight: 700; 
+                color: #5a7a3f; 
+                background: rgba(123, 160, 91, 0.1); 
+                text-transform: uppercase; 
+                letter-spacing: 0.5px;
+                border-top: 1px solid #eaf3e0;
+                margin-top: 4px;
+                margin-bottom: 4px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            `;
+            if (groupName.includes('Severe') || groupName.includes('Distemper')) {
+                header.style.background = 'rgba(239, 68, 68, 0.08)';
+                header.style.color = '#ef4444';
+                header.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${groupName}`;
+            } else {
+                header.innerHTML = `<i class="fas fa-check-circle"></i> ${groupName}`;
+            }
+            
+            // 3. I-loop ang mga options sa loob ng category
+            const options = groups[groupName];
+            options.forEach(opt => {
+                const div = document.createElement('div');
+                div.className = 'custom-select-option';
+                div.dataset.value = opt;
+                div.style.paddingLeft = '20px';
+                div.innerHTML = `<span style="width: 16px; display: inline-flex; justify-content: center; color: #7ba05b;"><i class="fas fa-check" style="opacity: 0; font-size: 10px;"></i></span> ${opt}`;
+                
+                if (selectedDiagnosisValues.includes(opt)) {
+                    div.classList.add('selected');
+                    div.style.background = 'rgba(123, 160, 91, 0.12)';
+                    div.querySelector('i').style.opacity = '1';
+                }
+                
+                div.onclick = (e) => handleCustomOptionClick(e, 'diagnosis', opt);
+                diagnosisContainer.appendChild(div);
+            });
+        });
+    }
+    
+    // ═══════════════════════════════════════════════════════════════
+    // ── Load Allergy Options (Flat list + Others) ────────────────
+    // ═══════════════════════════════════════════════════════════════
+    const allergiesContainer = document.getElementById('allergiesOptionsContainer');
+    if (allergiesContainer) {
+        allergiesContainer.innerHTML = '';
+        
+        // ✅ 1. ILAGAY ANG "OTHERS" INPUT SA PINAKATAAS
+        allergiesContainer.appendChild(createOthersInput('allergies'));
+        
+        const options = ALLERGY_OPTIONS[petType] || ALLERGY_OPTIONS['Dog'];
+        
+        // 2. I-loop ang mga options
+        options.forEach(opt => {
+            const div = document.createElement('div');
+            div.className = 'custom-select-option';
+            div.dataset.value = opt;
+            div.innerHTML = `<span style="width: 16px; display: inline-flex; justify-content: center; color: #7ba05b;"><i class="fas fa-check" style="opacity: 0; font-size: 10px;"></i></span> ${opt}`;
+            
+            if (selectedAllergiesValues.includes(opt)) {
+                div.classList.add('selected');
+                div.style.background = 'rgba(123, 160, 91, 0.12)';
+                div.querySelector('i').style.opacity = '1';
+            }
+            
+            div.onclick = (e) => handleCustomOptionClick(e, 'allergies', opt);
+            allergiesContainer.appendChild(div);
+        });
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ✅ DAGDAG: FUNCTIONS PARA SA "OTHERS" INPUT
+// ═══════════════════════════════════════════════════════════════════
+
+function addCustomDiagnosis() {
+    const input = document.getElementById('customDiagnosisInput');
+    if (!input) return;
+    
+    const value = input.value.trim();
+    if (!value) return;
+    
+    // Check kung duplicate
+    if (selectedDiagnosisValues.includes(value)) {
+        showToast('Nasa listahan na ito.', 'error');
+        input.value = '';
+        return;
+    }
+    
+    // I-add sa selected values array
+    selectedDiagnosisValues.push(value);
+    
+    // I-update ang label
+    updateCustomDropdownLabel('diagnosis');
+    
+    // ✅ Gumawa ng bagong option element at i-insert sa baba ng input
+    const container = document.getElementById('diagnosisOptionsContainer');
+    if (container) {
+        const div = document.createElement('div');
+        div.className = 'custom-select-option selected';
+        div.dataset.value = value;
+        div.style.background = 'rgba(123, 160, 91, 0.12)';
+        div.style.paddingLeft = '20px';
+        div.innerHTML = `<span style="width: 16px; display: inline-flex; justify-content: center; color: #7ba05b;"><i class="fas fa-check" style="opacity: 1; font-size: 10px;"></i></span> ${value}`;
+        
+        // Click handler para ma-toggle
+        div.onclick = (e) => handleCustomOptionClick(e, 'diagnosis', value);
+        
+        // I-append sa dulo ng container
+        container.appendChild(div);
+    }
+    
+    input.value = '';
+    input.focus();
+}
+
+function addCustomAllergy() {
+    const input = document.getElementById('customAllergiesInput');
+    if (!input) return;
+    
+    const value = input.value.trim();
+    if (!value) return;
+    
+    // Check kung duplicate
+    if (selectedAllergiesValues.includes(value)) {
+        showToast('Nasa listahan na ito.', 'error');
+        input.value = '';
+        return;
+    }
+    
+    // I-add sa selected values array
+    selectedAllergiesValues.push(value);
+    
+    // I-update ang label
+    updateCustomDropdownLabel('allergies');
+    
+    // ✅ Gumawa ng bagong option element at i-insert sa baba ng input
+    const container = document.getElementById('allergiesOptionsContainer');
+    if (container) {
+        const div = document.createElement('div');
+        div.className = 'custom-select-option selected';
+        div.dataset.value = value;
+        div.style.background = 'rgba(123, 160, 91, 0.12)';
+        div.style.paddingLeft = '20px';
+        div.innerHTML = `<span style="width: 16px; display: inline-flex; justify-content: center; color: #7ba05b;"><i class="fas fa-check" style="opacity: 1; font-size: 10px;"></i></span> ${value}`;
+        
+        // Click handler para ma-toggle
+        div.onclick = (e) => handleCustomOptionClick(e, 'allergies', value);
+        
+        // I-append sa dulo ng container
+        container.appendChild(div);
+    }
+    
+    input.value = '';
+    input.focus();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ✅ UPDATED: RESET DROPDOWNS
+// ═══════════════════════════════════════════════════════════════════
+
+function resetDiagnosisAndAllergiesDropdowns() {
+    const chkDiagnosis = document.getElementById('chkDiagnosis');
+    const chkAllergies = document.getElementById('chkAllergies');
+    const diagContainer = document.getElementById('diagnosisDropdownContainer');
+    const allergyContainer = document.getElementById('allergiesDropdownContainer');
+    
+    if (chkDiagnosis) chkDiagnosis.checked = false;
+    if (chkAllergies) chkAllergies.checked = false;
+    if (diagContainer) diagContainer.style.display = 'none';
+    if (allergyContainer) allergyContainer.style.display = 'none';
+    
+    selectedDiagnosisValues = [];
+    selectedAllergiesValues = [];
+    
+    updateCustomDropdownLabel('diagnosis');
+    updateCustomDropdownLabel('allergies');
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // ✅ NEW: showToast() FUNCTION
@@ -213,6 +1062,7 @@ function showTab(tab) {
         document.getElementById('navDashboard').classList.add('active');
         loadStats();
         loadTodayPatients();
+        loadUpcomingPatients();
         loadRecentRecords();
     } else if (tab === 'patients') {
         document.getElementById('tabPatients').style.display = 'block';
@@ -236,7 +1086,6 @@ function showTab(tab) {
     }
 }
 
-// ── Load Statistics ──────────────────────────────────────────────
 async function loadStats() {
     try {
         const petsRes = await fetch('/api/all-pets');
@@ -258,20 +1107,23 @@ async function loadStats() {
         console.error('Error loading records count:', error);
     }
     
+    // ✅ TODAY'S PATIENTS COUNT — Gagamitin natin ang bagong endpoint
     try {
-        const apptRes = await fetch('/api/appointments/all');
-        const apptData = await apptRes.json();
-        if (apptData.success && apptData.appointments) {
-            const today = getTodayDateString();
-            const todayCount = apptData.appointments.filter(app => 
-                app.appointment_date === today && 
-                app.status !== 'cancelled'
-            ).length;
-            const todayCountEl = document.getElementById('todayPatients');
-            if (todayCountEl) todayCountEl.textContent = todayCount;
+        const todayRes = await fetch('/api/vet/today-patients');
+        const todayData = await todayRes.json();
+        
+        const todayCountEl = document.getElementById('todayPatients');
+        if (todayCountEl) {
+            if (todayData.success) {
+                todayCountEl.textContent = todayData.appointments.length;
+            } else {
+                todayCountEl.textContent = '0';
+            }
         }
     } catch (error) {
-        console.error('Error loading appointments count:', error);
+        console.error('Error loading today patients count:', error);
+        const todayCountEl = document.getElementById('todayPatients');
+        if (todayCountEl) todayCountEl.textContent = '0';
     }
     
     try {
@@ -317,12 +1169,7 @@ async function loadStats() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// ✅ FIXED: Load Today's Patients
-// ── FILTER RULES:
-//    ✅ CONFIRMED appointments lang
-//    ✅ VET services lang
-//    ✅ WALANG medical record pa PARA SA APPOINTMENT NA ITO
-//       (hindi base sa pet_id — base sa appointment_id/date+time match)
+// ✅ UPDATED: Load Today's Patients (Nagre-render lang ng VET Services)
 // ═══════════════════════════════════════════════════════════════════
 async function loadTodayPatients() {
     const tbody = document.getElementById('todayPatientsTable');
@@ -342,96 +1189,32 @@ async function loadTodayPatients() {
     `;
     
     try {
-        const [appointmentsRes, petsRes, recordsRes] = await Promise.all([
-            fetch('/api/appointments/all'),
-            fetch('/api/all-pets'),
-            fetch('/api/medical-records')
-        ]);
+        const res = await fetch('/api/vet/today-patients');
+        const data = await res.json();
         
-        const appointmentsData = await appointmentsRes.json();
+        if (!data.success) {
+            throw new Error(data.message || 'Failed to fetch today\'s patients.');
+        }
+
+        const todayAppointments = data.appointments || [];
+        
+        // ✅ I-SAVE SA GLOBAL VARIABLE para magamit ng View details
+        window._todayAppointments = todayAppointments;
+        
+        // Cache all pets for avatar rendering
+        const petsRes = await fetch('/api/all-pets');
         const petsData = await petsRes.json();
-        const recordsData = await recordsRes.json();
-        
-        const allAppointments = (appointmentsData.success && appointmentsData.appointments) ? appointmentsData.appointments : [];
         const allPets = (petsData.success && petsData.pets) ? petsData.pets : [];
-        const allRecordsData = (recordsData.success && recordsData.records) ? recordsData.records : [];
-        
-        window._todayAppointments = allAppointments;
         window._allPets = allPets;
-        window._allRecordsData = allRecordsData;
         allPetsCache = allPets;
-        
-        const today = getTodayDateString();
-        
-        // ═══════════════════════════════════════════════════════════════
-        // ✅ FIX: Gumawa ng Set ng appointment_id na may record na.
-        // ── Kung may appointment_id na naka-save, tumpak na matatrack
-        //    kung aling appointment ang tapos na.
-        // ── Fallback: kung walang appointment_id (lumang records),
-        //    gamitin ang pet_id + visit_date match.
-        // ═══════════════════════════════════════════════════════════════
-        const completedAppointmentIds = new Set();
-        const completedPetDates = new Set();
-        
-        allRecordsData.forEach(record => {
-            // ✅ Primary: Kung may appointment_id, i-track ito
-            if (record.appointment_id) {
-                completedAppointmentIds.add(record.appointment_id);
-            }
-            // ✅ Fallback: I-track din ang pet_id + visit_date (para sa lumang records)
-            const key = `${record.pet_id}_${record.visit_date}`;
-            completedPetDates.add(key);
-        });
-        
-        // ═══════════════════════════════════════════════════════════════
-        // ✅ FILTER LOGIC:
-        //   1. Today's date
-        //   2. Status = 'confirmed' ONLY
-        //   3. May VET service
-        //   4. WALANG record para sa appointment na ito
-        //      (base sa pet_id + appointment_date match, hindi lang pet_id)
-        // ═══════════════════════════════════════════════════════════════
-        const todayAppointments = allAppointments.filter(app => {
-            // ✅ Rule 1: Today's date
-            if (app.appointment_date !== today) return false;
-            
-            // ✅ Rule 2: CONFIRMED lang
-            if (app.status !== 'confirmed') return false;
-            
-            // ✅ Rule 3: May VET service ba?
-            const hasVetService = app.service_details && 
-                                 Array.isArray(app.service_details) && 
-                                 app.service_details.some(svc => 
-                                     (svc.category || '').toLowerCase() === 'vet'
-                                 );
-            if (!hasVetService) return false;
-            
-            // ✅ Rule 4 (FIXED): May record na ba PARA SA APPOINTMENT NA ITO?
-            // ── Primary: Check kung may record na ang appointment_id na ito
-            if (completedAppointmentIds.has(app.id)) {
-                return false;  // ✅ Tapos na itong appointment
-            }
-            
-            // ── Fallback: Kung walang appointment_id (lumang records),
-            //    gamitin ang pet_id + date match
-            const appointmentKey = `${app.pet_id}_${app.appointment_date}`;
-            if (completedPetDates.has(appointmentKey)) {
-                return false;  // ✅ Tapos na ang pet sa date na ito
-            }
-            
-            return true;
-        });
-        
+
         if (todayAppointments.length === 0) {
             tbody.innerHTML = `
                 <tr>
                     <td colspan="7" style="text-align: center; color: #94a387; padding: 40px;">
-                        <div style="font-size: 40px; margin-bottom: 10px;">🩺</div>
-                        <h3 style="color: #2d3e1f; margin-bottom: 6px;">No Confirmed Vet Appointments</h3>
-                        <p style="font-size: 13px;">Walang confirmed vet appointments ngayong araw.</p>
-                        <p style="font-size: 12px; color: #94a387; margin-top: 4px;">
-                            Ang mga appointment ay lalabas dito kapag na-confirm na ng staff at may vet service.
-                        </p>
+                        <div style="font-size: 40px; margin-bottom: 10px; color: #7ba05b;"><i class="fas fa-stethoscope"></i></div>
+                        <h3 style="color: #2d3e1f; margin-bottom: 6px;">No Pending Vet Appointments</h3>
+                        <p style="font-size: 13px;">Walang confirmed vet appointments ngayong araw o tapos na silang lahat.</p>
                     </td>
                 </tr>
             `;
@@ -445,117 +1228,42 @@ async function loadTodayPatients() {
             const typeClass = petType === 'Cat' ? 'cat' : 'dog';
             const ownerEmail = app.customer_email || (pet ? pet.owner_email : '—') || '—';
             
-            // ═══════════════════════════════════════════════════════════
-            // ✅ KUNIN ANG VET SERVICES (hindi mula sa record)
-            // ═══════════════════════════════════════════════════════════
+            // ✅ I-FILTER ANG SERVICES: VET LANG ANG IPAKITA
             let vetServicesHTML = '—';
-            
-            if (app.service_details && Array.isArray(app.service_details) && app.service_details.length > 0) {
-                const vetServices = app.service_details.filter(svc => 
-                    (svc.category || '').toLowerCase() === 'vet'
+            if (app.service_details && app.service_details.length > 0) {
+                const vetOnly = app.service_details.filter(s => 
+                    (s.category || '').toLowerCase().includes('vet')
                 );
                 
-                if (vetServices.length > 0) {
-                    vetServicesHTML = vetServices.map(svc => `
-                        <span style="
-                            display: inline-flex;
-                            align-items: center;
-                            gap: 4px;
-                            background: rgba(59, 130, 246, 0.12);
-                            color: #2563eb;
-                            border: 1px solid rgba(59, 130, 246, 0.3);
-                            padding: 3px 10px;
-                            border-radius: 12px;
-                            font-size: 11px;
-                            font-weight: 600;
-                            margin: 2px 4px 2px 0;
-                            white-space: nowrap;
-                        ">
-                            <i class="fas fa-stethoscope" style="font-size: 9px;"></i>
-                            ${svc.name}
+                if (vetOnly.length > 0) {
+                    vetServicesHTML = vetOnly.map(svc => `
+                        <span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(59, 130, 246, 0.12); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.3); padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; margin: 2px 4px 2px 0; white-space: nowrap;">
+                            <i class="fas fa-stethoscope" style="font-size: 9px;"></i> ${svc.name}
                         </span>
                     `).join('');
-                }
-            } else if (app.services) {
-                try {
-                    const services = typeof app.services === 'string' 
-                        ? JSON.parse(app.services) 
-                        : app.services;
-                    if (Array.isArray(services) && services.length > 0) {
-                        vetServicesHTML = services.map(s => `
-                            <span style="
-                                display: inline-flex;
-                                align-items: center;
-                                gap: 4px;
-                                background: rgba(59, 130, 246, 0.12);
-                                color: #2563eb;
-                                border: 1px solid rgba(59, 130, 246, 0.3);
-                                padding: 3px 10px;
-                                border-radius: 12px;
-                                font-size: 11px;
-                                font-weight: 600;
-                                margin: 2px 4px 2px 0;
-                            ">
-                                <i class="fas fa-stethoscope" style="font-size: 9px;"></i>
-                                ${s}
-                            </span>
-                        `).join('');
-                    }
-                } catch (e) {
-                    vetServicesHTML = `<span style="color: #2d3e1f;">${app.services}</span>`;
                 }
             }
             
             const timeDisplay = formatStaffTime(app.appointment_time);
-            
             const statusBadgeHTML = `
-                <span style="
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 5px;
-                    padding: 5px 14px;
-                    background: rgba(16, 185, 129, 0.15);
-                    color: #10b981;
-                    border: 1px solid rgba(16, 185, 129, 0.35);
-                    border-radius: 20px;
-                    font-size: 11px;
-                    font-weight: 700;
-                    white-space: nowrap;
-                    text-transform: uppercase;
-                    letter-spacing: 0.3px;
-                ">
+                <span style="display: inline-flex; align-items: center; gap: 5px; padding: 5px 14px; background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.3px;">
                     <i class="fas fa-check-circle"></i> Confirmed
                 </span>
             `;
             
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td data-label="Time">
-                    <span class="time-badge">
-                        <i class="fas fa-clock"></i> ${timeDisplay}
-                    </span>
-                </td>
-                <td data-label="Pet">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        ${renderPetAvatar(pet, 30)}
-                        <strong>${app.pet_name || 'Unknown'}</strong>
-                    </div>
-                </td>
+                <td data-label="Time"><span class="time-badge"><i class="fas fa-clock"></i> ${timeDisplay}</span></td>
+                <td data-label="Pet"><div style="display: flex; align-items: center; gap: 8px;">${renderPetAvatar(pet, 30)}<strong>${app.pet_name || 'Unknown'}</strong></div></td>
                 <td data-label="Type"><span class="pet-type-badge ${typeClass}">${petType}</span></td>
                 <td data-label="Owner"><span style="font-size: 12px; color: #64748b;">${ownerEmail}</span></td>
                 <td data-label="Services">${vetServicesHTML}</td>
                 <td data-label="Status">${statusBadgeHTML}</td>
                 <td data-label="Actions">
                     <div class="action-buttons">
-                        <button class="btn-sm outline" onclick="showTodayPatientDetails(${app.id})">
-                            <i class="fas fa-eye"></i> View
-                        </button>
-                        <button class="btn-sm success" onclick="addRecordFromToday(${app.id})">
-                            <i class="fas fa-plus"></i> Add Medical Record
-                        </button>
-                        <button class="btn-sm info" onclick="showPetRecommendationFromToday(${app.pet_id})">
-                            <i class="fas fa-robot"></i> Smart Pet Care
-                        </button>
+                        <button class="btn-sm outline" onclick="showTodayPatientDetails(${app.id})"><i class="fas fa-eye"></i> View</button>
+                        <button class="btn-sm success" onclick="addRecordFromToday(${app.id})"><i class="fas fa-plus"></i> Add Medical Record</button>
+                        <button class="btn-sm info" onclick="showPetRecommendationFromToday(${app.pet_id})"><i class="fas fa-robot"></i> Smart Pet Care</button>
                     </div>
                 </td>
             `;
@@ -564,13 +1272,7 @@ async function loadTodayPatients() {
         
     } catch (error) {
         console.error('Error loading today patients:', error);
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="7" style="text-align: center; color: #ef4444; padding: 30px;">
-                    <i class="fas fa-times-circle"></i> Error loading today's patients
-                </td>
-            </tr>
-        `;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #ef4444; padding: 30px;"><i class="fas fa-times-circle"></i> Error loading today's patients</td></tr>`;
     }
 }
 
@@ -581,6 +1283,139 @@ function formatStaffTime(timeStr) {
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const hour12 = hour % 12 || 12;
     return `${hour12}:${String(minute).padStart(2, '0')} ${ampm}`;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ✅ UPDATED: Load Upcoming Patients (BULLETPROOF FILTERING)
+// ═══════════════════════════════════════════════════════════════════
+async function loadUpcomingPatients() {
+    const tbody = document.getElementById('upcomingPatientsTable');
+    if (!tbody) return;
+    
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #94a387; padding: 30px;"><i class="fas fa-spinner fa-spin"></i> Loading upcoming patients...</td></tr>`;
+    
+    try {
+        const [appointmentsRes, petsRes] = await Promise.all([
+            fetch('/api/appointments/all'),
+            fetch('/api/all-pets')
+        ]);
+        
+        const appointmentsData = await appointmentsRes.json();
+        const petsData = await petsRes.json();
+        
+        const allAppointments = (appointmentsData.success && appointmentsData.appointments) ? appointmentsData.appointments : [];
+        const allPets = (petsData.success && petsData.pets) ? petsData.pets : [];
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const nextWeek = new Date(today);
+        nextWeek.setDate(nextWeek.getDate() + 7);
+        
+        const tomorrowStr = getLocalDateString(tomorrow);
+        const nextWeekStr = getLocalDateString(nextWeek);
+        
+        const upcomingAppointments = allAppointments.filter(app => {
+            if (app.status !== 'pending' && app.status !== 'confirmed') return false;
+            if (app.appointment_date < tomorrowStr || app.appointment_date > nextWeekStr) return false;
+            
+            let isVetService = false;
+            if (app.service_details && Array.isArray(app.service_details)) {
+                isVetService = app.service_details.some(svc => {
+                    const cat = String(svc.category || '').toLowerCase();
+                    const name = String(svc.name || '').toLowerCase();
+                    return cat === 'vet' || cat === 'vet_disease' || cat === 'veterinarian' ||
+                           name.includes('consultation') || name.includes('checkup') || 
+                           name.includes('vaccination') || name.includes('sick');
+                });
+            }
+            if (!isVetService && app.services) {
+                try {
+                    const s = typeof app.services === 'string' ? JSON.parse(app.services) : app.services;
+                    if (Array.isArray(s)) {
+                        isVetService = s.some(name => {
+                            const n = String(name).toLowerCase();
+                            return n.includes('consultation') || n.includes('checkup') || 
+                                   n.includes('vaccination') || n.includes('sick');
+                        });
+                    }
+                } catch(e) {}
+            }
+            return isVetService;
+        });
+        
+        upcomingAppointments.sort((a, b) => a.appointment_date.localeCompare(b.appointment_date) || a.appointment_time.localeCompare(b.appointment_time));
+        
+        if (upcomingAppointments.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #94a387; padding: 40px;"><div style="font-size: 40px; margin-bottom: 10px;">📅</div><h3 style="color: #2d3e1f; margin-bottom: 6px;">No Upcoming Patients</h3><p style="font-size: 13px;">Walang naka-schedule na vet appointments sa susunod na 7 araw.</p></td></tr>`;
+            return;
+        }
+        
+        tbody.innerHTML = '';
+        upcomingAppointments.forEach(app => {
+            const pet = allPets.find(p => p.id === app.pet_id);
+            const petType = pet ? (pet.pet_type || 'Dog') : 'Dog';
+            const typeClass = petType === 'Cat' ? 'cat' : 'dog';
+            const ownerEmail = app.customer_email || (pet ? pet.owner_email : '—') || '—';
+            
+            const dateObj = new Date(app.appointment_date + 'T00:00:00');
+            const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            
+            let vetServicesHTML = '—';
+            if (app.service_details && Array.isArray(app.service_details) && app.service_details.length > 0) {
+                const vetServices = app.service_details.filter(svc => String(svc.category).toLowerCase() === 'vet' || String(svc.name).toLowerCase().includes('consultation'));
+                if (vetServices.length > 0) {
+                    vetServicesHTML = vetServices.map(svc => `<span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(59, 130, 246, 0.12); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.3); padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; margin: 2px 4px 2px 0;">${svc.name}</span>`).join('');
+                }
+            }
+            
+            const timeDisplay = formatStaffTime(app.appointment_time);
+            let statusBadgeHTML = app.status === 'confirmed' ? `<span style="display: inline-flex; align-items: center; gap: 5px; padding: 5px 14px; background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.3px;"><i class="fas fa-check-circle"></i> Confirmed</span>` : `<span style="display: inline-flex; align-items: center; gap: 5px; padding: 5px 14px; background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.3px;"><i class="fas fa-clock"></i> Pending</span>`;
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td data-label="Date"><span style="font-weight: 600; color: #2d3e1f; font-size: 12px;">${formattedDate}</span></td>
+                <td data-label="Time"><span class="time-badge" style="background: rgba(245, 158, 11, 0.12); color: #d97706;"><i class="fas fa-clock"></i> ${timeDisplay}</span></td>
+                <td data-label="Pet"><div style="display: flex; align-items: center; gap: 8px;">${renderPetAvatar(pet, 30)}<strong>${app.pet_name || 'Unknown'}</strong></div></td>
+                <td data-label="Type"><span class="pet-type-badge ${typeClass}">${petType}</span></td>
+                <td data-label="Owner"><span style="font-size: 12px; color: #64748b;">${ownerEmail}</span></td>
+                <td data-label="Services">${vetServicesHTML}</td>
+                <td data-label="Status">${statusBadgeHTML}</td>
+                <td data-label="Actions"><div class="action-buttons"><button class="btn-sm outline" onclick="showUpcomingPatientDetails(${app.id})"><i class="fas fa-eye"></i> View</button></div></td>
+            `;
+            tbody.appendChild(row);
+        });
+        
+    } catch (error) {
+        console.error('Error loading upcoming patients:', error);
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #ef4444; padding: 30px;"><i class="fas fa-times-circle"></i> Error loading upcoming patients</td></tr>`;
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ✅ NEW: Show Upcoming Patient Details
+// ═══════════════════════════════════════════════════════════════════
+async function showUpcomingPatientDetails(appointmentId) {
+    try {
+        window._todayAppointments = window._upcomingAppointments || [];
+        window._allPets = window._allPets || [];
+        
+        if (!window._allRecordsData) {
+            const recordsRes = await fetch('/api/medical-records');
+            const recordsData = await recordsRes.json();
+            if (recordsData.success) {
+                window._allRecordsData = recordsData.records || [];
+            }
+        }
+        
+        showTodayPatientDetails(appointmentId);
+    } catch (error) {
+        console.error('Error showing upcoming patient details:', error);
+        showToast('Something went wrong. Please try again.', 'error');
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1354,6 +2189,7 @@ async function executeVetSmartCareAction(recId, status) {
             closeVetRecommendationModal();
             
             loadTodayPatients();
+            loadUpcomingPatients();
             loadStats();
         } else {
             showToast(data.message || 'Error processing recommendation.', 'error');
@@ -1371,13 +2207,26 @@ async function executeVetSmartCareAction(recId, status) {
 //    ✅ May medical history
 // ═══════════════════════════════════════════════════════════════════
 function showTodayPatientDetails(appointmentId) {
+    // ✅ Gamitin ang naka-save na data sa window._todayAppointments
     const allAppointments = window._todayAppointments || [];
     const allPets = window._allPets || [];
     const allRecordsData = window._allRecordsData || [];
     
     const app = allAppointments.find(a => a.id === appointmentId);
     if (!app) {
-        alert('Appointment not found.');
+        // Fallback kung sakaling hindi nahanap (halimbawa, galing sa Upcoming Patients)
+        // Mag-fetch ng data mula sa server
+        fetch('/api/vet/today-patients')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.appointments) {
+                    window._todayAppointments = data.appointments;
+                    showTodayPatientDetails(appointmentId); // I-retry
+                } else {
+                    showToast('Appointment not found.', 'error');
+                }
+            })
+            .catch(() => showToast('Error loading appointment details.', 'error'));
         return;
     }
     
@@ -2619,31 +3468,47 @@ function closePetDetailsModal() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// ✅ UPDATED: loadRecentRecords() — May "Completed" badge na
-//              katulad ng nasa pangalawang screenshot.
+// ✅ BULLETPROOF: Load Recent Records (Direct Fetch & Safe Rendering)
 // ═══════════════════════════════════════════════════════════════════
 async function loadRecentRecords() {
     const tbody = document.getElementById('recentRecordsTable');
     if (!tbody) return;
     
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="6" style="text-align: center; color: #94a387; padding: 30px;">
+                <i class="fas fa-spinner fa-spin"></i> Loading recent records...
+            </td>
+        </tr>
+    `;
+    
     try {
+        // ✅ Direktang kumuha ng sariwang data (walang cache issues)
         const [recRes, petsRes] = await Promise.all([
             fetch('/api/medical-records'),
             fetch('/api/all-pets')
         ]);
+        
         const data = await recRes.json();
         const petsData = await petsRes.json();
         
         const allPetsForLookup = (petsData.success && petsData.pets) ? petsData.pets : [];
         
+        // Update global cache para may magamit sa ibang functions
+        window._allPets = allPetsForLookup;
+        allPetsCache = allPetsForLookup;
+        
         if (data.success && data.records && data.records.length > 0) {
+            // Kunin lang ang top 5 pinakabagong records
             const recent = data.records.slice(0, 5);
             tbody.innerHTML = '';
+            
             recent.forEach(record => {
+                // Safe fallback kung wala sa cache ang pet
                 const petForRecord = allPetsForLookup.find(p => p.id === record.pet_id);
                 const ownerEmail = petForRecord ? (petForRecord.owner_email || petForRecord.customer_email || '—') : '—';
                 
-                // ✅ I-PARSE ANG TREATMENT PARA MAY COLOR CODING AT LABELS
+                // Parse treatment safely
                 let treatmentHTML = '—';
                 if (record.treatment) {
                     const diagnosisMatch = record.treatment.match(/\[Diagnosis Treatment\]\s*([^|]+)/);
@@ -2664,7 +3529,6 @@ async function loadRecentRecords() {
                     }
                 }
                 
-                // ✅ COMPLETED BADGE - katulad ng nasa All Medical Records table
                 const completedBadgeHTML = `
                     <span style="
                         display: inline-flex;
@@ -2685,17 +3549,20 @@ async function loadRecentRecords() {
                     </span>
                 `;
                 
+                // ✅ SAFE RENDER: Kahit walang pet data, gagana pa rin
+                const safePet = petForRecord || { name: record.pet_name, pet_type: 'Dog' };
+                
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td data-label="Date">${record.visit_date}</td>
+                    <td data-label="Date">${record.visit_date || 'N/A'}</td>
                     <td data-label="Pet">
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            ${renderPetAvatar(petForRecord, 26)}
-                            <span>${record.pet_name}</span>
+                            ${renderPetAvatar(safePet, 26)}
+                            <span>${record.pet_name || 'Unknown Pet'}</span>
                         </div>
                     </td>
                     <td data-label="Owner"><span style="font-size: 12px; color: #64748b; word-break: break-all;">${ownerEmail}</span></td>
-                    <td data-label="Diagnosis">${record.diagnosis}</td>
+                    <td data-label="Diagnosis">${record.diagnosis || '—'}</td>
                     <td data-label="Treatment">${treatmentHTML}</td>
                     <td data-label="Status">${completedBadgeHTML}</td>
                 `;
@@ -2812,21 +3679,52 @@ function searchPatients(query) {
     });
 }
 
-function viewPetRecords(petId) {
+async function viewPetRecords(petId) {
     showTab('medical');
-    setTimeout(() => {
-        currentPetFilter = petId;
-        renderRecordsTable();
-        showPetFilterNotice(petId);
-    }, 300);
+    
+    const tbody = document.getElementById('allRecordsTable');
+    if (tbody) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align: center; color: #64748b; padding: 30px;">
+                    <i class="fas fa-spinner fa-spin"></i> Loading medical records...
+                </td>
+            </tr>
+        `;
+    }
+    
+    try {
+        const res = await fetch('/api/medical-records');
+        const data = await res.json();
+        
+        if (data.success) {
+            allRecords = data.records || [];
+            currentPetFilter = petId;
+            renderRecordsTable();
+            showPetFilterNotice(petId);
+        }
+    } catch (error) {
+        console.error('Error loading records:', error);
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" style="text-align: center; color: #ef4444; padding: 30px;">
+                        <i class="fas fa-times-circle"></i> Error loading records. Please try again.
+                    </td>
+                </tr>
+            `;
+        }
+    }
 }
 
 function showPetFilterNotice(petId) {
     const existing = document.getElementById('petFilterNotice');
     if (existing) existing.remove();
     
-    const pet = allRecords.find(r => r.pet_id === petId);
-    if (!pet) return;
+    const petsList = window._allPets || allPetsCache || [];
+    const pet = petsList.find(p => p.id === petId);
+    
+    const petName = pet ? pet.name : 'this Pet';
     
     const notice = document.createElement('div');
     notice.id = 'petFilterNotice';
@@ -2845,18 +3743,17 @@ function showPetFilterNotice(petId) {
         flex-wrap: wrap;
     `;
     notice.innerHTML = `
-        <span><i class="fas fa-filter"></i> Showing records for <strong>${pet.pet_name}</strong></span>
+        <span><i class="fas fa-filter"></i> Showing records for <strong>${petName}</strong></span>
         <button onclick="clearPetFilter()" style="background: transparent; border: none; color: #ef4444; cursor: pointer; font-size: 12px; font-weight: 600; font-family: 'Poppins', sans-serif;">
             <i class="fas fa-times"></i> Clear Filter
         </button>
     `;
     
-    const table = document.getElementById('allRecordsTable');
-    if (table && table.parentNode) {
-        table.parentNode.parentNode.insertBefore(notice, table.parentNode);
+    const tableContainer = document.querySelector('#tabMedical .card > div[style*="overflow-x: auto"]');
+    if (tableContainer) {
+        tableContainer.parentNode.insertBefore(notice, tableContainer);
     }
 }
-
 function clearPetFilter() {
     currentPetFilter = null;
     const notice = document.getElementById('petFilterNotice');
@@ -2902,12 +3799,6 @@ async function loadAllRecords() {
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// ✅ UPDATED: renderRecordsTable() — MAY COMPLETED LABEL NA
-// ── Ang bawat record ay may "Completed" badge dahil tapos na
-// ── Ang Diagnosis Treatment ay RED (label red, text normal)
-// ── Ang Service Treatment ay BLUE (label blue, text normal)
-// ═══════════════════════════════════════════════════════════════════
 function renderRecordsTable() {
     const tbody = document.getElementById('allRecordsTable');
     if (!tbody) return;
@@ -2945,7 +3836,6 @@ function renderRecordsTable() {
         const petForRecord = (window._allPets || allPetsCache || []).find(p => p.id === record.pet_id);
         const ownerEmail = petForRecord ? (petForRecord.owner_email || petForRecord.customer_email || '—') : '—';
         
-        // ✅ I-PARSE ANG TREATMENT PARA MAY COLOR CODING AT LABELS
         let treatmentHTML = '—';
         if (record.treatment) {
             const diagnosisMatch = record.treatment.match(/\[Diagnosis Treatment\]\s*([^|]+)/);
@@ -2966,7 +3856,6 @@ function renderRecordsTable() {
             }
         }
         
-        // ✅ COMPLETED BADGE - dahil may medical record na, tapos na ang pasyente
         const completedBadgeHTML = `
             <span style="
                 display: inline-flex;
@@ -3097,6 +3986,13 @@ function selectPetOption(petId, label) {
     const customSelect = document.getElementById('petCustomSelect');
     if (customSelect) customSelect.classList.remove('open');
     
+    selectedDiagnosisValues = [];
+    selectedAllergiesValues = [];
+    updateCustomDropdownLabel('diagnosis');
+    updateCustomDropdownLabel('allergies');
+    
+    loadDropdownOptionsForPet(petId);
+    
     if (typeof window.loadPetFullDetailsForRecord === 'function') {
         window.loadPetFullDetailsForRecord(petId);
     }
@@ -3109,10 +4005,6 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// ═══════════════════════════════════════════════════════════════════
-// ✅ Helper: Get LOCAL date string (YYYY-MM-DD) — FIXED timezone issue
-//    Hindi na gumagamit ng UTC para maiwasan ang 1-day offset
-// ═══════════════════════════════════════════════════════════════════
 function getLocalDateString(date = new Date()) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -3125,20 +4017,24 @@ function showAddRecordModal() {
     document.getElementById('recordModalTitle').textContent = 'Add Medical Record';
     document.getElementById('recordId').value = '';
     
-    // ✅ I-reset ang appointment_id hidden field
     const appointmentIdInput = document.getElementById('recordAppointmentId');
     if (appointmentIdInput) appointmentIdInput.value = '';
     
     document.getElementById('recordForm').reset();
-    
-    // ✅ FIXED: Gumamit ng LOCAL date string — hindi valueAsDate
-    //    (valueAsDate ay UTC-based, nagdudulot ng 1-day offset)
     document.getElementById('recordDate').value = getLocalDateString();
     
     document.getElementById('recordSubmitBtn').innerHTML = '<i class="fas fa-save"></i> Save Record';
     
     document.getElementById('recordPet').value = '';
     document.getElementById('petSelectLabel').textContent = 'Choose a pet...';
+    
+    resetDiagnosisAndAllergiesDropdowns();
+    
+    const diagContainer = document.getElementById('diagnosisOptionsContainer');
+    if (diagContainer) diagContainer.innerHTML = '';
+    
+    const allergyContainer = document.getElementById('allergiesOptionsContainer');
+    if (allergyContainer) allergyContainer.innerHTML = '';
     
     if (typeof window.resetAutoFilledSections === 'function') {
         window.resetAutoFilledSections();
@@ -3331,10 +4227,31 @@ async function submitRecord(e) {
     const recordId = document.getElementById('recordId').value;
     const pet_id = document.getElementById('recordPet').value;
     const appointment_id_input = document.getElementById('recordAppointmentId');
-    const appointment_id = appointment_id_input ? appointment_id_input.value : null;  // ✅ BAGO
+    const appointment_id = appointment_id_input ? appointment_id_input.value : null;
     const visit_date = document.getElementById('recordDate').value;
-    const diagnosis = document.getElementById('recordDiagnosis').value.trim();
     
+    const selectedDiagnosis = (typeof selectedDiagnosisValues !== 'undefined') ? selectedDiagnosisValues : [];
+    const selectedAllergies = (typeof selectedAllergiesValues !== 'undefined') ? selectedAllergiesValues : [];
+    
+    let finalDiagnosis = '';
+    
+    if (selectedDiagnosis.length > 0) {
+        finalDiagnosis += selectedDiagnosis.join(', ');
+    }
+    
+    if (selectedAllergies.length > 0) {
+        if (finalDiagnosis) {
+            finalDiagnosis += ' | Allergies: ' + selectedAllergies.join(', ');
+        } else {
+            finalDiagnosis = 'Allergies: ' + selectedAllergies.join(', ');
+        }
+    }
+    
+    const manualDiagnosis = document.getElementById('recordDiagnosis').value.trim();
+    if (!finalDiagnosis && manualDiagnosis) {
+        finalDiagnosis = manualDiagnosis;
+    }
+
     const treatmentDiagnosisEl = document.getElementById('recordTreatmentDiagnosis');
     const serviceEl = document.getElementById('recordService');
     const treatmentServiceEl = document.getElementById('recordTreatmentService');
@@ -3346,8 +4263,8 @@ async function submitRecord(e) {
     const prescription = document.getElementById('recordPrescription').value.trim();
     const notes = document.getElementById('recordNotes').value.trim();
     
-    if (!pet_id || !visit_date || !diagnosis) {
-        showToast('❌ Please fill in all required fields (Pet, Visit Date, Diagnosis).', 'error');
+    if (!pet_id || !visit_date || !finalDiagnosis) {
+        showToast('❌ Please fill in all required fields (Pet, Visit Date, Diagnosis/Allergies).', 'error');
         return;
     }
     
@@ -3377,7 +4294,7 @@ async function submitRecord(e) {
         
         const body = isEdit 
             ? { 
-                diagnosis, 
+                diagnosis: finalDiagnosis, 
                 treatment: combinedTreatment, 
                 prescription, 
                 notes: combinedNotes, 
@@ -3385,9 +4302,9 @@ async function submitRecord(e) {
             }
             : { 
                 pet_id, 
-                appointment_id: appointment_id || null,  // ✅ BAGONG FIELD
+                appointment_id: appointment_id || null,
                 visit_date, 
-                diagnosis, 
+                diagnosis: finalDiagnosis, 
                 treatment: combinedTreatment, 
                 prescription, 
                 notes: combinedNotes 
@@ -3403,10 +4320,27 @@ async function submitRecord(e) {
         if (data.success) {
             showToast('✅ Medical record saved successfully!', 'success');
             closeAddRecordModal();
-            loadAllRecords();
-            loadStats();
-            loadTodayPatients();   // ✅ Ito na ang nagre-refresh ng Today's Patients
-            loadRecentRecords();   // ✅ I-refresh din ang Recent Records
+            
+            // ═══════════════════════════════════════════════════════════
+            // ✅ SYSTEMATIC REFRESH PARA WALANG RACE CONDITION
+            // ═══════════════════════════════════════════════════════════
+            
+            // STEP 1: I-refresh ang Stats Cards agad para mag-update ang count
+            // (Kukunin nito yung bagong total records at today's count)
+            await loadStats();
+            
+            // STEP 2: I-refresh ang lahat ng tables nang sunod-sunod
+            // (Tinitiyak nito na updated na ang array data bago mag-render)
+            await loadAllRecords();
+            await loadRecentRecords();
+            await loadTodayPatients();
+            await loadUpcomingPatients();
+            
+            // STEP 3: (Optional) Kung may reference sa ibang parts, i-refresh din
+            if (typeof window.refreshVetUnreadBadge === 'function') {
+                window.refreshVetUnreadBadge();
+            }
+            
         } else {
             showToast('❌ ' + (data.message || 'Error saving record.'), 'error');
         }
@@ -3644,10 +4578,6 @@ function parseMLData(rec) {
     return result;
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// ✅ FIXED: searchMLRecommendations() — Ngayon ay nagfi-filter na
-//          at nagre-render ng filtered results nang tama.
-// ═══════════════════════════════════════════════════════════════════
 function searchMLRecommendations() {
     const container = document.getElementById('mlRecommendationsContainer');
     if (!container) return;
@@ -3655,7 +4585,6 @@ function searchMLRecommendations() {
     const searchInput = document.getElementById('mlSearchInput');
     const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
     
-    // ── Filter recommendations by search term ────────────────────
     let filteredRecommendations = mlRecommendations;
     
     if (searchTerm) {
@@ -3675,22 +4604,15 @@ function searchMLRecommendations() {
         });
     }
     
-    // ── Render filtered results ──────────────────────────────────
     renderMLRecommendations(filteredRecommendations, searchTerm);
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// ✅ UPDATED: renderMLRecommendations() — Tumatanggap na ng
-//          recommendationsToRender parameter at searchTerm.
-// ═══════════════════════════════════════════════════════════════════
 function renderMLRecommendations(recommendationsToRender, searchTerm = '') {
     const container = document.getElementById('mlRecommendationsContainer');
     if (!container) return;
     
-    // ── Determine which list to render ───────────────────────────
     const listToRender = recommendationsToRender || mlRecommendations;
     
-    // ── If no ML recommendations at all ──────────────────────────
     if (mlRecommendations.length === 0) {
         container.innerHTML = `
             <div style="text-align: center; color: #94a387; padding: 50px 20px; grid-column: 1 / -1; background: #f9fcf6; border-radius: 16px; border: 1px dashed #d4e5c4;">
@@ -3702,7 +4624,6 @@ function renderMLRecommendations(recommendationsToRender, searchTerm = '') {
         return;
     }
     
-    // ── If search returns no results ─────────────────────────────
     if (listToRender.length === 0) {
         container.innerHTML = `
             <div style="text-align: center; color: #94a387; padding: 50px 20px; grid-column: 1 / -1; background: #f9fcf6; border-radius: 16px; border: 1px dashed #d4e5c4;">
@@ -4102,9 +5023,7 @@ async function validateMLRecommendation(recId, status) {
                             justify-content: center;
                             gap: 6px;
                             transition: all 0.25s ease;
-                        "
-                        onmouseover="this.style.background='#cbd5e1'; this.style.transform='translateY(-1px)'"
-                        onmouseout="this.style.background='#e2e8f0'; this.style.transform='translateY(0)'">
+                        ">
                     <i class="fas fa-times"></i> Cancel
                 </button>
                 <button type="button" 
@@ -4127,9 +5046,7 @@ async function validateMLRecommendation(recId, status) {
                             gap: 6px;
                             box-shadow: ${actionButtonShadow};
                             transition: all 0.25s ease;
-                        "
-                        onmouseover="this.style.transform='translateY(-2px)'"
-                        onmouseout="this.style.transform='translateY(0)'">
+                        ">
                     <i class="fas ${actionIcon}"></i> ${actionButtonText}
                 </button>
             </div>
@@ -4190,6 +5107,8 @@ async function executeValidateMLRecommendation(recId, status) {
             closeMLModal();
             
             loadMLRecommendations();
+            loadTodayPatients();
+            loadUpcomingPatients();
             loadStats();
         } else {
             showToast(data.message || 'Error validating recommendation.', 'error');
@@ -4205,22 +5124,159 @@ function closeMLModal() {
     currentMLRecord = null;
 }
 
-function confirmLogout() {
-    const modal = document.getElementById('logoutConfirmModal');
+// ═══════════════════════════════════════════════════════════════════
+// ✅ VET LOGOUT CONFIRMATION MODAL (Gaya ng admin)
+// ═══════════════════════════════════════════════════════════════════
+
+function showVetLogoutModal() {
+    // Iwasan ang duplicate
+    const existing = document.getElementById('vetLogoutConfirmModal');
+    if (existing) existing.remove();
+    
+    const overlay = document.createElement('div');
+    overlay.id = 'vetLogoutConfirmModal';
+    overlay.className = 'modal-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(45, 62, 31, 0.55);
+        backdrop-filter: blur(6px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+        padding: 20px;
+        animation: fadeIn 0.25s ease;
+        box-sizing: border-box;
+    `;
+    
+    overlay.innerHTML = `
+        <div class="modal-popup" style="
+            background: #ffffff;
+            border-radius: 22px;
+            padding: 36px 30px 30px;
+            max-width: 440px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid #d4e5c4;
+            box-shadow: 0 25px 60px rgba(45, 62, 31, 0.3);
+            position: relative;
+            animation: slideUp 0.3s ease;
+            box-sizing: border-box;
+        ">
+            <div style="
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 76px;
+                height: 76px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, rgba(123, 160, 91, 0.15), rgba(90, 122, 63, 0.15));
+                color: #7ba05b;
+                font-size: 34px;
+                margin-bottom: 18px;
+            ">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+            
+            <h3 style="
+                color: #5a7a3f;
+                font-size: 24px;
+                font-weight: 700;
+                margin: 0 0 12px 0;
+                font-family: 'Poppins', sans-serif;
+            ">
+                Logout Confirmation
+            </h3>
+            
+            <p style="
+                color: #64748b;
+                font-size: 14.5px;
+                line-height: 1.6;
+                margin: 0 0 26px 0;
+                font-family: 'Poppins', sans-serif;
+            ">
+                Are you sure you want to logout? You'll need to sign in again to access your veterinarian panel.
+            </p>
+            
+            <div style="display: flex; gap: 12px; justify-content: center;">
+                <button type="button" 
+                        onclick="closeVetLogoutModal()" 
+                        style="
+                            flex: 1;
+                            padding: 13px 22px;
+                            border-radius: 12px;
+                            border: none;
+                            background: #e2e8f0;
+                            color: #475569;
+                            font-size: 14px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            font-family: 'Poppins', sans-serif;
+                            transition: all 0.25s ease;
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 8px;
+                        ">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="button" 
+                        onclick="executeVetLogout()" 
+                        style="
+                            flex: 1;
+                            padding: 13px 22px;
+                            border-radius: 12px;
+                            border: none;
+                            background: linear-gradient(135deg, #ef4444, #dc2626);
+                            color: #ffffff;
+                            font-size: 14px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            font-family: 'Poppins', sans-serif;
+                            transition: all 0.25s ease;
+                            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.35);
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 8px;
+                        ">
+                    <i class="fas fa-sign-out-alt"></i> Yes, Logout
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    // Click sa labas para mag-close
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+            closeVetLogoutModal();
+        }
+    });
+    
+    // ESC key para mag-close
+    const escHandler = function(e) {
+        if (e.key === 'Escape') {
+            closeVetLogoutModal();
+            document.removeEventListener('keydown', escHandler);
+        }
+    };
+    document.addEventListener('keydown', escHandler);
+}
+
+function closeVetLogoutModal() {
+    const modal = document.getElementById('vetLogoutConfirmModal');
     if (modal) {
-        modal.style.display = 'flex';
+        modal.style.animation = 'fadeOut 0.2s ease';
+        setTimeout(() => modal.remove(), 200);
     }
 }
 
-function closeLogoutModal() {
-    const modal = document.getElementById('logoutConfirmModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-}
-
-async function executeLogout() {
-    closeLogoutModal();
+async function executeVetLogout() {
+    closeVetLogoutModal();
     
     try {
         await fetch('/logout');
@@ -4233,6 +5289,7 @@ async function executeLogout() {
         window.location.href = '/';
     } catch (error) {
         console.error('Logout error:', error);
+        // Kahit mag-fail ang fetch, i-redirect pa rin
         window.location.href = '/';
     }
 }
@@ -4244,7 +5301,7 @@ document.addEventListener('keydown', function(e) {
         closeMLModal();
         closeTodayPatientDetails();
         closePetDetailsModal();
-        closeLogoutModal();
+        closeVetLogoutModal();
         closeVetImageViewer(e);
         closeVetRecommendationModal();
         closeRemoveConditionConfirmModal();
@@ -5347,6 +6404,7 @@ async function refreshVetUnreadBadge() {
 document.addEventListener('DOMContentLoaded', function() {
     loadStats();
     loadTodayPatients();
+    loadUpcomingPatients();
     loadRecentRecords();
     initVetMessageSearch();
     refreshVetUnreadBadge();
@@ -5529,6 +6587,28 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
+// ✅ Auto-resize textareas sa Add Medical Record Modal
+document.addEventListener('DOMContentLoaded', function() {
+    const textareas = ['recordTreatmentDiagnosis', 'recordService', 'recordTreatmentService', 'recordPrescription', 'recordNotes'];
+    
+    textareas.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+        }
+    });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// ✅ EXPOSE VET LOGOUT FUNCTIONS SA WINDOW
+// ═══════════════════════════════════════════════════════════════════
+window.showVetLogoutModal = showVetLogoutModal;
+window.closeVetLogoutModal = closeVetLogoutModal;
+window.executeVetLogout = executeVetLogout;
+
 // ✅ Expose sa window
 window.toggleVetMobileSidebar = toggleVetMobileSidebar;
 window.closeVetMobileSidebar = closeVetMobileSidebar;
@@ -5618,3 +6698,6 @@ window.removeMedicalHistoryRow = removeMedicalHistoryRow;
 window.addNewMedicalHistoryRow = addNewMedicalHistoryRow;
 window.saveMedicalHistoryChanges = saveMedicalHistoryChanges;
 window.closeRemoveConditionConfirmModal = closeRemoveConditionConfirmModal;
+
+window.loadUpcomingPatients = loadUpcomingPatients;
+window.showUpcomingPatientDetails = showUpcomingPatientDetails;
