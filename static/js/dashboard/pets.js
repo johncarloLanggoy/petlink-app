@@ -2291,24 +2291,25 @@ async function showMyPetMedicalRecords(petId) {
         const pet = data.pet || {};
         const records = data.records || [];
         
+// ═══════════════════════════════════════════════════════════════
+        // ✅ VACCINATION COUNT — Bibilangin LANG kung ang SERVICE na
+        //    binook ng customer ay vaccination
+        //    (base sa [Service: ...] tag sa notes ng medical record)
         // ═══════════════════════════════════════════════════════════════
-        // ✅ VACCINATION COUNT — bilangin ang lahat ng vaccination-related
-        // ═══════════════════════════════════════════════════════════════
-        let vaccinationCount = data.vaccination_count || 0;
-        
-        if (vaccinationCount === 0 && records.length > 0) {
+        let vaccinationCount = 0;
+
+        if (records.length > 0) {
             records.forEach(rec => {
-                const diag = (rec.diagnosis || '').toLowerCase();
-                const treat = (rec.treatment || '').toLowerCase();
-                const notes = (rec.notes || '').toLowerCase();
-                
-                if (diag.includes('vaccin') || treat.includes('vaccin') || notes.includes('vaccin') ||
-                    diag.includes('rabies') || treat.includes('rabies') ||
-                    diag.includes('distemper') || treat.includes('distemper') ||
-                    diag.includes('parvo') || treat.includes('parvo') ||
-                    diag.includes('5-in-1') || treat.includes('5-in-1') ||
-                    diag.includes('4-in-1') || treat.includes('4-in-1') ||
-                    diag.includes('felv') || treat.includes('felv')) {
+                const notes = (rec.notes || '');
+
+                // Hanapin ang [Service: ...] tag sa notes
+                const serviceMatch = notes.match(/\[Service:\s*([^\]]+)\]/);
+                if (!serviceMatch) return;
+
+                const serviceName = serviceMatch[1].trim().toLowerCase();
+
+                // ✅ Check kung VACCINATION ang service na binook
+                if (serviceName.includes('vaccin')) {
                     vaccinationCount++;
                 }
             });
@@ -2322,22 +2323,7 @@ async function showMyPetMedicalRecords(petId) {
         const medDetails = parseMedicalHistoryDetails(pet.medical_history_details, pet.medical_history);
         const medEntries = Object.entries(medDetails);
         
-        // ✅ Bilangin din ang vaccination-related sa medical history
-        let historyVaccinationCount = 0;
-        medEntries.forEach(([condition]) => {
-            const condLower = (condition || '').toLowerCase().trim();
-            if (condLower.includes('vaccin') || condLower.includes('vacination') || 
-                condLower.includes('vacine') || condLower.includes('vacc') ||
-                condLower.includes('rabies') || condLower.includes('distemper') || 
-                condLower.includes('parvo') || condLower.includes('felv') || 
-                condLower.includes('5-in-1') || condLower.includes('4-in-1') || 
-                condLower.includes('kennel cough') || condLower.includes('deworming') ||
-                condLower.includes('anti-rabies') || condLower.includes('antirabies')) {
-                historyVaccinationCount++;
-            }
-        });
-        
-        const displayVaccinationCount = Math.max(vaccinationCount, historyVaccinationCount);
+        const displayVaccinationCount = vaccinationCount;
         
         // ✅ Bilangin ang medical records (from vet visits)
         const medicalRecordsCount = records.length;
